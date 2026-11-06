@@ -39,3 +39,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   el cartucho jugable con mando y sonido; arranca en Xenia (run 017); run 018 preparada.
 - 0018 (2026-11-06) — Run 018: mandos y sonido bien, tirones porque el hilo de audio de SDL corría en el hilo hardware
   de la emulación: movido al 5 (hint de SDL-xenon); salir con Back + LB + RB; run 019 preparada.
+- 0019 (2026-11-06) — Run 019: 4:3 con un jugador ya sin tirones; widescreen como el PC (16:9 con píxeles 8:7, 46 por
+  lado, la imagen entera centrada: nada cortado, el HUD quieto) y el stick por sectores; run 020 preparada.

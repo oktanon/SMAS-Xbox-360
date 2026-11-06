@@ -3,7 +3,9 @@
 // passed on the console (run 001).
 #include "platform/xenon/video_vk.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -368,7 +370,33 @@ bool VideoVk::createTexture() {
   return true;
 }
 
-bool VideoVk::present(const uint32_t* frame, int extL, int extR, int height) {
+VideoVk::Rect VideoVk::fitLayout(int extL, int extR, int height, int wantExt, bool crt) {
+  // App::computeLayout's scaling 0 (fit), for the console's one 1280x720 screen.
+  if (height <= 0 || height > kFrameH) height = 224;
+  const double par = crt ? 8.0 / 7.0 : 1.0;
+  const int sw = 256 + extL + extR;
+  const int fullSw = std::max(sw, 256 + 2 * wantExt);
+  const double s = std::min(kWidth / (fullSw * par), kHeight / (double)height);
+  double dw = sw * par * s;
+  const double dh = height * s;
+  // (the margins are whole pixels: fill the last bit of a screen the aspect matches, a stretch of under two pixels)
+  if (wantExt > 0 && extL + extR >= 2 * wantExt && dw < kWidth && kWidth - dw < 2 * par * s + 1) dw = kWidth;
+  Rect r;
+  r.x = (float)std::lround((kWidth - dw) / 2);
+  r.y = (float)std::lround((kHeight - dh) / 2);
+  r.w = (float)std::lround(dw);
+  r.h = (float)std::lround(dh);
+  return r;
+}
+
+int VideoVk::wantExtFor(double aspect, bool crt, int maxExt) {
+  if (aspect <= 0) return 0;
+  const double par = crt ? 8.0 / 7.0 : 1.0;
+  const int e = (int)std::floor((224.0 * aspect / par - 256.0) / 2.0);
+  return std::clamp(e, 0, maxExt);
+}
+
+bool VideoVk::present(const uint32_t* frame, int extL, int extR, int height, const Rect& rect) {
   Slot& s = slots_[slot_];
   slot_ = (slot_ + 1) % kSlots;
   const uint64_t t0 = nowUs();
@@ -386,19 +414,13 @@ bool VideoVk::present(const uint32_t* frame, int extL, int extR, int height) {
     return false;
   const uint64_t t3 = nowUs();
 
-  // The picture: the height filled, 4:3 for the 256 pixels (the PC port's default aspect), the margins on either side
-  // at that width, the 4:3 part centred (wider than the screen at the widest margins: cut at its edges).
   if (height <= 0 || height > kFrameH) height = 224;
-  const float sy = (float)kHeight / (float)height;
-  const float sx = sy * 7.0f / 6.0f;  // (256 x 224 as 4:3: 4/3 * 224/256 = 7/6; 3.75 at 224 lines)
-  const float left = kWidth / 2.0f - 128.0f * sx - (float)extL * sx;
-  const float width = (256.0f + (float)extL + (float)extR) * sx;
   Push push{};
-  push.scale[0] = width / (kWidth / 2.0f);
-  push.scale[1] = (float)height * sy / (kHeight / 2.0f);
+  push.scale[0] = rect.w / (kWidth / 2.0f);
+  push.scale[1] = rect.h / (kHeight / 2.0f);
   push.scale[2] = push.scale[3] = 1.0f;
-  push.offset[0] = left / (kWidth / 2.0f) - 1.0f;
-  push.offset[1] = -1.0f;
+  push.offset[0] = rect.x / (kWidth / 2.0f) - 1.0f;
+  push.offset[1] = rect.y / (kHeight / 2.0f) - 1.0f;
   push.uv[0] = (256.0f + (float)extL + (float)extR) / (float)kLineW;
   push.uv[1] = (float)height / (float)kFrameH;
   push.uv[2] = (float)(kMaxExt - extL) / (float)kLineW;

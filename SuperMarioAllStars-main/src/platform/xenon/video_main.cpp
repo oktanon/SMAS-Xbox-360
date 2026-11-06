@@ -49,12 +49,13 @@ bool testPattern() {
   std::vector<uint32_t> frame((size_t)kLineW * kFrameH, 0);
   for (int y = 0; y < 224; y++)
     for (int x = 0; x < 256; x++) frame[(size_t)y * kLineW + kMaxExt + x] = bars[x / 64].value;
+  const VideoVk::Rect rect = VideoVk::fitLayout(0, 0, 224, 0, true);
   for (int i = 0; i < 180; i++)
-    if (!g_video.present(frame.data(), 0, 0, 224)) return false;
-  // the picture is 960 px wide from x 160 (3.75 px a pixel); each bar's middle, half way down
+    if (!g_video.present(frame.data(), 0, 0, 224, rect)) return false;
+  // each bar's middle, half way down
   bool all = true;
   for (int k = 0; k < 4; k++) {
-    const int sx = 160 + (int)((k * 64 + 32) * 3.75f), sy = 360;
+    const int sx = (int)(rect.x + (k * 64 + 32) * rect.w / 256.0f), sy = (int)(rect.y + rect.h / 2);
     int r = -1, g = -1, b = -1;
     const bool read = g_video.screenPixel(sx, sy, &r, &g, &b);
     const bool good = read && std::abs(r - bars[k].r) <= 2 && std::abs(g - bars[k].g) <= 2 &&
@@ -74,7 +75,9 @@ uint32_t g_frames = 0, g_over = 0;
 void showFrame(Snes& snes) {
   const uint64_t t0 = nowUs();
   const uint64_t emu = g_lastHook ? t0 - g_lastHook : 0;
-  g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight());
+  const VideoVk::Rect r = VideoVk::fitLayout(snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(),
+                                       (snes.ppu.extL + snes.ppu.extR) / 2, true);
+  g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(), r);
   const uint64_t t1 = nowUs();
   const VideoVk::Stats vs = g_video.takeStats();
   // the frame's own work: the emulation since the last frame, the copy and the submit; not the waits (vblank)

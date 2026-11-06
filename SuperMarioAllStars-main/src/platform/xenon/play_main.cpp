@@ -3,7 +3,8 @@
 // dos últimos con la misma interfaz que usa la app, y los botones como la app los asigna por defecto
 // (Config::setDefaults, App::readPlayer: posiciones de Xbox, abajo = B de SNES, derecha = A; el stick izquierdo
 // también mueve; Back = Select, ya que aquí no hay menú). Dos jugadores (mandos 1 y 2).
-// - El stick derecho pulsado cambia entre 4:3 y widescreen 64.
+// - El stick derecho pulsado cambia entre 4:3 y widescreen (el margen que pide la pantalla 16:9 con píxeles 8:7,
+//   como el aspecto Auto del port de PC: 46 por lado), con la imagen como la coloca el PC (VideoVk::fitLayout).
 // - La Guía abierta pausa el juego y el sonido.
 // - Back + LB + RB 3 segundos: salir al dashboard (Back + Start saca una captura en el dashboard, run 018).
 // El log (game:\smas_jugar.log): cada mando que se conecta, la primera vez que se pulsa cada botón de la SNES en
@@ -53,10 +54,12 @@ uint16_t readPlayer(int p) {
   bool act[kActCount];
   for (int a = 0; a < kActCount; a++) act[a] = g_input.active(g_cfg.pad[p][a], padIdx, dz);
   if (const PadState* ps = g_input.pad(padIdx)) {
-    act[kActLeft] |= ps->axes[0] < -dz;
-    act[kActRight] |= ps->axes[0] > dz;
-    act[kActUp] |= ps->axes[1] < -dz;
-    act[kActDown] |= ps->axes[1] > dz;
+    bool l, r, u, d;  // (by sectors: Input::stickToDpad)
+    Input::stickToDpad(ps->axes[0], ps->axes[1], dz, &l, &r, &u, &d);
+    act[kActLeft] |= l;
+    act[kActRight] |= r;
+    act[kActUp] |= u;
+    act[kActDown] |= d;
   }
   uint16_t v = 0;
   if (act[kActUp]) v |= kPadUp;
@@ -159,7 +162,8 @@ int main()
       std::printf("guía %s\n", ui ? "abierta: pausa" : "cerrada: sigue");
     }
     if (ui) {
-      g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight());
+      g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(),
+                    VideoVk::fitLayout(snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(), wide, true));
       continue;
     }
 
@@ -176,7 +180,7 @@ int main()
     const PadState* pad0 = g_input.pad(0);
     const bool rs = pad0 && pad0->buttons[9];
     if (rs && !prevRs) {
-      wide = wide ? 0 : 64;
+      wide = wide ? 0 : VideoVk::wantExtFor(16.0 / 9.0, true, SmasGame::kMaxSupportedExt);
       game.setWidescreen(wide);
       std::printf("widescreen %d\n", wide);
     }
@@ -194,7 +198,8 @@ int main()
     snes.takeAudio(samples);
     g_audio.push(samples.data(), samples.size() / 2, Snes::kSampleRate);
     const uint64_t t1 = nowUs();
-    g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight());
+    g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(),
+                    VideoVk::fitLayout(snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(), wide, true));
     const VideoVk::Stats vs = g_video.takeStats();
     inputUs += tRun - tIn;
     runUs += tPush - tRun;

@@ -182,3 +182,20 @@ void Input::rumble(int padIdx, float low, float high, int ms) {
   auto u16 = [](float v) { return (Uint16)(v <= 0 ? 0 : v >= 1 ? 0xffff : v * 65535.0f); };
   SDL_RumbleGamepad(ctl_[padIdx], u16(low), u16(high), (Uint32)(ms < 0 ? 0 : ms));
 }
+
+void Input::stickToDpad(float x, float y, float dz, bool* left, bool* right, bool* up, bool* down) {
+  *left = *right = *up = *down = false;
+  const float ax = x < 0 ? -x : x, ay = y < 0 ? -y : y;
+  if (ax * ax + ay * ay <= dz * dz) return;
+  constexpr float kTan40 = 0.8391f, kTan65 = 2.1445f;
+  const bool vertical = ay > ax * kTan40;    // beyond 40 degrees from the horizontal
+  const bool horizontal = ay < ax * kTan65;  // within 65 degrees of it
+  if (horizontal) {
+    *left = x < 0;
+    *right = x > 0;
+  }
+  if (vertical) {
+    *up = y < 0;
+    *down = y > 0;
+  }
+}

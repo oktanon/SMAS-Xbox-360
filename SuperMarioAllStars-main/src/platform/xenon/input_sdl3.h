@@ -44,6 +44,12 @@ public:
   // Rumble on a pad, low and high motors 0..1, for `ms` (0 stops it). (The PC port doesn't use it yet.)
   void rumble(int padIdx, float low, float high, int ms);
 
+  // A stick as a D-pad, by sectors (run 019: a stick a little down while running made Mario crouch, as SMB1 stops
+  // on Down): past the deadzone, up or down only beyond 40 degrees from the horizontal, left or right only within 65
+  // degrees of it, both between 40 and 65. The PC port takes each axis on its own (App::readPlayer: |x| > dz,
+  // |y| > dz), which makes anything near a diagonal both.
+  static void stickToDpad(float x, float y, float deadzone, bool* left, bool* right, bool* up, bool* down);
+
 private:
   bool keys_[256] = {};
   bool prevKeys_[256] = {};

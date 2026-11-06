@@ -13,9 +13,21 @@ public:
   bool init();  // false: the log says which call failed
   void shutdown();
 
+  // Where the picture goes on the 1280x720 screen, in pixels.
+  struct Rect {
+    float x = 0, y = 0, w = 0, h = 0;
+  };
+  // The PC port's "fit" layout (App::computeLayout, scaling 0): the whole picture (256 + extL + extR pixels by
+  // `height` lines) as big as fits, centred (so a lopsided margin moves the 4:3 part, not the HUD the game pins to
+  // the picture's edges), with 8:7 pixels (`crt`, the PC port's default) or square ones; `wantExt` the margin asked
+  // for (the scale is the full wide picture's, as the PC port keeps it while the game shows a 4:3 screen).
+  static Rect fitLayout(int extL, int extR, int height, int wantExt, bool crt);
+  // The margin the PC port asks for to fill a screen of this aspect (0: 4:3), as App::computeLayout.
+  static int wantExtFor(double aspect, bool crt, int maxExt);
+
   // Shows the frame buffer `frame` (kLineW x kFrameH, 0x00RRGGBB): its columns kMaxExt - extL .. kMaxExt + 256 +
-  // extR, its first `height` lines (224, or 239 with overscan). Waits for a swapchain image (FIFO).
-  bool present(const uint32_t* frame, int extL, int extR, int height);
+  // extR, its first `height` lines (224, or 239 with overscan), in `rect`. Waits for a swapchain image (FIFO).
+  bool present(const uint32_t* frame, int extL, int extR, int height, const Rect& rect);
 
   // A pixel of the picture on screen now, read back from the front buffer (r, g, b 0..255); false if the front buffer
   // shown isn't one of the swapchain's.
