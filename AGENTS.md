@@ -219,7 +219,8 @@ Puntos de riesgo que hay que tratar explícitamente:
     del framebuffer. Toda diferencia es un error de bytes (o de float). Así no se gasta una run de consola por
     intento. Xenia no sirve para esto. Scripts en `SuperMarioAllStars-main/xenon/qemu/` (`build.sh`, `compare.sh`,
     `guion.txt`, `guion_control.txt`); cómo usarlos en `docs/ENDIANNESS.md` §2.1. **Pasar `compare.sh` después de
-    cualquier cambio en `src/core`, `src/game` o en código común de `src/app` que entre en smastool.**
+    cualquier cambio en `src/core`, `src/game` o en código común de `src/app` que entre en smastool, y
+    `compare_ppu.sh` (frame a frame, con y sin `SMAS_PPU_FAST`) después de tocar la PPU.**
   - **Hito 1b hecho (run 004):** el núcleo y los juegos dan lo mismo en big-endian que en x86 sin cambiar nada; el
     control negativo (run 005) demuestra que la comparación detecta las diferencias. Falta la consola (GCC de xsdk,
     newlib).

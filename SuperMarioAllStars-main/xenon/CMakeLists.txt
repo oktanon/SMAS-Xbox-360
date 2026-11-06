@@ -38,7 +38,7 @@ function(smas_hito2_variant suffix opt)
   target_include_directories(smascore${suffix} PUBLIC ${SRC})
   set_target_properties(smascore${suffix} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
   target_compile_options(smascore${suffix} PUBLIC ${opt} -ffp-contract=off -fno-strict-aliasing)
-  target_compile_definitions(smascore${suffix} PUBLIC SMAS_XENON SMAS_BIG_ENDIAN)
+  target_compile_definitions(smascore${suffix} PUBLIC SMAS_XENON SMAS_BIG_ENDIAN SMAS_PPU_FAST)
 
   # smastool con su main renombrado y un main de Xbox (src/platform/xenon/hito2_main.cpp)
   add_library(smastool_obj${suffix} OBJECT ${GAME_DIR}/tools/smastool.cpp)

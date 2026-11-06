@@ -1,0 +1,162 @@
+# Comparación frame a frame de la PPU (docs/PERFORMANCE.md §3.1): la misma build de smastool con y sin
+# SMAS_PPU_FAST (las versiones rápidas de renderBg y composeLine) debe dar el mismo hash de imagen en cada frame.
+# Lo ejecuta xenon/qemu/compare_ppu.sh. Recorre los cuatro juegos por muchos niveles (fondos de 2, 4 y 8 bpp, tiles
+# de 16x16, ventanas, color math, degradados), con widescreen, high frame rate, trucos, paleta y co-op.
+
+# Encendido, título y menú de All-Stars
+pichash 300 arranque
+press start 4 0
+pichash 200 menu
+
+# SMB1: superficie, subterráneo, agua, castillo, puente
+warp 1 1 1
+waitload 3000
+hold right+b
+pichash 300 smb1_1-1
+press right+b+a 30 0
+pichash 120 smb1_1-1b
+warp 1 1 2
+waitload 3000
+hold right+b
+pichash 300 smb1_1-2
+warp 1 2 2
+waitload 3000
+hold right
+pichash 300 smb1_2-2
+warp 1 4 4
+waitload 3000
+hold right+b
+pichash 300 smb1_4-4
+warp 1 8 3
+waitload 3000
+hold right+b
+pichash 300 smb1_8-3
+hold none
+
+# The Lost Levels
+warp 2 1 1
+waitload 3000
+hold right+b
+pichash 300 ll_1-1
+warp 2 3 2
+waitload 3000
+hold right
+pichash 300 ll_3-2
+warp 2 9 1
+waitload 3000
+hold right
+pichash 300 ll_9-1
+hold none
+
+# SMB2: selector de personaje, cueva, hielo, desierto, nubes
+warp 3 1 1
+waitload 3000
+hold right+b
+pichash 300 smb2_1-1
+warp 3 1 2
+waitload 3000
+hold right+b
+pichash 300 smb2_1-2
+warp 3 2 1
+waitload 3000
+hold right+b
+pichash 300 smb2_2-1
+warp 3 4 1
+waitload 3000
+hold right+b
+pichash 300 smb2_4-1
+warp 3 7 1
+waitload 3000
+hold right+b
+pichash 300 smb2_7-1
+hold none
+
+# SMB3: mapas de varios mundos, niveles, fortaleza
+warp 4 1 1
+waitload 3000
+pichash 200 smb3_mapa1
+hold right
+pichash 100 smb3_mapa1b
+hold none
+warp 4 1 2
+waitload 3000
+hold right+b
+pichash 300 smb3_1-1
+warp 4 2 1
+waitload 3000
+pichash 200 smb3_mapa2
+warp 4 3 4
+waitload 3000
+hold right
+pichash 300 smb3_3-3
+warp 4 5 1
+waitload 3000
+pichash 200 smb3_mapa5
+warp 4 7 3
+waitload 3000
+hold right+b
+pichash 300 smb3_7-2
+warp 4 8 1
+waitload 3000
+pichash 200 smb3_mapa8
+hold none
+
+# Widescreen en los cuatro
+wide 64
+warp 1 1 1
+waitload 3000
+hold right+b
+pichash 300 wide_smb1
+warp 3 1 1
+waitload 3000
+hold right+b
+pichash 300 wide_smb2
+warp 4 1 2
+waitload 3000
+hold right+b
+pichash 300 wide_smb3
+warp 2 1 1
+waitload 3000
+hold right+b
+pichash 200 wide_ll
+hold none
+
+# High frame rate (imágenes intermedias) con widescreen
+hfr 2
+warp 4 1 2
+waitload 3000
+hold right+b
+pichash 200 hfr2_smb3
+hfr 3
+warp 1 1 1
+waitload 3000
+hold right+b
+pichash 200 hfr3_smb1
+hfr 1
+wide 0
+
+# Trucos, paleta y co-op
+cheats ffffffff
+palette 1
+warp 4 1 2
+waitload 3000
+hold right+b
+pichash 300 trucos_smb3
+cheats 0
+palette 0
+coop 1
+warp 1 1 1
+waitload 3000
+hold right+b
+hold2 right+b
+pichash 300 coop_smb1
+warp 4 1 2
+waitload 3000
+pichash 300 coop_smb3
+hold none
+hold2 none
+coop 0
+
+# Reset
+reset
+pichash 300 reset

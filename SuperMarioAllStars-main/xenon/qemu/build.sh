@@ -20,7 +20,8 @@ sources=(
   tools/smastool.cpp
 )
 # -ffp-contract=off: GCC en PowerPC funde a*b+c en fmadd y x86 no; sin esto la comparación se ensucia.
-flags=(-std=c++17 -O2 -ffp-contract=off -fno-strict-aliasing -I"$game/src")
+# SMAS_PPU_FAST: la PPU rápida del port (docs/PERFORMANCE.md §3.1), la misma que lleva el .xex
+flags=(-std=c++17 -O2 -ffp-contract=off -fno-strict-aliasing -DSMAS_PPU_FAST -I"$game/src")
 
 stamp="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo sin-git)"
 if ! git -C "$root" diff --quiet HEAD -- "$game/src" "$game/tools" 2>/dev/null; then stamp="$stamp+cambios"; fi

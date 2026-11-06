@@ -21,3 +21,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   sonda de rendimiento (PPU sí/no, -O2/-O3) preparada (run 010); docs/PERFORMANCE.md.
 - 0010 (2026-11-06) — Run 010: la PPU es el 77-85 % de cada frame en la consola, `-O3` +6 %, resultados iguales;
   perfil en x86 (`renderBg` + `composeLine` = 69 %); plan del hito 2b; regla de nombres del USB corregida.
+- 0011 (2026-11-06) — Paso 1 del rendimiento: `renderBg` y `composeLine` rápidas bajo `SMAS_PPU_FAST`, idénticas
+  frame a frame (9020 frames, control negativo), 2-3× en x86; qemu-ppc igual (run 011); run 012 preparada.

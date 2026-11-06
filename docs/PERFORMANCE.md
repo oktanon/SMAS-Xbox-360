@@ -57,6 +57,30 @@ En orden; cada paso se mide en la consola (`bench`) y se comprueba que los hashe
 4. **Rewind:** 6 ms por frame guardado no cabe; revisar cada cuánto guarda la app y llevar la compresión a otro hilo.
 5. **La APU en otro hilo** solo si después de lo anterior falta margen.
 
-Herramientas: `smastool` (`bench`, `render on|off`, `hashall`), `xenon/qemu/compare.sh` para los resultados,
+### 3.1 Hecho (tarea 0011): `renderBg` y `composeLine` rápidas, bajo `SMAS_PPU_FAST`
+
+`src/core/ppu.cpp`, con los cuerpos originales intactos (en el build rápido se compilan como `renderBgGeneric` y
+`composeLineGeneric`; sin la macro, todo es el original, como en PC y Android):
+
+- `renderBg`: los fondos por tiles de 8 píxeles en vez de píxel a píxel: lo que es igual en toda la línea
+  (desplazamientos, fila del mapa) se calcula una vez, los bitplanes pasan a píxeles con tablas (`kPlane`) en vez de un
+  bucle de bits, y los píxeles del tile se sacan de registros (nada de guardar y releer: load-hit-store). Los márgenes
+  del widescreen también, llamando al gancho del juego (`fetchWideTile`) exactamente cuando lo hacía el original.
+  Van por el original solo offset-per-tile (modos 2/4/6), mosaico y color directo.
+- `composeLine`: por línea, cada (capa, prioridad) recibe su puesto en la lista de prioridades como rango; cada píxel
+  toma la capa de rango menor (5 lecturas y mínimos sin saltos) en vez de recorrer la lista con saltos. Las
+  decisiones de clip y color math que dependen solo de la línea, en tablas.
+
+**Comprobación:** `xenon/qemu/compare_ppu.sh` compila smastool x86 con y sin `SMAS_PPU_FAST` y compara el hash de
+la imagen (con las intermedias del High Frame Rate) **frame a frame** en `guion_ppu.txt`: 9020 frames de los cuatro
+juegos (16 niveles y mapas, widescreen, High Frame Rate 2 y 3, trucos, paleta, co-op, reset): **iguales**. Control
+negativo (`compare_ppu.sh <carpeta> control`, un bit de color en un píxel de BG1): **distintos**. En qemu-ppc (run
+011) las 22 líneas son las mismas que la x86 original de la run 004.
+
+**x86 (ms de PPU por frame, original → rápida):** menú 1,35 → 0,46-0,55; SMB1 2,04 → ~0,87; SMB2 2,15 → ~0,90;
+SMB3 1,72 → ~0,94; widescreen 64: 3,11 → 1,96 ms el frame entero; co-op 1,58 → ~0,77. Entre 2 y 3 veces. La consola
+lo dirá (run 012); el `composeLine` sin saltos está pensado para ella (en x86 rinde como la primera versión).
+
+Herramientas: `smastool` (`bench`, `render on|off`, `hashall`, `pichash`), `xenon/qemu/compare_ppu.sh`, `xenon/qemu/compare.sh` para los resultados,
 `xenon/hito2_bench.txt` para la consola, gprof en x86 para encontrar el código caliente (la proporción es parecida,
 pero los números valen solo de la consola).

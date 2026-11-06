@@ -237,6 +237,21 @@ static void execLine(const std::string& line) {
     int n = 1;
     ss >> n;
     runFrames(n);
+  } else if (cmd == "pichash") {
+    // pichash N [NAME]: run N frames, after each one a hash of the picture, by value, with its high frame rate
+    // in-betweens (xenon port: two builds compared frame by frame, xenon/qemu/guion_ppu.txt)
+    int n = 1;
+    std::string name;
+    ss >> n >> name;
+    for (int i = 0; i < n; i++) {
+      runFrames(1);
+      Fnv pic;
+      for (uint32_t v : s.ppu.frame) pic.d(v);
+      const int subs = std::clamp(s.ppu.subFrames, 1, Ppu::kMaxSubFrames);
+      for (int k = 1; k < subs; k++)
+        for (uint32_t v : s.ppu.subFrame[k - 1]) pic.d(v);
+      printf("PIC %s f%u %08x\n", name.c_str(), (unsigned)s.frameCount(), pic.h);
+    }
   } else if (cmd == "render") {
     // render on|off: the PPU draws its lines or not (ppu.skipRender, as the app's skipped frames): bench with it off
     // gives the CPU and APU's share (xenon port, docs/PERFORMANCE.md)

@@ -273,6 +273,12 @@ private:
   uint16_t remapVramAdr(uint16_t adr) const;
   void renderBg(int l, int row, int x0, int x1);
   void renderMode7(int l, int row, int x0, int x1);
+#ifdef SMAS_PPU_FAST
+  // xenon port (docs/PERFORMANCE.md §3.1): renderBg and composeLine rewritten for an in-order CPU, the same pixels;
+  // these are the original versions, which the fast ones fall back to in the cases they don't cover
+  void renderBgGeneric(int l, int row, int x0, int x1);
+  void composeLineGeneric(uint32_t* fb, int x0, int x1, int eL, int eR);
+#endif
   void renderObj(int row, int x0, int x1);
   void computeWindows(int x0, int x1);
   void applyRemap(int l, int x0, int x1);
