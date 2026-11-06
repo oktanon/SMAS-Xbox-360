@@ -1,0 +1,77 @@
+log: game:\smas_jugar.log
+log: named after \Device\Mass0\games\smas\smas_jugar.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 17486 us
+smas_jugar: hito 4, mandos y audio (Back + LB + RB 3 s para salir)
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 31068 us
+video: pantalla Xbox 360 video output, 1280x720 a 59940 mHz
+video: staging 0xbe820000 (alineado a 4 KB: si), 675840 bytes
+video: staging 0xbe770000 (alineado a 4 KB: si), 675840 bytes
+audio: 48000 Hz, bloques de 1024 frames, latencia 64 ms
+mando conectado (id 1)
+mando conectado (id 2)
+JUGAR f600 (Game Select gameplay=0 ext=0+0 (req 0), wide 0): emulación 10.15 ms (mandos 0.33, frame 9.43, audio 0.39), vídeo 0.30 ms por frame, el peor 45.74 ms, 1 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2265; kernel: 1880 frames, 0 en silencio
+jugador 1: botón Start de la SNES (primera vez)
+JUGAR f1200 (Game Select gameplay=0 ext=0+0 (req 0), wide 0): emulación 10.81 ms (mandos 0.26, frame 10.15, audio 0.40), vídeo 0.31 ms por frame, el peor 13.62 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2284; kernel: 1946 frames, 0 en silencio
+jugador 1: botón derecha de la SNES (primera vez)
+jugador 1: botón izquierda de la SNES (primera vez)
+jugador 1: botón B de la SNES (primera vez)
+JUGAR f1800 (Super Mario Bros. gameplay=0 ext=0+0 (req 0), wide 0): emulación 9.65 ms (mandos 0.27, frame 8.98, audio 0.40), vídeo 0.30 ms por frame, el peor 13.24 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 1375 frames, ahora 2257; kernel: 1876 frames, 0 en silencio
+jugador 1: botón Y de la SNES (primera vez)
+jugador 1: botón abajo de la SNES (primera vez)
+jugador 1: botón arriba de la SNES (primera vez)
+JUGAR f2400 (Super Mario Bros. gameplay=1 ext=0+0 (req 0), wide 0): emulación 11.40 ms (mandos 0.28, frame 10.72, audio 0.40), vídeo 0.33 ms por frame, el peor 14.89 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 1297 frames, ahora 1901; kernel: 1878 frames, 0 en silencio
+JUGAR f3000 (Super Mario Bros. gameplay=1 ext=0+0 (req 0), wide 0): emulación 11.90 ms (mandos 0.28, frame 11.22, audio 0.40), vídeo 0.33 ms por frame, el peor 13.58 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 1271 frames, ahora 2102; kernel: 1876 frames, 0 en silencio
+widescreen 46
+JUGAR f3600 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 12.75 ms (mandos 0.97, frame 11.38, audio 0.40), vídeo 0.32 ms por frame, el peor 432.97 ms, 55 de 600 de más; audio: cola vacía 9 veces, mínimo 0 frames, ahora 2093; kernel: 2081 frames, 0 en silencio
+JUGAR f4200 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.30 ms (mandos 0.28, frame 13.63, audio 0.40), vídeo 0.34 ms por frame, el peor 15.62 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 1310 frames, ahora 2012; kernel: 1877 frames, 0 en silencio
+mando desconectado (id 2)
+JUGAR f4800 (Super Mario Bros. gameplay=0 ext=46+46 (req 46), wide 46): emulación 13.94 ms (mandos 0.23, frame 13.32, audio 0.39), vídeo 0.33 ms por frame, el peor 16.67 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2467; kernel: 1951 frames, 0 en silencio
+jugador 1: botón R de la SNES (primera vez)
+JUGAR f5400 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.94 ms (mandos 0.16, frame 13.38, audio 0.40), vídeo 0.33 ms por frame, el peor 30.21 ms, 27 de 600 de más; audio: cola vacía 8 veces, mínimo 0 frames, ahora 1626; kernel: 1937 frames, 0 en silencio
+JUGAR f6000 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.27 ms (mandos 0.16, frame 13.71, audio 0.40), vídeo 0.34 ms por frame, el peor 15.71 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 858 frames, ahora 1816; kernel: 1877 frames, 0 en silencio
+JUGAR f6600 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.26 ms (mandos 0.16, frame 13.70, audio 0.40), vídeo 0.34 ms por frame, el peor 15.73 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2373; kernel: 1951 frames, 0 en silencio
+JUGAR f7200 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.25 ms (mandos 0.16, frame 13.70, audio 0.40), vídeo 0.34 ms por frame, el peor 15.80 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2486; kernel: 1952 frames, 0 en silencio
+JUGAR f7800 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.36 ms (mandos 0.16, frame 13.80, audio 0.40), vídeo 0.34 ms por frame, el peor 15.79 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2363; kernel: 1952 frames, 0 en silencio
+jugador 1: botón A de la SNES (primera vez)
+JUGAR f8400 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.87 ms (mandos 0.72, frame 13.76, audio 0.40), vídeo 0.34 ms por frame, el peor 345.69 ms, 1 de 600 de más; audio: cola vacía 2 veces, mínimo 0 frames, ahora 2724; kernel: 2009 frames, 0 en silencio
+jugador 1: botón X de la SNES (primera vez)
+JUGAR f9000 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.34 ms (mandos 0.17, frame 13.78, audio 0.40), vídeo 0.34 ms por frame, el peor 17.00 ms, 1 de 600 de más; audio: cola vacía 0 veces, mínimo 1637 frames, ahora 2574; kernel: 1876 frames, 0 en silencio
+widescreen 0
+JUGAR f9600 (Super Mario Bros. gameplay=0 ext=0+0 (req 0), wide 0): emulación 12.06 ms (mandos 0.17, frame 11.50, audio 0.40), vídeo 0.33 ms por frame, el peor 23.42 ms, 13 de 600 de más; audio: cola vacía 2 veces, mínimo 0 frames, ahora 1375; kernel: 1965 frames, 0 en silencio
+JUGAR f10200 (Super Mario Bros. gameplay=1 ext=0+0 (req 0), wide 0): emulación 11.37 ms (mandos 0.16, frame 10.81, audio 0.40), vídeo 0.33 ms por frame, el peor 13.54 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 712 frames, ahora 1670; kernel: 1877 frames, 0 en silencio
+widescreen 46
+JUGAR f10800 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.90 ms (mandos 0.16, frame 13.34, audio 0.40), vídeo 0.34 ms por frame, el peor 16.81 ms, 1 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2510; kernel: 1952 frames, 0 en silencio
+JUGAR f11400 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.34 ms (mandos 0.16, frame 13.78, audio 0.40), vídeo 0.35 ms por frame, el peor 15.82 ms, 0 de 600 de más; audio: cola vacía 0 veces, mínimo 1501 frames, ahora 2241; kernel: 1877 frames, 0 en silencio
+JUGAR f12000 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.13 ms (mandos 0.16, frame 13.58, audio 0.40), vídeo 0.34 ms por frame, el peor 15.56 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2420; kernel: 1936 frames, 0 en silencio
+JUGAR f12600 (Super Mario Bros. gameplay=1 ext=46+46 (req 46), wide 46): emulación 13.43 ms (mandos 0.15, frame 12.88, audio 0.39), vídeo 0.32 ms por frame, el peor 15.39 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2394; kernel: 1952 frames, 0 en silencio
+JUGAR f13200 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.24 ms (mandos 0.16, frame 13.69, audio 0.40), vídeo 0.33 ms por frame, el peor 30.92 ms, 27 de 600 de más; audio: cola vacía 9 veces, mínimo 0 frames, ahora 1351; kernel: 2008 frames, 0 en silencio
+JUGAR f13800 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.18 ms (mandos 0.16, frame 13.62, audio 0.40), vídeo 0.34 ms por frame, el peor 15.57 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2312; kernel: 1949 frames, 0 en silencio
+JUGAR f14400 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.44 ms (mandos 0.17, frame 13.87, audio 0.40), vídeo 0.34 ms por frame, el peor 15.95 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2428; kernel: 1952 frames, 0 en silencio
+JUGAR f15000 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.47 ms (mandos 0.16, frame 13.91, audio 0.40), vídeo 0.34 ms por frame, el peor 15.88 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2400; kernel: 1949 frames, 0 en silencio
+JUGAR f15600 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.72 ms (mandos 0.16, frame 13.16, audio 0.40), vídeo 0.33 ms por frame, el peor 15.82 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2361; kernel: 1949 frames, 0 en silencio
+JUGAR f16200 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.22 ms (mandos 0.16, frame 13.67, audio 0.40), vídeo 0.34 ms por frame, el peor 15.67 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2602; kernel: 1948 frames, 0 en silencio
+JUGAR f16800 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.66 ms (mandos 0.16, frame 13.11, audio 0.40), vídeo 0.33 ms por frame, el peor 29.82 ms, 13 de 600 de más; audio: cola vacía 5 veces, mínimo 0 frames, ahora 2443; kernel: 1980 frames, 0 en silencio
+JUGAR f17400 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.35 ms (mandos 0.16, frame 13.79, audio 0.40), vídeo 0.35 ms por frame, el peor 15.79 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2497; kernel: 1952 frames, 0 en silencio
+JUGAR f18000 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.20 ms (mandos 0.16, frame 12.65, audio 0.40), vídeo 0.32 ms por frame, el peor 15.40 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2088; kernel: 1953 frames, 0 en silencio
+JUGAR f18600 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 14.34 ms (mandos 0.16, frame 13.78, audio 0.40), vídeo 0.35 ms por frame, el peor 15.84 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2243; kernel: 1951 frames, 0 en silencio
+JUGAR f19200 (Super Mario Bros. gameplay=1 ext=20+72 (req 46), wide 46): emulación 13.33 ms (mandos 0.16, frame 12.78, audio 0.40), vídeo 0.32 ms por frame, el peor 16.71 ms, 1 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2430; kernel: 1949 frames, 0 en silencio
+JUGAR f19800 (Game Select gameplay=0 ext=46+46 (req 46), wide 46): emulación 12.54 ms (mandos 0.16, frame 11.98, audio 0.40), vídeo 0.32 ms por frame, el peor 16.57 ms, 0 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 2494; kernel: 1949 frames, 0 en silencio
+JUGAR f20400 (Super Mario Bros. 3 gameplay=0 ext=46+46 (req 46), wide 46): emulación 13.45 ms (mandos 0.16, frame 12.90, audio 0.40), vídeo 0.32 ms por frame, el peor 22.23 ms, 168 de 600 de más; audio: cola vacía 9 veces, mínimo 0 frames, ahora 2198; kernel: 2002 frames, 0 en silencio
+JUGAR f21000 (Super Mario Bros. 3 gameplay=1 ext=46+46 (req 46), wide 46): emulación 14.90 ms (mandos 0.16, frame 14.34, audio 0.40), vídeo 0.34 ms por frame, el peor 23.39 ms, 143 de 600 de más; audio: cola vacía 8 veces, mínimo 0 frames, ahora 2377; kernel: 1993 frames, 0 en silencio
+JUGAR f21600 (Super Mario Bros. 3 gameplay=1 ext=46+46 (req 46), wide 46): emulación 14.55 ms (mandos 0.16, frame 13.99, audio 0.40), vídeo 0.34 ms por frame, el peor 22.67 ms, 151 de 600 de más; audio: cola vacía 7 veces, mínimo 0 frames, ahora 2183; kernel: 1992 frames, 0 en silencio
+JUGAR f22200 (Game Select gameplay=0 ext=46+46 (req 46), wide 46): emulación 13.82 ms (mandos 0.16, frame 13.27, audio 0.40), vídeo 0.33 ms por frame, el peor 19.16 ms, 98 de 600 de más; audio: cola vacía 5 veces, mínimo 0 frames, ahora 3146; kernel: 1977 frames, 0 en silencio
+mando conectado (id 3)
+JUGAR f22800 (Super Mario Bros. 3 gameplay=0 ext=46+46 (req 46), wide 46): emulación 11.11 ms (mandos 0.19, frame 10.52, audio 0.40), vídeo 0.31 ms por frame, el peor 17.88 ms, 4 de 600 de más; audio: cola vacía 1 veces, mínimo 0 frames, ahora 1986; kernel: 1953 frames, 0 en silencio
+JUGAR f23400 (Super Mario Bros. 3 gameplay=0 ext=46+46 (req 46), wide 46): emulación 40.42 ms (mandos 0.28, frame 39.74, audio 0.41), vídeo 0.35 ms por frame, el peor 56.27 ms, 561 de 600 de más; audio: cola vacía 393 veces, mínimo 0 frames, ahora 2338; kernel: 4655 frames, 0 en silencio
+jugador 2: botón derecha de la SNES (primera vez)
+jugador 2: botón B de la SNES (primera vez)
+jugador 2: botón izquierda de la SNES (primera vez)
+jugador 2: botón arriba de la SNES (primera vez)
+jugador 2: botón Y de la SNES (primera vez)
+JUGAR f24000 (Super Mario Bros. 3 gameplay=0 ext=46+46 (req 46), wide 46): emulación 54.82 ms (mandos 0.98, frame 53.43, audio 0.41), vídeo 0.37 ms por frame, el peor 466.90 ms, 600 de 600 de más; audio: cola vacía 600 veces, mínimo 0 frames, ahora 2339; kernel: 6288 frames, 0 en silencio
+JUGAR f24600 (Game Select gameplay=0 ext=46+46 (req 46), wide 46): emulación 32.40 ms (mandos 0.27, frame 31.73, audio 0.40), vídeo 0.34 ms por frame, el peor 57.24 ms, 290 de 600 de más; audio: cola vacía 290 veces, mínimo 0 frames, ahora 2944; kernel: 3930 frames, 0 en silencio
+JUGAR f25200 (Super Mario Bros. 3 gameplay=0 ext=46+46 (req 46), wide 46): emulación 14.96 ms (mandos 0.27, frame 14.30, audio 0.40), vídeo 0.31 ms por frame, el peor 53.77 ms, 353 de 600 de más; audio: cola vacía 18 veces, mínimo 0 frames, ahora 2338; kernel: 2072 frames, 0 en silencio
+guía abierta: pausa

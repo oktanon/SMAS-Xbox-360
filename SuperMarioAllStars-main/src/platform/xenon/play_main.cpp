@@ -14,7 +14,9 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdarg>
 #include <cstdio>
+#include <string>
 #include <fstream>
 #include <iterator>
 #include <vector>
@@ -43,6 +45,24 @@ uint64_t nowUs() {
 
 VideoVk g_video;
 Audio g_audio;
+
+// The log while playing goes to memory and out at the Guide, at the end or past 32 KB: a line written to the USB
+// drive costs milliseconds (run 001), and each one, every 10 s, cost a refresh and emptied the sound's queue (run 020).
+std::string g_log;
+void logf(const char* fmt, ...) {
+  char line[512];
+  va_list ap;
+  va_start(ap, fmt);
+  std::vsnprintf(line, sizeof line, fmt, ap);
+  va_end(ap);
+  g_log += line;
+}
+void flushLog() {
+  if (g_log.empty()) return;
+  std::fputs(g_log.c_str(), stdout);
+  std::fflush(stdout);
+  g_log.clear();
+}
 Input g_input;
 Config g_cfg;
 
@@ -137,7 +157,8 @@ int main()
   bool prevRs = false, uiOpen = false;
   int quitHeld = 0;
   uint64_t emuUs = 0, videoUs = 0, worstUs = 0, inputUs = 0, runUs = 0, pushUs = 0;
-  uint32_t frames = 0, over = 0, totalFrames = 0;
+  uint32_t frames = 0, over = 0, totalFrames = 0, missed = 0;
+  uint64_t lastShown = 0;  // (when the last present returned: an interval of more than 1.5 refreshes is a refresh missed)
   XsdkAudioStats lastStats{};
   xsdk_audio_stats(&lastStats);
 
@@ -148,7 +169,7 @@ int main()
       if (e.type == SDL_EVENT_QUIT) running = false;
       if (e.type == SDL_EVENT_GAMEPAD_ADDED || e.type == SDL_EVENT_GAMEPAD_REMOVED) {
         g_input.rescanDevices();
-        std::printf("mando %s (id %u)\n", e.type == SDL_EVENT_GAMEPAD_ADDED ? "conectado" : "desconectado",
+        logf("mando %s (id %u)\n", e.type == SDL_EVENT_GAMEPAD_ADDED ? "conectado" : "desconectado",
                     (unsigned)e.gdevice.which);
       }
     }
@@ -159,7 +180,8 @@ int main()
     if (ui != uiOpen) {
       uiOpen = ui;
       g_audio.setPaused(ui);
-      std::printf("guía %s\n", ui ? "abierta: pausa" : "cerrada: sigue");
+      logf("guía %s\n", ui ? "abierta: pausa" : "cerrada: sigue");
+      if (ui) flushLog();  // (paused: writing costs nothing seen)
     }
     if (ui) {
       g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(),
@@ -174,7 +196,7 @@ int main()
       for (uint16_t bit = 1; bit; bit <<= 1)
         if ((v & bit) && !(seen[p] & bit)) {
           seen[p] |= bit;
-          std::printf("jugador %d: botón %s de la SNES (primera vez)\n", p + 1, snesButtonName(bit));
+          logf("jugador %d: botón %s de la SNES (primera vez)\n", p + 1, snesButtonName(bit));
         }
     }
     const PadState* pad0 = g_input.pad(0);
@@ -182,7 +204,7 @@ int main()
     if (rs && !prevRs) {
       wide = wide ? 0 : VideoVk::wantExtFor(16.0 / 9.0, true, SmasGame::kMaxSupportedExt);
       game.setWidescreen(wide);
-      std::printf("widescreen %d\n", wide);
+      logf("widescreen %d\n", wide);
     }
     prevRs = rs;
     // Back + LB + RB (Back + Start takes a screenshot in the user's dashboard, run 018)
@@ -201,6 +223,9 @@ int main()
     g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(),
                     VideoVk::fitLayout(snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight(), wide, true));
     const VideoVk::Stats vs = g_video.takeStats();
+    const uint64_t shown = nowUs();
+    if (lastShown && shown - lastShown > 25000) missed += (uint32_t)((shown - lastShown) / 16683) - 1;
+    lastShown = shown;
     inputUs += tRun - tIn;
     runUs += tPush - tRun;
     pushUs += t1 - tPush;
@@ -217,21 +242,23 @@ int main()
       g_audio.takeStats(&underruns, &minQueued);
       XsdkAudioStats st{};
       xsdk_audio_stats(&st);
-      std::printf("JUGAR f%u (%s, wide %d): emulación %.2f ms (mandos %.2f, frame %.2f, audio %.2f), vídeo %.2f ms "
-                  "por frame, el peor %.2f ms, %u de 600 de más; audio: cola vacía %d veces, mínimo %d frames, ahora "
+      logf("JUGAR f%u (%s, wide %d): emulación %.2f ms (mandos %.2f, frame %.2f, audio %.2f), vídeo %.2f ms "
+                  "por frame, el peor %.2f ms, %u de 600 de más, %u refrescos perdidos; audio: cola vacía %d veces, mínimo %d frames, ahora "
                   "%d; kernel: %u frames, %u en silencio\n",
                   (unsigned)totalFrames, game.describe().substr(0, game.describe().find('\n')).c_str(), wide,
                   emuUs / 600000.0, inputUs / 600000.0, runUs / 600000.0, pushUs / 600000.0, videoUs / 600000.0,
-                  worstUs / 1000.0, (unsigned)over, underruns, minQueued,
+                  worstUs / 1000.0, (unsigned)over, (unsigned)missed, underruns, minQueued,
                   g_audio.queuedFrames(), (unsigned)(st.played - lastStats.played),
                   (unsigned)(st.silent - lastStats.silent));
       lastStats = st;
       emuUs = videoUs = worstUs = inputUs = runUs = pushUs = 0;
-      frames = over = 0;
+      frames = over = missed = 0;
+      if (g_log.size() > 32768) flushLog();
     }
   }
 
-  std::printf("FIN: %u frames jugados\n", (unsigned)totalFrames);
+  logf("FIN: %u frames jugados\n", (unsigned)totalFrames);
+  flushLog();
   snes.ppu.setRenderThreads(0);
   g_audio.shutdown();
   g_input.shutdown();

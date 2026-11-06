@@ -190,7 +190,10 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
 - **Audio de SDL:** su hilo arranca en el hilo hardware de quien abre el dispositivo (con prioridad +1). En el 0 le
   quitaba ~5 ms por frame a la emulación (run 018): `Audio::init` lo lleva al 5 con
   `SDL_HINT_AUDIO_XSDK_HARDWARE_THREAD`. Hilos hardware: 0 emulación, 2 y 4 dibujo, 5 audio; libres 1 y 3.
-- **Back + Start** saca una captura en el dashboard del usuario: no usarlo como combinación del port.
+- **Back + Start** saca una captura en el dashboard del usuario: no usarlo como combinación del port. Salir de los
+  títulos de prueba: Back + LB + RB 3 s.
+- **Nada de escribir en el USB durante el juego**: hasta una línea de log cada 10 s costaba un refresco (run 020).
+  El log del bucle va a memoria y se escribe en pausa (Guía) o al salir.
 - **Con vídeo (run 016):** colores correctos (prueba de 4 barras leída del front buffer); el vídeo cuesta ~0,3 ms
   por frame; en 4:3 todo a 60. En widescreen, SMB2, SMB3 y el co-op pasan de 16,7 ms: los ganchos de los juegos
   (`fetchWideTile`, casi una llamada por píxel en SMB2) van en el hilo de la emulación. Pendiente en el hito 8.

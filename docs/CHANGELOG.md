@@ -41,3 +41,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   de la emulación: movido al 5 (hint de SDL-xenon); salir con Back + LB + RB; run 019 preparada.
 - 0019 (2026-11-06) — Run 019: 4:3 con un jugador ya sin tirones; widescreen como el PC (16:9 con píxeles 8:7, 46 por
   lado, la imagen entera centrada: nada cortado, el HUD quieto) y el stick por sectores; run 020 preparada.
+- 0020 (2026-11-06) — Run 020: sticks y salida bien; tirones en 16:9, SMB3 y la batalla de SMB3 (40-55 ms). Hito 4
+  hecho. El log del juego, en memoria (la escritura periódica en el USB costaba un refresco); refrescos perdidos en el
+  log; run 021 opcional.
