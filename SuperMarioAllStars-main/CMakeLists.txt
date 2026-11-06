@@ -21,6 +21,7 @@ set(CORE_SOURCES
   src/core/png.cpp
   src/core/fileio.cpp
   src/core/rewind.cpp
+  src/core/msu1.cpp
   src/game/achievements.cpp
   src/game/smas.cpp
   src/game/smb1.cpp
@@ -34,6 +35,7 @@ set(CORE_SOURCES
 add_library(smascore STATIC ${CORE_SOURCES})
 target_include_directories(smascore PUBLIC src)
 
+if(WIN32)
 add_executable(smastool tools/smastool.cpp)
 target_link_libraries(smastool smascore)
 
@@ -54,10 +56,15 @@ add_executable(SuperMarioAllStars WIN32
   src/app/monitors.cpp
   src/app/music.cpp
   src/app/slang.cpp
+  src/app/imageload.cpp
+  src/app/msupack.cpp
+  src/app/achexport.cpp
+  src/app/updatecheck.cpp
   src/app/app.rc
 )
+target_include_directories(SuperMarioAllStars PRIVATE third_party/stb)
 target_link_libraries(SuperMarioAllStars smascore
-  d3d11 dxgi d3dcompiler d2d1 dwrite xaudio2 xinput dinput8 dxguid winmm comdlg32 shell32 ole32 user32 gdi32)
+  d3d11 dxgi d3dcompiler d2d1 dwrite xaudio2 xinput dinput8 dxguid winmm comdlg32 shell32 ole32 user32 gdi32 winhttp)
 set_target_properties(SuperMarioAllStars PROPERTIES OUTPUT_NAME "SuperMarioAllStars")
 target_link_options(SuperMarioAllStars PRIVATE /MANIFEST:NO)
 # librashader (slang shader presets), loaded at run time when present
@@ -68,3 +75,37 @@ add_custom_command(TARGET SuperMarioAllStars POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/third_party/slang-shaders $<TARGET_FILE_DIR:SuperMarioAllStars>/shaders
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/release/README.txt $<TARGET_FILE_DIR:SuperMarioAllStars>
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/third_party/librashader/LICENSE.md $<TARGET_FILE_DIR:SuperMarioAllStars>/librashader-LICENSE.md)
+elseif(UNIX AND NOT ANDROID)
+  # Desktop Linux (the Steam Deck): the Android build's SDL / OpenGL ES 3 layer
+  # with its own entry (src/platform/linux); FreeType draws the text. Packed
+  # as an AppImage by .github/workflows/linux.yml.
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+  endif()
+  find_package(SDL2 REQUIRED)
+  find_package(Freetype REQUIRED)
+  find_package(Threads REQUIRED)
+  target_compile_options(smascore PRIVATE -O2)
+  add_executable(SuperMarioAllStars
+    src/app/app.cpp
+    src/app/config.cpp
+    src/app/menu.cpp
+    src/app/launcher.cpp
+    src/app/music.cpp
+    src/app/achstore.cpp
+    src/app/utf8.cpp
+    src/app/sys_posix.cpp
+    src/app/imageload.cpp
+    src/app/msupack.cpp
+    src/app/achexport.cpp
+    src/app/updatecheck.cpp
+    src/platform/android/video_gles.cpp
+    src/platform/android/audio_sdl.cpp
+    src/platform/android/input_sdl.cpp
+    src/platform/android/touch.cpp
+    src/platform/linux/app_linux.cpp
+  )
+  target_compile_options(SuperMarioAllStars PRIVATE -O2 -Wno-unused-parameter -Wno-sign-compare)
+  target_include_directories(SuperMarioAllStars PRIVATE third_party/stb)
+  target_link_libraries(SuperMarioAllStars smascore SDL2::SDL2 Freetype::Freetype GLESv2 Threads::Threads)
+endif()

@@ -849,6 +849,7 @@ void Ppu::renderLine(int line) {
       for (int x = 0; x < kLineW; x++) subFrame[k - 1][row * kLineW + x] = 0;
     return;
   }
+  if (skipRender) return;
 
   if (brightness_ > 0) curLit_ = true;
   uint8_t used = (tm_ | ts_) & debugLayers;

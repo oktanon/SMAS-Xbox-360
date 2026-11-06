@@ -105,6 +105,7 @@ public:
   bool hideWideObj = false;
   bool objGroupMoves = true;  // high frame rate: a character's sprites move as one (off: each on its own; testing)
   bool maskWide = false;     // black out margins for this line
+  bool skipRender = false;  // no pixels drawn (the lines' game hooks still run): a launcher preview booting out of sight
   bool subStill = false;     // high frame rate: this line's BG layers not moved on the in-between pictures (per line)
   int dimLeft = 0, dimRight = 0;  // darken the left / right margin for this line (0 none .. 256 black)
   // Margin pixels outside [wideShowLo, wideShowHi) are black on this line (a

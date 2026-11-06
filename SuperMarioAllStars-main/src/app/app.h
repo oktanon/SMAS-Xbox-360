@@ -3,6 +3,7 @@
 // main loop, video, sound, controllers) is in app_win.cpp (Windows) and
 // platform/android/app_android.cpp (Android).
 #pragma once
+#include "app/updatecheck.h"
 #include <cstdint>
 #include <cstdio>
 #include <memory>
@@ -41,6 +42,13 @@ struct App {
   bool focused = true;
   Config cfg;
   std::wstring exeDir, configPath, saveDir, shotDir, romPath;
+  UpdateCheck updater;      // (a newer release on GitHub? see updatecheck.h)
+  std::string updateTag;    // the newer release's tag ("v1.2"), or empty
+  bool updateManual = false, updateStarted = false, updateTold = false;
+  std::wstring msuDir;     // MSU-1 music packs (see app/msupack.h); exeDir/msu unless the platform says
+  std::wstring msuLoaded;  // the pack the console runs with (empty: none)
+  std::string msuStatus;   // what became of the chosen pack, for the Audio page
+  std::wstring msuBase;    // its tracks' path without "-N.pcm" (empty: none in use)
   std::unique_ptr<Snes> snes;
   std::unique_ptr<SmasGame> game;
   Video video;
@@ -78,6 +86,9 @@ struct App {
   bool pickingRom = false;
   void pickRom();   // the system file picker, the file copied into the app (see SmasActivity)
   void pollPick();
+  void pickArt(int card);  // a cover (card 0-4) or the background (-1) chosen with the system picker (Android)
+  void pollArtPick();
+  bool pickingArt = false;
   void touchFrame();  // taps and drags on the launcher and menus, the on-screen pad's buttons
 #endif
   Launcher::Action launcherTap = Launcher::kNone;  // (a card or button tapped or clicked: see frameLauncher)
@@ -108,6 +119,11 @@ struct App {
     // (display.pacing_log: refreshes per pass seen, 0 1 2 3+; the passes' spacing)
     int vbSeen[4] = {}, logPasses = 0, logFrames = 0;
     double dtLo = 1e9, dtHi = 0, logAt = 0;
+    int offBeatCount = 0;           // passes in a row whose wait wasn't a whole number of refreshes
+    bool offBeatLogged = false;
+    double sumReal = 0, sumCounted = 0;  // (this window's time gone by, and its refreshes counted)
+    int nWin = 0;
+    bool clockMode = false;         // game time from the clock: the refreshes counted drifted
     unsigned logPresents = 0, logRefreshes = 0;
   } pacing;
   double fpsTimer = 0;
@@ -187,10 +203,19 @@ struct App {
   void pollRom(double dt);            // looks for the ROM again while it is missing
   void launchGame(GameId g);
   void returnToLauncher();
+  void applyMsu(std::vector<uint8_t>& rom);  // (loadRom: the chosen pack's patch and chip)
+  void reloadForMsu();
+  void checkForUpdate(bool manual);  // (manual: Check Now, which says what it found)
+  void updateTick();                 // (each pass: a finished check's result)
+  void applyUpdateTag(const std::string& tag);
+  std::string updateVersion() const {  // ("v1.2": "1.2")
+    return updateTag.size() > 1 && (updateTag[0] == 'v' || updateTag[0] == 'V') ? updateTag.substr(1) : updateTag;
+  }                        // the chosen pack changed: the ROM again, outside a game
   void frameLauncher(double dt, int gameFrames);
   std::string blackFramesNote() const;
   void applyDisplayMode();
   void applyConfig();
+  void applyLauncherArt(bool reload = false);  // the covers and background (see Launcher::setArt)
   // The slang shader preset in cfg.slangPreset loaded (or dropped) if it
   // isn't what the video layer has; force after the device was recreated.
 #ifdef _WIN32

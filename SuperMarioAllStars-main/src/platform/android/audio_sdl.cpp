@@ -12,10 +12,21 @@ bool Audio::init(int latencyMs) {
   want.freq = 48000;
   want.format = AUDIO_S16SYS;
   want.channels = 2;
+#ifdef __ANDROID__
   want.samples = 512;
+#else
+  // (Linux desktops and the Steam Deck: PipeWire / PulseAudio take bigger
+  // chunks; with 512 the queue ran dry now and then, a crackle)
+  want.samples = 1024;
+#endif
+#ifdef __ANDROID__
   dev_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+#else
+  dev_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+#endif
   if (!dev_) return false;
   rate_ = have.freq > 0 ? have.freq : 48000;
+  deviceFrames_ = have.samples > 0 ? have.samples : want.samples;
   SDL_PauseAudioDevice(dev_, 0);
   return true;
 }
@@ -39,12 +50,15 @@ void Audio::flush() {
 void Audio::push(const int16_t* in, size_t frames, double inputRate) {
   if (!dev_ || frames == 0) return;
   int queued = queuedFrames();
-  int target = rate_ * latencyMs_ / 1000;
+  // (at least two of the device's own chunks queued: it takes a whole one at once)
+  int target = std::max(rate_ * latencyMs_ / 1000, deviceFrames_ * 2);
+  minQueued_ = std::min(minQueued_, queued);
   if (queued > target * 3) return;  // overrun: drop
   // Dynamic rate control: nudge the resampling ratio by up to 0.5%.
   double err = std::clamp((double)(queued - target) / (double)std::max(target, 1), -1.0, 1.0);
   double ratio = inputRate / rate_ * (1.0 + err * 0.005);
   if (queued == 0) {
+    underruns_++;
     // Start or underrun: prime the queue with silence so the rate control
     // starts near its latency target instead of at zero.
     std::vector<int16_t> pad((size_t)(target / 2) * 2, 0);

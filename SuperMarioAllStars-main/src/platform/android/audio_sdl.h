@@ -18,11 +18,22 @@ public:
   int queuedFrames() const;
   bool ok() const { return dev_ != 0; }
   float level() const { return level_; }
+  int deviceFrames() const { return deviceFrames_; }
+  int rate() const { return rate_; }
+  // (for the log: times the queue ran dry, and its lowest level, since the last call)
+  void takeStats(int* underruns, int* minQueued) {
+    *underruns = underruns_;
+    *minQueued = minQueued_ == 1 << 30 ? 0 : minQueued_;
+    underruns_ = 0;
+    minQueued_ = 1 << 30;
+  }
 
 private:
   uint32_t dev_ = 0;
   int rate_ = 48000;
   int latencyMs_ = 64;
+  int deviceFrames_ = 512;
+  int underruns_ = 0, minQueued_ = 1 << 30;
   double pos_ = 0.0;
   int16_t hist_[4][2] = {};
   std::vector<int16_t> out_;

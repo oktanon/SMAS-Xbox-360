@@ -7,6 +7,11 @@
 #include <memory>
 #include <vector>
 #include "app/canvas.h"
+#include <string>
+
+#ifndef __ANDROID__
+extern std::string g_fontDir;  // (desktop Linux: where the fonts are, beside the program; see app_linux.cpp)
+#endif
 
 struct VideoParams {
   int srcW = 256, srcH = 224;  // active source size (pixels)

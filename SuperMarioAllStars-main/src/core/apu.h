@@ -1,6 +1,7 @@
 // SNES APU: SPC700 CPU + timers + S-DSP + 64KB audio RAM.
 // The boot ROM is implemented as a high-level state machine (no ROM image).
 #pragma once
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 #include "dsp.h"

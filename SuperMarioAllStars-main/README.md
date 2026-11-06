@@ -82,6 +82,16 @@ game select into the game's title, out of sight while it starts. Choosing a card
 and takes it through the All-Stars menu to that game's save files (behind a short black loading
 screen), where you pick the file as usual. The launcher remembers the last game chosen.
 
+*Options → Game Covers* shows the player's own cover pictures on the cards instead of the live
+previews, and *Custom Background* their own picture behind the launcher (filling the window, darkened
+a little so the text reads). None are shipped. PNG or JPG files named `smb1`, `lostlevels`, `smb2`,
+`smb3`, `allstars` (the single card) and `background` go in the `covers` folder (*Open Covers Folder*:
+next to the exe on Windows, in `~/.local/share/SuperMarioAllStars` on Linux); on Android *Choose Cover*
+/ *Choose Background* copy a picture from the phone in. They're read with
+[stb_image](https://github.com/nothings/stb) (`third_party/stb`, public domain / MIT), big ones
+shrunk to 1024 px (2048 for the background). A card without a cover keeps its preview; one with a
+cover runs no preview console at all, which also makes the launcher lighter on slow devices.
+
 ## Controls
 | | Keyboard | Joypad (Xbox layout; PlayStation, Switch Pro and USB/SNES pads supported) |
 |---|---|---|
@@ -107,7 +117,8 @@ controller keeps its pad number while others are plugged in or out, and gets it 
 reconnects, so the players never swap controllers. Select opens
 the menu and backs out of it. The games only need their own Select button for the All-Stars save
 menu (pause, then Select). If you'd rather have it on Select, set *Controls → Select Button* to
-"Tap: Game Select - Hold: Menu".
+"Tap: Game Select - Hold: Menu". In the menus and the launcher the pad's bottom face button confirms
+and the right one goes back; *Controls → Menu Buttons → Right Confirms* swaps them (Nintendo's layout).
 
 ## Menu
 The pause menu is a dark panel over the dimmed game, tinted in the running game's colour (red
@@ -183,7 +194,16 @@ What each page holds:
   colour temperature, colour-vision assist (protanopia / deuteranopia / tritanopia), and
   Mario's Colours / Luigi's Colours: alternate outfits for each brother (Super Mario Bros. and The
   Lost Levels), kept by each in co-op whichever is the game's player.
-* **Audio** — volume, latency, mute when unfocused.
+* **Menu Style** — how the menus look: *Storybook* (the default: a cream card with a dark outline, Luckiest Guy
+  titles in the game's colour, a yellow star cursor), *Retro* (black with brick bars, a 5x7 pixel font drawn by the
+  port, ? block switches), *Themed Dark* (the dark panel under a heading in the game's pattern: bricks, the Lost
+  Levels' green bricks, SMB2's starry night, SMB3's checkers) or *Classic* (the original dark panel). `src/app/menu.cpp`.
+* **Audio** — volume, **Music Volume** and **Sound Effects Volume** (each 0–100%: music off with the sound effects kept, or the other way round; the sound driver marks the voices an effect holds at ARAM `$1A`, so the rest are the music and only the mix changes), latency, mute when unfocused, and **Music Pack**: an MSU-1 custom soundtrack (see below).
+* **Updates** — *Check for Updates* (on by default): once a day the launcher reads GitHub's public "latest release" for
+  this repository (`src/app/updatecheck.cpp`; WinHTTP on Windows, the system `curl` on Linux, `HttpURLConnection` on
+  Android, from a background thread) and shows a badge when its tag is newer than the app's version; the badge, or
+  *Get Version*, opens the release page. Nothing is sent but the request; nothing is downloaded or installed.
+* **Gameplay** — **NES Brick Bounce**: in Super Mario Bros. and The Lost Levels, a brick broken from below sends Mario back down as on the NES instead of letting him keep rising (BMF54123's brick fix, updated by Blittle McNilsen, written into the console's ROM while on: `SmasGame::setNesBrickBounce`). Off by default.
 * **Credits** — where to find the author (YouTube, Reddit, GitHub; each opens in your browser).
 * **CO-OP GAME on the title screens** of Super Mario Bros., The Lost Levels and Super Mario Bros. 3:
   a third choice under 1 PLAYER GAME / 2 PLAYER GAME (MARIO GAME / LUIGI GAME; in SMB3 a fourth,
@@ -238,6 +258,21 @@ What each page holds:
   CPU runs at twice its speed (`Snes::setCpuFast`); the PPU, DMA and sound chip keep their timing.
   One-player games keep the console's timing exactly.
 
+## Custom soundtracks (MSU-1)
+
+The port plays MSU-1 music packs, the CD-quality soundtracks made for flash carts and emulators. None are included.
+Put each pack in its own folder in the `msu` folder (Windows: next to the exe; Steam Deck:
+`~/.local/share/SuperMarioAllStars/msu`; Android: `Android/data/com.darhkfox.allstars/files/msu`), with its
+MSU-1 patch (`.bps` or `.ips`, for the USA ROM without a copier header) and its tracks (`NAME-1.pcm`, `NAME-2.pcm`,
+...), then choose it under Options > Audio > Music Pack. A pack without a patch can use one put in the `msu` folder
+itself.
+
+The patch is applied to the console's copy of the ROM as it loads (the file is never changed; the launcher's
+previews run it unpatched), and `src/core/msu1.cpp` emulates the chip: its registers at `$2000-$2007`, the tracks
+streamed from disk and resampled from 44.1 kHz into the console's 32 kHz sound. The track and its place are kept in
+save states. Both the standard patch (each song replaced) and the Super Mario All-Stars Deluxe patch (one of several
+versions of the music picked at each new level) work as they do on hardware.
+
 ## Achievements
 82 achievements: 20 for Super Mario Bros., 19 for The Lost Levels, 20 for SMB2, 21 for SMB3,
 and two for the whole collection. *Menu → Achievements* lists them by game with the date each
@@ -263,6 +298,13 @@ explains this once.
 In SMB1 co-op, Player Two counts when Luigi takes the axe or rides the flagpole down (as the
 game's player, or kept aside and already on the pole as the flag scene starts), and Not a Scratch
 is lost when either player is hurt.
+
+
+**Export to CSV** (top of the Achievements list) writes an `achievements export` folder: `achievements.csv` in
+the columns PlayniteAchievements' spreadsheet import reads (ID, Title, Description, Points, Trophy Type, Hidden,
+Rarity, Category, Progress, Progress Total, Unlocked, Unlock Time, Unlocked Icon, Locked Icon) and `icons/` with
+each achievement's badge, earned and locked, drawn by the port (`src/app/achexport.cpp`: a colour per game, a rim
+per trophy tier, a symbol per achievement). Points follow the tier: bronze 10, silver 25, gold 50, platinum 100.
 
 ## Frame pacing
 The games run at 60.1 frames per second. With VSync on, the frame loop waits on the display's

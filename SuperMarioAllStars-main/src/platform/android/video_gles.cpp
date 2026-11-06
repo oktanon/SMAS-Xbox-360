@@ -1,9 +1,15 @@
-// Video on Android: see video_gles.h.
+// Video on Android and desktop Linux (SDL, OpenGL ES 3): see video_gles.h.
 #include "platform/android/video_gles.h"
 #include <SDL.h>
 #include <GLES3/gl3.h>
+#ifdef __ANDROID__
 #include <android/log.h>
 #include <jni.h>
+#else
+#include <cstdio>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#endif
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -13,7 +19,30 @@
 
 namespace {
 
+#ifdef __ANDROID__
 void logError(const char* msg) { __android_log_print(ANDROID_LOG_ERROR, "SmasPort", "%s", msg); }
+#else
+void logError(const char* msg) { fprintf(stderr, "SmasPort: %s\n", msg); }
+
+// Desktop Linux: glyphs by FreeType, from the fonts beside the program (the
+// title's Luckiest Guy; DejaVu Sans for the rest), else the system's DejaVu.
+FT_Face loadFace(const char* file) {
+  static FT_Library lib = nullptr;
+  static std::map<std::string, FT_Face> faces;
+  if (!lib && FT_Init_FreeType(&lib) != 0) return nullptr;
+  auto it = faces.find(file);
+  if (it != faces.end()) return it->second;
+  FT_Face face = nullptr;
+  for (const std::string& dir : {g_fontDir, std::string("/usr/share/fonts/truetype/dejavu"),
+                                 std::string("/usr/share/fonts/TTF"), std::string("/usr/share/fonts/dejavu")}) {
+    if (dir.empty()) continue;
+    if (FT_New_Face(lib, (dir + "/" + file).c_str(), 0, &face) == 0) break;
+    face = nullptr;
+  }
+  faces[file] = face;
+  return face;
+}
+#endif
 
 GLuint compile(GLenum type, const std::string& src) {
   GLuint s = glCreateShader(type);
@@ -669,8 +698,9 @@ void GlesCanvas::freeImage(int image) {
 }
 
 // ---- text ----------------------------------------------------------------------
-// Glyphs from SmasActivity.renderGlyphs (Android's own text engine): per code
-// point the advance x 64, the bitmap's left and top (from the pen and the
+// Glyphs from SmasActivity.renderGlyphs (Android's own text engine), or
+// FreeType on Linux: the font's ascent and line height, then per code point
+// the advance x 64, the bitmap's left and top (from the pen and the
 // baseline), its size; then the 8-bit coverage bitmaps one after another.
 bool GlesCanvas::buildFont(Font& f, float px, bool bold, bool title) {
   std::vector<uint32_t> cps;
@@ -678,13 +708,47 @@ bool GlesCanvas::buildFont(Font& f, float px, bool bold, bool title) {
   for (uint32_t c = 0xA1; c < 0x100; c++)
     if (c != 0xAD) cps.push_back(c);
   for (uint32_t c : kExtraCps) cps.push_back(c);
+  std::vector<int> meta;
+  std::vector<uint8_t> bits;
+#ifndef __ANDROID__
+  FT_Face face = loadFace(title ? "LuckiestGuy-Regular.ttf" : bold ? "DejaVuSans-Bold.ttf" : "DejaVuSans.ttf");
+  if (!face && !title) face = loadFace("DejaVuSans.ttf");
+  if (!face) face = loadFace("DejaVuSans-Bold.ttf");
+  if (!face) return false;
+  FT_Set_Pixel_Sizes(face, 0, (FT_UInt)std::max(1L, std::lround(px)));
+  meta.assign(2 + cps.size() * 5, 0);
+  meta[0] = (int)std::ceil(face->size->metrics.ascender / 64.0);
+  meta[1] = (int)std::ceil(face->size->metrics.height / 64.0);
+  for (size_t i = 0; i < cps.size(); i++) {
+    int* m = &meta[2 + i * 5];
+    if (cps[i] != ' ' && FT_Get_Char_Index(face, cps[i]) == 0) {
+      m[0] = -1;
+      continue;
+    }
+    if (FT_Load_Char(face, cps[i], FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT) != 0) {
+      m[0] = -1;
+      continue;
+    }
+    const FT_GlyphSlot g = face->glyph;
+    m[0] = (int)g->advance.x;  // (26.6: the advance x 64)
+    const int bw = (int)g->bitmap.width, bh = (int)g->bitmap.rows;
+    if (bw <= 0 || bh <= 0) continue;
+    const int w = bw + 2, h = bh + 2;  // (a pixel of room for the filtering each side, as on Android)
+    m[1] = g->bitmap_left - 1;
+    m[2] = -g->bitmap_top - 1;
+    m[3] = w;
+    m[4] = h;
+    const size_t at = bits.size();
+    bits.resize(at + (size_t)w * h, 0);
+    for (int y = 0; y < bh; y++)
+      for (int x = 0; x < bw; x++) bits[at + (size_t)(y + 1) * w + x + 1] = g->bitmap.buffer[y * g->bitmap.pitch + x];
+  }
+#else
   JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
   jobject act = (jobject)SDL_AndroidGetActivity();
   if (!env || !act) return false;
   jclass cls = env->GetObjectClass(act);
   jmethodID m = env->GetStaticMethodID(cls, "renderGlyphs", "([IFZZ[I)[B");
-  std::vector<int> meta;
-  std::vector<uint8_t> bits;
   if (m) {
     jintArray jcps = env->NewIntArray((jsize)cps.size());
     std::vector<jint> tmp(cps.begin(), cps.end());
@@ -706,6 +770,7 @@ bool GlesCanvas::buildFont(Font& f, float px, bool bold, bool title) {
   env->ExceptionClear();
   env->DeleteLocalRef(cls);
   env->DeleteLocalRef(act);
+#endif
   if (meta.empty()) return false;
   f.ascent = meta[0];
   f.lineH = meta[1];

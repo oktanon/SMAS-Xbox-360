@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Super Mario All-Stars
+Comment=PC port of Super Mario All-Stars: widescreen, co-op, achievements (requires your own ROM)
+Exec=SuperMarioAllStars
+Icon=supermarioallstars
+Categories=Game;
+Terminal=false
