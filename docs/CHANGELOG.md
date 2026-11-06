@@ -30,3 +30,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   `docs/UPSTREAM.md`); qemu con 2 hilos igual (run 013); run 014 preparada.
 - 0014 (2026-11-06) — Run 014: con 2 hilos de dibujo, 91-96 fps en juego, 81 en widescreen, 67 en co-op, hashes
   iguales. Hito 2b cerrado; el port dibuja con 2 hilos (hilos hardware 2 y 4).
+- 0015 (2026-11-06) — Hito 3: vídeo con vulkan4xenon (`video_vk`, shaders, `smas_video.xex`) con prueba de color leída
+  del front buffer; en Xenia se ve el juego y las 4 barras pasan (run 015); run 016 preparada; documentación al día.

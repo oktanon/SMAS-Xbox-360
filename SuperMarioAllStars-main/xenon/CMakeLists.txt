@@ -3,7 +3,7 @@
 #   cmake --build build-xenon
 # Hoy: smas_hito2.xex (-O3), el emulador sin ventana con el guion de xenon/qemu más benchmarks (hitos 2 y 2b). El juego se añade aquí después.
 cmake_minimum_required(VERSION 3.25)
-project(SMASXenon CXX)
+project(SMASXenon C CXX)
 
 set(GAME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set(SRC ${GAME_DIR}/src)
@@ -64,3 +64,29 @@ add_custom_command(OUTPUT ${GUION_CONSOLA}
           ${CMAKE_CURRENT_SOURCE_DIR}/hito2_bench.txt
   VERBATIM)
 add_custom_target(guion_consola ALL DEPENDS ${GUION_CONSOLA})
+
+# Hito 3: smas_video.xex, el vídeo con vulkan4xenon (src/platform/xenon/video_vk.cpp, video_main.cpp). Los shaders de
+# src/platform/xenon/shaders se compilan con vulkan4xenon-main/tools/build_shaders.py a screen_shaders.c/.h, que se
+# suben al repositorio (como hace vulkan4xenon con los suyos): ver AGENTS.md §3.
+set(V4X_DIR ${GAME_DIR}/../vulkan4xenon-main CACHE PATH "vulkan4xenon (compilado: build/libvulkan4xenon.a)")
+add_executable(smas_video
+  ${SRC}/platform/xenon/video_main.cpp
+  ${SRC}/platform/xenon/video_vk.cpp
+  ${SRC}/platform/xenon/screen_shaders.c
+  $<TARGET_OBJECTS:smastool_obj>)
+target_include_directories(smas_video PRIVATE ${V4X_DIR}/include ${V4X_DIR}/third_party/vulkan-headers/include
+  ${V4X_DIR}/tests)
+target_link_libraries(smas_video PRIVATE smascore ${V4X_DIR}/build/libvulkan4xenon.a)
+set_target_properties(smas_video PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
+xsdk_add_xex(smas_video NAME "SMAS hito 3 video")
+
+# Su guion: dibujar con 2 hilos, el guion de comparación (líneas comparadas con la run 004) y la demostración.
+set(GUION_VIDEO ${CMAKE_CURRENT_BINARY_DIR}/guion_video.txt)
+add_custom_command(OUTPUT ${GUION_VIDEO}
+  COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_CURRENT_SOURCE_DIR}/hito2_hilos.txt ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt
+          ${CMAKE_CURRENT_SOURCE_DIR}/hito3_demo.txt > ${GUION_VIDEO}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hito2_hilos.txt ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt
+          ${CMAKE_CURRENT_SOURCE_DIR}/hito3_demo.txt
+  VERBATIM)
+add_custom_target(guion_video ALL DEPENDS ${GUION_VIDEO})
+

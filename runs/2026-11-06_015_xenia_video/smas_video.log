@@ -1,0 +1,30 @@
+log: game:\smas_video.log
+log: named after \Device\Harddisk0\Partition1\smas_video.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 960 after 0 us
+smas_video: hito 3, el vídeo (unos minutos; al terminar vuelve al dashboard)
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 960 after 0 us
+video: pantalla Xbox 360 video output, 1280x720 a 60000 mHz
+video: staging 0xbe870000 (alineado a 4 KB: si), 675840 bytes
+video: staging 0xbe7c0000 (alineado a 4 KB: si), 675840 bytes
+PASS: prueba de color, barra rojo: leído (255, 0, 0) en (280, 360), esperado (255, 0, 0)
+PASS: prueba de color, barra verde: leído (0, 255, 0) en (520, 360), esperado (0, 255, 0)
+PASS: prueba de color, barra azul: leído (0, 0, 255) en (760, 360), esperado (0, 0, 255)
+PASS: prueba de color, barra mezcla (128,192,64): leído (128, 192, 64) en (1000, 360), esperado (128, 192, 64)
+prueba de color: las cuatro barras de su color
+render threads: 2
+HASHALL arranque f239 wram=e91750b8 vram=e6baa10c cgram=5ba749e8 oam=35b44580 aram=c016da48 sram=0a3f9a96 pic=45019899 cpu=d8bc726d audio=25ce1421
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+VIDEO f599: emulación 4.91 ms, vídeo (copia + envío) 0.61 ms por frame; el peor 110.75 ms; 11 de 600 pasaron de 16,7 ms
+audio: 159937 samples, peak 10004, rms 1103.9
+VIDEO f1199: emulación 4.97 ms, vídeo (copia + envío) 0.42 ms por frame; el peor 95.00 ms; 4 de 600 pasaron de 16,7 ms
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1208
+HASHALL smb1_cargado f1268 wram=04a4db5a vram=3ed41a5e cgram=85b8df7c oam=037ba0bd aram=eafa70c9 sram=34e11aa8 pic=9b544af2 cpu=e8b5b899 audio=816e7d9c
+HASHALL smb1_jugado f1538 wram=05d302e2 vram=962dbdac cgram=d11a7c2a oam=874b1e05 aram=7f1a1f4c sram=34e11aa8 pic=93ee8176 cpu=e8b5b899 audio=2ca0fb7a
+VIDEO f1622: emulación 6.19 ms, vídeo (copia + envío) 0.39 ms por frame; el peor 35.32 ms; 2 de 600 pasaron de 16,7 ms
+snapshots 60 (0.0 KB kept, 0.0 KB each), push 3.328 ms, step back 59: 0 mismatched, 16.895 ms each
+resumed from frame 2: identical to the first run (0 bytes differ of 279049); SRAM kept: yes
+HASHALL smb1_rewind f1658 wram=574ad5a3 vram=395a0dae cgram=d11a7c2a oam=faaeab3d aram=6a30b40b sram=34e11aa8 pic=aa25b184 cpu=c4362538 audio=6d1189c7
+HASHALL smb1_cargar_state f1539 wram=1f96edcb vram=962dbdac cgram=d11a7c2a oam=112bc895 aram=fbb14ae9 sram=34e11aa8 pic=87400f86 cpu=c4362538 audio=c1192d43

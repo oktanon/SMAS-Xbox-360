@@ -1,0 +1,43 @@
+
+# --- Solo en smas_video.xex (hito 3): el juego en la pantalla, después del guion de comparación ---
+# Unos minutos de juego para mirarlo: widescreen 64 en los cuatro juegos, overscan del menú, co-op, High Frame Rate
+# desactivado (el vídeo muestra un frame por refresco). No imprime líneas que se comparen.
+echo DEMO widescreen 64
+wide 64
+warp 1 1 1
+waitload 3000
+hold right+b
+run 900
+hold none
+warp 3 1 1
+waitload 3000
+hold right+b
+run 900
+hold none
+warp 4 1 2
+waitload 3000
+hold right+b
+run 900
+hold none
+warp 2 1 1
+waitload 3000
+hold right
+run 600
+hold none
+echo DEMO 4:3
+wide 0
+warp 4 1 1
+waitload 3000
+run 600
+echo DEMO co-op en SMB1, widescreen 64
+wide 64
+coop 1
+warp 1 1 1
+waitload 3000
+hold right+b
+hold2 right+b
+run 900
+hold none
+hold2 none
+coop 0
+echo DEMO fin

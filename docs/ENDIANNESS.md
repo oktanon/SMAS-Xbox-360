@@ -95,6 +95,9 @@ Upstream añadió `src/core/msu1.cpp`, que tenía el único error de orden de by
    de 4 píxeles (rojo, verde, azul, blanco) verificada en Xenia y en consola. Si los canales salen cambiados, se
    arregla con el swizzle del sampler o del shader (gratis), no invirtiendo en CPU. El byte X vale 0: el shader debe
    ignorar alfa.
+   **Hecho (hito 3, tarea 0015):** textura `R8G8B8A8` leída por bytes, `screen.frag` toma el color de `(g, b, a)`. La
+   prueba de 4 barras de `smas_video.xex` lee el front buffer: en Xenia las cuatro salen de su color (run 015); falta
+   la consola (run 016).
 2. **Vértices, índices y uniforms** en el orden de la CPU, tal cual (GUIDE.md: "Indices are big-endian, as the CPU
    writes them"). En BT3 había que invertirlos porque sus datos eran LE; los nuestros nacen nativos, así que no.
    Memoria de GPU: solo stores `volatile` de 32 bits (un `std` desalineado cuelga la consola; PITFALLS.md).

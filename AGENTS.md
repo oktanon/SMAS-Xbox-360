@@ -74,8 +74,8 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | Capa Linux / Steam Deck (**plantilla del bucle de la app**) | `SuperMarioAllStars-main/src/platform/linux/app_linux.cpp` | `main`, `App::init/run/shutdown`, búsqueda de ROM, `openUrl`, `httpGet`; usa las capas de vídeo, audio e input de Android |
 | Capa Android (**plantilla de vídeo, audio e input**) | `SuperMarioAllStars-main/src/platform/android/` | SDL2 + GLES 3; `video_gles.cpp` dibuja el texto con FreeType fuera de Android |
 | Build Linux (lista de fuentes comunes) | `SuperMarioAllStars-main/CMakeLists.txt`, rama `UNIX AND NOT ANDROID` | Los ficheros de `src/app` que entran en un build no Windows |
-| **Capa Xbox 360 (a crear)** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5 |
-| **Build Xbox 360 (a crear)** | `SuperMarioAllStars-main/xenon/CMakeLists.txt` | Toolchain de xsdk |
+| **Capa Xbox 360** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5: hoy `video_vk.*` (vídeo), `shaders/` y `screen_shaders.*`, y los títulos de prueba `hito2_main.cpp`, `video_main.cpp` |
+| **Build Xbox 360** | `SuperMarioAllStars-main/xenon/CMakeLists.txt` | Toolchain de xsdk; guiones de consola `hito2_*.txt`, `hito3_demo.txt`; comparación en `xenon/qemu/` |
 | xsdk | `xsdk-main/` | `CLAUDE.md`, `docs/GETTING_STARTED.md`, `docs/GUIDE.md`, `docs/PITFALLS.md`, `docs/PARITY.md`, `docs/HARDWARE.md` |
 | Toolchain CMake de xsdk | `xsdk-main/cmake/xsdk.cmake` | `xsdk_add_xex(<target>)`, `xsdk_add_shaders()` |
 | Empaquetador XEX | `xsdk-main/tools/elf2xex.py` | `--title-id`, `--title-name`; ya escribe un XDBF (§7) |
@@ -117,13 +117,17 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -
 # 3b. Título de prueba de SDL -> SDL-xenon-xenon/build-xsdk-check/sdl_check.xex
 wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B build-xsdk-check -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DSDL3_DIR=$PWD/build-xsdk && cmake --build build-xsdk-check'
 # 4. El port (SuperMarioAllStars-main/xenon/CMakeLists.txt) -> build-xenon/
-#    hoy: smas_hito2.xex y guion.txt (hito 2); después SuperMarioAllStars.xex, que añadirá
-#    -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk y vulkan4xenon
+#    hoy: smas_hito2.xex + guion.txt (hitos 2 y 2b) y smas_video.xex + guion_video.txt (hito 3, enlaza
+#    vulkan4xenon-main/build/libvulkan4xenon.a); después SuperMarioAllStars.xex, que añadirá SDL3
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
+# 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
+#    -> screen_shaders.c/.h, que se suben al repositorio
+wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/screen_shaders src/platform/xenon/shaders/screen.vert src/platform/xenon/shaders/screen.frag'
 ```
 
-El núcleo se compila en Xbox con las mismas opciones que la comparación en qemu (`-O2 -ffp-contract=off
--fno-strict-aliasing`) y con `SMAS_XENON` y `SMAS_BIG_ENDIAN` definidos. El paquete de cada run de consola se arma
+El núcleo se compila en Xbox con `-O3 -ffp-contract=off -fno-strict-aliasing` (la comparación en qemu, con `-O2`; los
+resultados son los mismos, runs 010 y 012) y con `SMAS_XENON`, `SMAS_BIG_ENDIAN`, `SMAS_PPU_FAST` y
+`SMAS_PORT_FIXES` definidos. El paquete de cada run de consola se arma
 en `build-xenon/consola/<hito>/`; para Xenia, una copia en `build-xenon/xenia/<hito>/` (Xenia escribe junto al
 `.xex`).
 
@@ -150,8 +154,9 @@ Xenia:
   hay un `dbgprint.txt` junto al `.xex`).
 - Diferencias conocidas con la consola: `xsdk-main/CLAUDE.md` (reloj a 50 MHz en vez de 49.875, estadísticas de
   memoria, prioridades de hilos, `icbi`, renombrado de ficheros, etc.) y `vulkan4xenon-main/CLAUDE.md` (resolve →
-  sample). Este fork emula los registros AVIVO, así que el swapchain sí puede funcionar, pero la presentación real solo
-  la confirma la consola.
+  sample). Este fork emula los registros AVIVO: el swapchain de vulkan4xenon funciona y se ve la imagen (run 015), pero
+  la presentación real, los colores y los tiempos solo los confirma la consola. Para mirar la imagen de Xenia desde
+  un agente: captura de la pantalla de Windows con PowerShell (`System.Drawing`) mientras corre.
 
 Consola física (RGH del usuario):
 
@@ -199,16 +204,16 @@ capa de plataforma en `src/platform/xenon/`. Lo que cada plataforma aporta (ver 
 `App::touchFrame`, y de `sys.h` `openUrl`, `httpGet` y `openFolder` (en Xbox: sin selector de ficheros, sin navegador;
 `httpGet` devuelve `false` hasta decidir si se usa curl-xenon).
 
-| Fichero (a crear) | Hace | Base |
+| Fichero | Hace | Base |
 |---|---|---|
-| `app_xenon.cpp` | `main`, bucle de frames, pausa con la Guía (`xsdk_system_ui_open`), rutas `game:\`, funciones de plataforma de arriba | `platform/linux/app_linux.cpp` |
-| `video_vk.cpp/.h` | Swapchain 1280×720 de vulkan4xenon, sube el framebuffer SNES (256 px o ancho widescreen) como textura, escalado/aspecto/filtros, paleta de color | `platform/android/video_gles.cpp` |
-| `canvas_vk.cpp` | Implementa `Canvas` (`src/app/canvas.h`) para launcher, menú y música: rectángulos, redondeados, gradientes, polígonos, formas guardadas, imágenes de vista previa, texto | `GlesCanvas` en `video_gles.cpp` |
+| `app_xenon.cpp` (a crear) | `main`, bucle de frames, pausa con la Guía (`xsdk_system_ui_open`), rutas `game:\`, funciones de plataforma de arriba | `platform/linux/app_linux.cpp` |
+| `video_vk.cpp/.h` (**hecho**, hito 3) | Swapchain 1280×720 FIFO de vulkan4xenon; el framebuffer de la PPU (704×240) a una textura `R8G8B8A8` por un staging alineado (copia en GPU); un quad 4:3 que se ensancha con los márgenes; `screen.frag` toma el color de `(g, b, a)` (los bytes `00 RR GG BB` en big-endian); lectura de píxeles del front buffer para pruebas. Falta: filtros, aspectos y color de las opciones (hito 6) y el `Canvas` | vulkan4xenon `tests/harness*.c`, `test_texture.c` |
+| `canvas_vk.cpp` (a crear) | Implementa `Canvas` (`src/app/canvas.h`) para launcher, menú y música: rectángulos, redondeados, gradientes, polígonos, formas guardadas, imágenes de vista previa, texto | `GlesCanvas` en `video_gles.cpp` |
 | texto | Como Linux: `LuckiestGuy-Regular.ttf` (títulos) y DejaVu Sans normal y negrita (UI), empaquetadas junto al `.xex`. Linux usa FreeType; en Xbox, FreeType portado a xsdk o `stb_truetype` (decidir en el hito 5) | `video_gles.cpp`, `loadFace` |
-| `input_sdl3.cpp/.h` | Mandos con SDL3 (`SDL_Gamepad`, hasta 4, vibración); mapeo como el de Xbox en Windows | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
-| `audio_sdl3.cpp/.h` | Audio con `SDL_AudioStream` a 48 kHz (SDL-xenon lo lleva al driver de xsdk) | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
-| `ach_xam.cpp/.h` | Espejo de logros nativos (fase de §7) | |
-| `xenon/CMakeLists.txt` | Fuentes comunes + capa xenon, enlaza `SDL3::SDL3-static` y `libvulkan4xenon.a`, `xsdk_add_xex`, shaders con `tools/build_shaders.py` | `android/app/src/main/cpp/CMakeLists.txt` |
+| `input_sdl3.cpp/.h` (a crear) | Mandos con SDL3 (`SDL_Gamepad`, hasta 4, vibración); mapeo como el de Xbox en Windows | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
+| `audio_sdl3.cpp/.h` (a crear) | Audio con `SDL_AudioStream` a 48 kHz (SDL-xenon lo lleva al driver de xsdk) | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
+| `ach_xam.cpp/.h` (a crear) | Espejo de logros nativos (fase de §7) | |
+| `xenon/CMakeLists.txt` (en marcha) | Hoy el núcleo (`smascore`) y los títulos de prueba; después las fuentes comunes de `src/app` + la capa xenon, `SDL3::SDL3-static` y `libvulkan4xenon.a` | rama Linux del `CMakeLists.txt` de upstream |
 
 Puntos de riesgo que hay que tratar explícitamente:
 

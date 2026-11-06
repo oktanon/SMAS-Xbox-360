@@ -180,6 +180,10 @@ static void scanFrame() {
 
 static FILE* g_padRec = nullptr;  // padrec: the controllers per frame (the app's autotest "pads")
 
+// Called after each emulated frame when set (xenon port: smas_video.xex shows each frame on the screen as the script
+// runs, src/platform/xenon/video_main.cpp). Null here: smastool itself draws nothing.
+void (*g_smastoolFrameHook)(Snes& snes) = nullptr;
+
 static void runFrames(int n) {
   for (int i = 0; i < n; i++) {
     if (g_padRec) {
@@ -197,6 +201,7 @@ static void runFrames(int n) {
     g_snes->takeAudio(a);
     for (int16_t v : a) g_audioHash.w(uint16_t(v));
     if (g_recordAudio) g_audio.insert(g_audio.end(), a.begin(), a.end());
+    if (g_smastoolFrameHook) g_smastoolFrameHook(*g_snes);
   }
 }
 
