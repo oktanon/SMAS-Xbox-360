@@ -5,7 +5,7 @@
 // también mueve; Back = Select, ya que aquí no hay menú). Dos jugadores (mandos 1 y 2).
 // - El stick derecho pulsado cambia entre 4:3 y widescreen 64.
 // - La Guía abierta pausa el juego y el sonido.
-// - Back + Start 3 segundos: salir al dashboard.
+// - Back + LB + RB 3 segundos: salir al dashboard (Back + Start saca una captura en el dashboard, run 018).
 // El log (game:\smas_jugar.log): cada mando que se conecta, la primera vez que se pulsa cada botón de la SNES en
 // cada jugador (para comprobar la asignación), y cada 600 frames los tiempos y el sonido (veces que la cola se quedó
 // vacía, su mínimo, y los frames que el kernel recibió en silencio, xsdk_audio_stats).
@@ -101,7 +101,7 @@ int main()
   std::setvbuf(stdout, nullptr, _IOLBF, 0);
   xsdk_splash_show(1500);
   Ppu::renderThreadStart = placeRenderThread;
-  std::printf("smas_jugar: hito 4, mandos y audio (Back + Start 3 s para salir)\n");
+  std::printf("smas_jugar: hito 4, mandos y audio (Back + LB + RB 3 s para salir)\n");
 
   if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
     std::printf("FIN: SDL_Init falló: %s\n", SDL_GetError());
@@ -133,12 +133,13 @@ int main()
   int wide = 0;
   bool prevRs = false, uiOpen = false;
   int quitHeld = 0;
-  uint64_t emuUs = 0, videoUs = 0, worstUs = 0;
+  uint64_t emuUs = 0, videoUs = 0, worstUs = 0, inputUs = 0, runUs = 0, pushUs = 0;
   uint32_t frames = 0, over = 0, totalFrames = 0;
   XsdkAudioStats lastStats{};
   xsdk_audio_stats(&lastStats);
 
   for (bool running = true; running;) {
+    const uint64_t tIn = nowUs();
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT) running = false;
@@ -180,20 +181,27 @@ int main()
       std::printf("widescreen %d\n", wide);
     }
     prevRs = rs;
-    quitHeld = pad0 && pad0->buttons[6] && pad0->buttons[7] ? quitHeld + 1 : 0;
+    // Back + LB + RB (Back + Start takes a screenshot in the user's dashboard, run 018)
+    quitHeld = pad0 && pad0->buttons[6] && pad0->buttons[4] && pad0->buttons[5] ? quitHeld + 1 : 0;
     if (quitHeld >= 180) running = false;
 
+    const uint64_t tRun = nowUs();
     game.beforeFrame();
     snes.runFrame();
     game.afterFrame();
+    const uint64_t tPush = nowUs();
     samples.clear();
     snes.takeAudio(samples);
     g_audio.push(samples.data(), samples.size() / 2, Snes::kSampleRate);
     const uint64_t t1 = nowUs();
     g_video.present(snes.ppu.frame, snes.ppu.extL, snes.ppu.extR, snes.ppu.frameHeight());
     const VideoVk::Stats vs = g_video.takeStats();
+    inputUs += tRun - tIn;
+    runUs += tPush - tRun;
+    pushUs += t1 - tPush;
+    (void)t0;
 
-    const uint64_t emu = t1 - t0, work = emu + vs.copyUs + vs.submitUs;
+    const uint64_t emu = t1 - tIn, work = emu + vs.copyUs + vs.submitUs;
     emuUs += emu;
     videoUs += vs.copyUs + vs.submitUs;
     if (work > worstUs) worstUs = work;
@@ -204,14 +212,16 @@ int main()
       g_audio.takeStats(&underruns, &minQueued);
       XsdkAudioStats st{};
       xsdk_audio_stats(&st);
-      std::printf("JUGAR f%u (%s, wide %d): emulación %.2f ms, vídeo %.2f ms por frame, el peor %.2f ms, %u de 600 de "
-                  "más; audio: cola vacía %d veces, mínimo %d frames, ahora %d; kernel: %u frames, %u en silencio\n",
+      std::printf("JUGAR f%u (%s, wide %d): emulación %.2f ms (mandos %.2f, frame %.2f, audio %.2f), vídeo %.2f ms "
+                  "por frame, el peor %.2f ms, %u de 600 de más; audio: cola vacía %d veces, mínimo %d frames, ahora "
+                  "%d; kernel: %u frames, %u en silencio\n",
                   (unsigned)totalFrames, game.describe().substr(0, game.describe().find('\n')).c_str(), wide,
-                  emuUs / 600000.0, videoUs / 600000.0, worstUs / 1000.0, (unsigned)over, underruns, minQueued,
+                  emuUs / 600000.0, inputUs / 600000.0, runUs / 600000.0, pushUs / 600000.0, videoUs / 600000.0,
+                  worstUs / 1000.0, (unsigned)over, underruns, minQueued,
                   g_audio.queuedFrames(), (unsigned)(st.played - lastStats.played),
                   (unsigned)(st.silent - lastStats.silent));
       lastStats = st;
-      emuUs = videoUs = worstUs = 0;
+      emuUs = videoUs = worstUs = inputUs = runUs = pushUs = 0;
       frames = over = 0;
     }
   }

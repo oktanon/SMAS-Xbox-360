@@ -182,3 +182,13 @@ media de la emulación (con el dibujo en 2 hilos) y del vídeo, y cuántos frame
 - **Siguiente (hito 8, con prioridad):** llamar a los ganchos de SMB2 menos (solo si se demuestra que dan lo mismo
   píxel a píxel que por tile) o en otro hilo (solo si son seguros entre hilos), o el dibujo diferido; y el co-op.
 
+## 5. Con sonido y mandos (run 018, hito 4)
+
+- Con el sonido de SDL, la emulación tardaba ~5 ms más por frame (SMB1 en 4:3: 15,6 ms frente a 10,4 sin sonido):
+  **el hilo del dispositivo de audio de SDL-xenon arranca en el hilo hardware del que abre el dispositivo y con
+  prioridad +1**, es decir, en el 0, el de la emulación. Los frames de más pierden un refresco (tirones) y la cola de
+  audio se vacía. Corregido con el hint de SDL-xenon `SDL_HINT_AUDIO_XSDK_HARDWARE_THREAD = 5` en `Audio::init`
+  (tarea 0018); lo confirma la run 019.
+- **Reparto de hilos hardware del port:** 0 emulación (y lo que llama a los ganchos de los juegos), 2 y 4 dibujo de
+  la PPU, 5 audio de SDL; libres el 1 y el 3.
+

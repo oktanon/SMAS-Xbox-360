@@ -187,6 +187,10 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
   (hilos hardware 2 y 4): 91-96 fps en juego, 108 en el menú, 81 en widescreen, 67 en co-op (run 014; hito 2b
   cerrado). El núcleo se compila con `-O3` y dibuja con 2 hilos; los hilos hardware 1, 3 y 5 quedan para audio,
   vídeo y rewind. `docs/PERFORMANCE.md`.
+- **Audio de SDL:** su hilo arranca en el hilo hardware de quien abre el dispositivo (con prioridad +1). En el 0 le
+  quitaba ~5 ms por frame a la emulación (run 018): `Audio::init` lo lleva al 5 con
+  `SDL_HINT_AUDIO_XSDK_HARDWARE_THREAD`. Hilos hardware: 0 emulación, 2 y 4 dibujo, 5 audio; libres 1 y 3.
+- **Back + Start** saca una captura en el dashboard del usuario: no usarlo como combinación del port.
 - **Con vídeo (run 016):** colores correctos (prueba de 4 barras leída del front buffer); el vídeo cuesta ~0,3 ms
   por frame; en 4:3 todo a 60. En widescreen, SMB2, SMB3 y el co-op pasan de 16,7 ms: los ganchos de los juegos
   (`fetchWideTile`, casi una llamada por píxel en SMB2) van en el hilo de la emulación. Pendiente en el hito 8.
@@ -215,7 +219,7 @@ capa de plataforma en `src/platform/xenon/`. Lo que cada plataforma aporta (ver 
 | `canvas_vk.cpp` (a crear) | Implementa `Canvas` (`src/app/canvas.h`) para launcher, menú y música: rectángulos, redondeados, gradientes, polígonos, formas guardadas, imágenes de vista previa, texto | `GlesCanvas` en `video_gles.cpp` |
 | texto | Como Linux: `LuckiestGuy-Regular.ttf` (títulos) y DejaVu Sans normal y negrita (UI), empaquetadas junto al `.xex`. Linux usa FreeType; en Xbox, FreeType portado a xsdk o `stb_truetype` (decidir en el hito 5) | `video_gles.cpp`, `loadFace` |
 | `input_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Input` de la app con SDL3 (`SDL_Gamepad`, hasta 4 mandos, mismos números de botones y ejes, ranuras fijas por mando); `rumble()` añadido (la app no vibra todavía); el teclado no existe en la consola | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
-| `audio_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Audio` de la app con SDL3: un `SDL_AudioStream` en la frecuencia del dispositivo, `SDL_AUDIO_S16` nativo, el mismo remuestreo Hermite y control de latencia que Android | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
+| `audio_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Audio` de la app con SDL3: un `SDL_AudioStream` en la frecuencia del dispositivo, `SDL_AUDIO_S16` nativo, el mismo remuestreo Hermite y control de latencia que Android; su hilo, en el hilo hardware 5 (run 018) | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
 | `ach_xam.cpp/.h` (a crear) | Espejo de logros nativos (fase de §7) | |
 | `xenon/CMakeLists.txt` (en marcha) | Hoy el núcleo (`smascore`) y los títulos de prueba; después las fuentes comunes de `src/app` + la capa xenon, `SDL3::SDL3-static` y `libvulkan4xenon.a` | rama Linux del `CMakeLists.txt` de upstream |
 

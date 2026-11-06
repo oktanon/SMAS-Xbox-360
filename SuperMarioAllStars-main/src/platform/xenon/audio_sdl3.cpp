@@ -11,6 +11,12 @@
 bool Audio::init(int latencyMs) {
   shutdown();
   latencyMs_ = latencyMs;
+#ifdef SDL_HINT_AUDIO_XSDK_HARDWARE_THREAD
+  // SDL's device thread starts on the hardware thread of the thread that opens the device, at priority +1
+  // (SDL-xenon docs/README-xsdk.md): on the emulation's 0 it took ~5 ms of each frame and made frames late (run 018).
+  // Hardware thread 5, as SDL-xenon's sdl_check puts it (run 001); the render threads are on 2 and 4.
+  SDL_SetHint(SDL_HINT_AUDIO_XSDK_HARDWARE_THREAD, "5");
+#endif
   if (!SDL_WasInit(SDL_INIT_AUDIO) && !SDL_InitSubSystem(SDL_INIT_AUDIO)) return false;
   // the device's own rate (48 kHz on the console) and chunk (256 frames), so SDL's stream only converts the format
   SDL_AudioSpec dev{};

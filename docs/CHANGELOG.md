@@ -37,3 +37,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   rápido.
 - 0017 (2026-11-06) — Hito 4: `Audio` e `Input` de la app con SDL3 (`audio_sdl3`, `input_sdl3`) y `smas_jugar.xex`,
   el cartucho jugable con mando y sonido; arranca en Xenia (run 017); run 018 preparada.
+- 0018 (2026-11-06) — Run 018: mandos y sonido bien, tirones porque el hilo de audio de SDL corría en el hilo hardware
+  de la emulación: movido al 5 (hint de SDL-xenon); salir con Back + LB + RB; run 019 preparada.
