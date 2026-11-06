@@ -176,11 +176,13 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
 - Resultados de referencia: `vulkan4xenon_test` 550/550, `vkbench` 17/17, `sdl_check` 18/18, `xsdk_test` 624/630
   (los 6 fallos son del entorno: USB, sin perfil, sin `net_host.txt`).
 - **El emulador da los mismos resultados en la consola que en x86** (run 009: 22 líneas de hashes y 9 salidas).
-- **Va a 22-38 fps en un hilo** (36-63 % del tiempo real), ~5,8 veces más lento que el PC; en x86 la PPU se lleva
-  ~75 % del tiempo. Antes del vídeo va el hito 2b: `docs/PERFORMANCE.md`.
-- **Nombres de fichero en el USB:** un nombre cuya parte antes del último punto mide 8 caracteres y lleva un punto
-  (`menu.png.tmp`) se crea recortado (`menu.tmp`). `writeFileSafely` usa en Xbox un temporal sin puntos
-  (`menu_png.tmp`, `src/core/fileio.cpp`). No crear nombres así en el port.
+- **Va a 22-38 fps en un hilo** (36-63 % del tiempo real). **La PPU es el 77-85 % de cada frame** (20-36 ms); sin
+  dibujar, el resto va a ~160 fps (run 010). `-O3` ayuda poco (hasta 6 %). Antes del vídeo va el hito 2b:
+  `docs/PERFORMANCE.md`.
+- **Nombres de fichero en el USB:** un nombre con dos o más puntos y la primera parte de 4 caracteres se crea
+  recortado (`menu.png.tmp` → `menu.tmp`, `rqst.png.t` → `rqst.tng`), y puede quedar **duplicado** en la carpeta
+  (runs 009 y 010). `writeFileSafely` usa en Xbox un temporal sin puntos (`menu_png.tmp`, `src/core/fileio.cpp`).
+  **Regla: el port solo crea nombres de fichero con un punto.**
 - Una run de consola dura lo que tarda: la de la run 009, 9,5 minutos con la pantalla negra; el título vuelve al
   dashboard al terminar.
 

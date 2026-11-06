@@ -39,9 +39,9 @@ bool writeFileSafely(const std::string& path, const void* data, size_t n) {
 }
 #else
 #ifdef SMAS_XENON
-// xenon port: on the console's USB drive, a name whose part before the last dot is 8 characters with a dot in it
-// ("menu.png.tmp") is made as "menu.tmp", so the rename that follows finds nothing (runs 007 and 009). The temporary
-// file takes the name with its dots made underscores ("menu_png.tmp"), which is a plain 8.3 or long name.
+// xenon port: on the console's USB drive, a name with two or more dots whose first part is 4 characters
+// ("menu.png.tmp") is made shortened ("menu.tmp"), so the rename that follows finds nothing (runs 007, 009, 010). The
+// temporary file takes the name with its dots made underscores ("menu_png.tmp"): one dot only.
 static std::string tempName(const std::string& path) {
   const size_t slash = path.find_last_of("/\\");
   const size_t start = slash == std::string::npos ? 0 : slash + 1;

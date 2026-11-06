@@ -3,55 +3,60 @@
 El emulador tiene que dar 60 fps en la consola con margen para el vídeo, el audio, la interfaz, el rewind y el
 co-op. Todo número de rendimiento sale de la consola física: Xenia y qemu no miden nada de esto (AGENTS.md §4).
 
-## 1. Dónde estamos (run 009, 2026-11-06, base v1.1.1, `-O2`)
+## 1. Dónde estamos (runs 009 y 010, 2026-11-06, base v1.1.1)
 
-`bench 600` de `smastool` en la consola, un solo hilo, sin vídeo, audio ni interfaz:
+`bench 600` de `smastool` en la consola, un solo hilo, sin vídeo, audio ni interfaz. "Sin PPU" es `render off`
+(`ppu.skipRender`, lo que la app usa en los frames que se saltan): la CPU 65816, la APU y los juegos sin dibujar.
 
-| Escena | Consola | x86 (WSL, referencia) | Consola / tiempo real |
-|---|---|---|---|
-| Menú de All-Stars | 38,0 fps | 215 fps | 63 % |
-| SMB1 1-1 corriendo | 26,5 fps | 149-154 fps | 44 % |
-| SMB2 1-1 | 24,0 fps | 146-149 fps | 40 % |
-| SMB3 1-1 corriendo | 28,8 fps | 175-178 fps | 48 % |
-| SMB3 1-1, widescreen 64 | 25,1 fps | 139-142 fps | 42 % |
-| SMB1 co-op | 21,8 fps | 122-126 fps | 36 % |
+| Escena | `-O2` | `-O2` sin PPU | PPU (ms/frame) | Resto (ms/frame) | % PPU | `-O3` | `-O3` PPU / resto (ms) |
+|---|---|---|---|---|---|---|---|
+| Menú de All-Stars | 38,0 fps | 164,6 fps | 20,2 | 6,1 | 77 % | 37,1 fps | 21,4 / 5,5 |
+| SMB1 1-1 corriendo | 26,5 fps | 161,3 fps | 31,5 | 6,2 | 84 % | 27,1 fps | 31,4 / 5,5 |
+| SMB2 1-1 | 24,0 fps | 161,3 fps | 35,5 | 6,2 | 85 % | 25,0 fps | 34,5 / 5,5 |
+| SMB3 1-1 corriendo | 28,8 fps | 159,7 fps | 28,5 | 6,3 | 82 % | 30,5 fps | 27,1 / 5,7 |
+| SMB3 1-1, widescreen 64 | 25,1 fps | — | — | — | — | 26,8 fps | — |
+| SMB1 co-op | 21,8 fps | 96,3 fps | 35,5 | 10,4 | 77 % | 22,3 fps | 35,9 / 9,0 |
 
-La consola va unas **5,8 veces más lenta** que el PC de referencia. El rewind también: guardar un frame 6,1 ms (x86
-2,5 ms) y volver uno 48 ms (x86 10 ms).
+- **La PPU es el 77-85 % de cada frame (20-36 ms).** Sin dibujar, la CPU, la APU y los juegos cuestan ~6 ms
+  (160 fps); 10 ms en co-op.
+- `-O3` baja el resto un 12 % y no mejora la PPU: hasta 6 % en total. Los resultados son idénticos con las dos.
+- La consola va ~6 veces más lenta que x86 en la PPU y ~4 veces en el resto: el código del dibujo encaja
+  especialmente mal en el procesador in-order.
+- Rewind: guardar un frame 6,0 ms (`-O3` 5,8) y volver uno 48 ms.
+- Objetivo: 16,7 ms por frame con margen para vídeo, audio e interfaz. La PPU tiene que bajar de ~32 ms a menos de
+  ~8 ms en el hilo principal.
 
-## 2. Dónde se va el tiempo (x86, tarea 0009)
+## 2. Dónde se va el tiempo dentro (perfil en x86, gprof, SMB1 + SMB2 + SMB3)
 
-`render off` (`ppu.skipRender`, lo que la app usa en los frames que se saltan) deja correr la CPU 65816, la APU y los
-juegos sin que la PPU dibuje:
+| Función | % del total |
+|---|---|
+| `Ppu::renderBg` (fondos, por línea y capa) | 36,6 % |
+| `Ppu::composeLine` (mezcla de capas, ventanas, color math, salida) | 31,9 % |
+| `Ppu::renderObj` (sprites) | 2,8 % |
+| CPU 65816 (`Snes::tick`, `cpuRead`, `busRead`, `step`...) | ~12 % |
+| APU (`Dsp::runSample`, `interpolate`, `Apu::step`...) | ~7 % |
 
-| Escena (x86) | Dibujando | Sin dibujar | Parte de la PPU |
-|---|---|---|---|
-| Menú | 215 fps | 743 fps | ~71 % |
-| SMB1 1-1 | 149 fps | 672 fps | ~78 % |
-| SMB2 1-1 | 146 fps | 681 fps | ~79 % |
-| SMB3 1-1 | 178 fps | 709 fps | ~75 % |
-| SMB1 co-op | 122 fps | 414 fps | ~70 % |
+Dos funciones de `src/core/ppu.cpp` concentran el 69 % del tiempo.
 
-**La PPU (el dibujo de cada línea, `Ppu::renderLine`) se lleva unas tres cuartas partes del tiempo.** Si la consola
-reparte igual, la CPU y la APU solas irían a ~100-130 fps en la consola, y el problema es casi entero del dibujo. La
-run 010 lo mide en la consola, y también `-O3` frente a `-O2`.
+## 3. Plan (hito 2b)
 
-## 3. Líneas de trabajo (a decidir con la run 010)
+En orden; cada paso se mide en la consola (`bench`) y se comprueba que los hashes no cambian (qemu y consola).
 
-1. **Dibujar la PPU en otros hilos hardware.** La consola tiene 6 (3 núcleos × 2). El dibujo no cambia el estado que
-   lee el juego (salvo los flags de "time over"/"range over" de OBJ, a revisar), así que el hilo de emulación puede
-   guardar el estado de la PPU de cada línea y otros hilos dibujar las líneas en paralelo, como hacen otros
-   emuladores. Es la ganancia mayor y la que más trabajo pide; hay que mantener la imagen idéntica (los hashes
-   `pic=` de `hashall` lo comprueban, en qemu y en la consola).
-2. **Opciones del compilador:** `-O3` (run 010), y después LTO y `-funroll-loops` en `ppu.cpp`, medido siempre en la
-   consola.
-3. **El código del dibujo en un procesador in-order:** menos saltos difíciles de predecir, evitar load-hit-store
-   (40-80 ciclos; BT3 `docs/port/xenon_optimizations.md`) y pasos de enteros a float (31/51 ciclos, xsdk
-   `docs/HARDWARE.md`), tablas en vez de ramas, líneas de caché de 128 bytes (`dcbt`).
-4. **La APU (SPC700 + DSP) en otro hilo**, si después del punto 1 la CPU + APU no dejan margen. Más delicado: tiene que
-   seguir sincronizada con la CPU para dar los mismos hashes.
-5. **Rewind:** 6 ms por frame guardado es demasiado en la consola; revisar cuántas veces guarda y si puede comprimir
-   en otro hilo.
+1. **`renderBg` y `composeLine` para un procesador in-order, en un hilo.** Sin cambiar resultados: menos ramas por
+   píxel (decidir por línea o por tile, no por píxel), tablas en vez de condiciones, nada de load-hit-store (40-80
+   ciclos; BT3 `docs/port/xenon_optimizations.md`) ni de pasos entre enteros y float (31/51 ciclos, xsdk
+   `docs/HARDWARE.md`), escritura del framebuffer por palabras y `dcbt` para las líneas de 128 bytes. Es lo más
+   seguro y beneficia también a PC y Android; los cambios van con `#if` si solo sirven para Xbox.
+2. **Dibujo diferido en otros hilos hardware.** El hilo de emulación guarda por línea lo que la PPU necesita (los
+   registros de la línea y lo que fijan los ganchos del juego, `hooks->beginLine`) y los hilos auxiliares dibujan las
+   líneas en paralelo mientras la CPU sigue. Lo delicado: la VRAM, la CGRAM y la OAM pueden cambiar a mitad de frame
+   (HDMA, degradados de color), los ganchos del juego por línea y lo que el dibujo escribe y el juego lee (flags de
+   OBJ "time over"/"range over", `objMoves`, las líneas de High Frame Rate). Con 6 hilos hardware (3 núcleos × 2,
+   que comparten el pipeline) la ganancia realista es de 3-4 veces en el dibujo, así que hace falta también el punto 1.
+3. **Compilador:** `-O3` para el núcleo (ya medido: un poco mejor, sin cambios en los resultados); probar LTO.
+4. **Rewind:** 6 ms por frame guardado no cabe; revisar cada cuánto guarda la app y llevar la compresión a otro hilo.
+5. **La APU en otro hilo** solo si después de lo anterior falta margen.
 
-Cada cambio se mide en la consola (run con `bench`) y se comprueba en qemu y en la consola que los hashes siguen
-iguales a los de la run 004 (o a la referencia que la sustituya).
+Herramientas: `smastool` (`bench`, `render on|off`, `hashall`), `xenon/qemu/compare.sh` para los resultados,
+`xenon/hito2_bench.txt` para la consola, gprof en x86 para encontrar el código caliente (la proporción es parecida,
+pero los números valen solo de la consola).

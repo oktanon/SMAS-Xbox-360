@@ -19,3 +19,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   corregido y probado en qemu; run 007 (consola): salidas idénticas a x86, falta el log; run 009 preparada.
 - 0009 (2026-11-06) — Hito 2 hecho en consola (run 009); nombres de temporales en el USB corregidos para Xbox;
   sonda de rendimiento (PPU sí/no, -O2/-O3) preparada (run 010); docs/PERFORMANCE.md.
+- 0010 (2026-11-06) — Run 010: la PPU es el 77-85 % de cada frame en la consola, `-O3` +6 %, resultados iguales;
+  perfil en x86 (`renderBg` + `composeLine` = 69 %); plan del hito 2b; regla de nombres del USB corregida.
