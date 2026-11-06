@@ -164,3 +164,21 @@ los hilos de dibujo además del de la emulación (en los hilos hardware 2, 4 y 3
 **Hito 2b cerrado** con esto (tarea 0014). El margen del co-op y el rewind se miden con el juego entero (vídeo, audio,
 interfaz) en el hito 8.
 
+## 4. Con vídeo, en el juego (run 016, hito 3)
+
+`smas_video.xex` muestra cada frame (vulkan4xenon, FIFO a 59,94 Hz) mientras corre el guion; cada 600 frames da la
+media de la emulación (con el dibujo en 2 hilos) y del vídeo, y cuántos frames pasaron de 16,7 ms.
+
+- **El vídeo cuesta 0,25-0,33 ms por frame** (copiar 676 KB al staging y enviar; la copia a la textura la hace la GPU).
+- **4:3, los cuatro juegos: 9-12 ms por frame**, prácticamente sin frames de más.
+- **Widescreen 64 no llega en todo:** SMB1 12,6-13,7 ms (bien); SMB2 17-19 ms; SMB3 15,2 ms con 235 de 600 de más;
+  co-op en SMB1 17,6 ms. El bench de la run 014 (300 frames de SMB3 ancho) no lo vio.
+- **Por qué (perfil en x86 de SMB2 ancho):** `composePixels` 24,5 %, `renderBgGeneric` 16,5 %, `renderBgStretch`
+  12,4 %, los ganchos de SMB2 (`openVerticalTile`, `openLayerTile`, `fetchWideTile`) ~10 %: **`fetchWideTile` se
+  llama ~67 000 veces por frame** (el original lo vuelve a llamar píxel a píxel tras un tile en blanco), y esos
+  fondos (los que el juego pide enteros con `wideFetchAll`, y los márgenes) se dibujan en el hilo de la emulación
+  por diseño (§3.3), así que los hilos ayudan poco ahí. `renderBgGeneric` salía por un fondo con el bit de mosaico
+  puesto a tamaño 1, que no hace nada: corregido (tarea 0016, `bgDrawnGeneric`), igual frame a frame.
+- **Siguiente (hito 8, con prioridad):** llamar a los ganchos de SMB2 menos (solo si se demuestra que dan lo mismo
+  píxel a píxel que por tile) o en otro hilo (solo si son seguros entre hilos), o el dibujo diferido; y el co-op.
+

@@ -186,6 +186,9 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
   (hilos hardware 2 y 4): 91-96 fps en juego, 108 en el menú, 81 en widescreen, 67 en co-op (run 014; hito 2b
   cerrado). El núcleo se compila con `-O3` y dibuja con 2 hilos; los hilos hardware 1, 3 y 5 quedan para audio,
   vídeo y rewind. `docs/PERFORMANCE.md`.
+- **Con vídeo (run 016):** colores correctos (prueba de 4 barras leída del front buffer); el vídeo cuesta ~0,3 ms
+  por frame; en 4:3 todo a 60. En widescreen, SMB2, SMB3 y el co-op pasan de 16,7 ms: los ganchos de los juegos
+  (`fetchWideTile`, casi una llamada por píxel en SMB2) van en el hilo de la emulación. Pendiente en el hito 8.
 - **Nombres de fichero en el USB:** un nombre con dos o más puntos y la primera parte de 4 caracteres se crea
   recortado (`menu.png.tmp` → `menu.tmp`, `rqst.png.t` → `rqst.tng`), y puede quedar **duplicado** en la carpeta
   (runs 009 y 010). `writeFileSafely` usa en Xbox un temporal sin puntos (`menu_png.tmp`, `src/core/fileio.cpp`).

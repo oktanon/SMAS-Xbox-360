@@ -1326,7 +1326,9 @@ bool Ppu::bgDrawnGeneric(int l) const {
   const int bpp = kBpp[mode_][l];
   const bool direct = bpp == 8 && (cgwsel_ & 1);
   const bool opt = (mode_ == 2 || mode_ == 4 || mode_ == 6) && l < 2;
-  return opt || bg_[l].mosaic || direct;
+  // (mosaic only matters at a size over 1: at 1 the original draws exactly as without it, and SMB2 leaves a
+  // layer's mosaic bit on at size 1 in places, which sent its lines the slow way: run 016)
+  return opt || (bg_[l].mosaic && mosaicSize_ > 1) || direct;
 }
 
 void Ppu::renderBg(int l, int row, int x0, int x1) {

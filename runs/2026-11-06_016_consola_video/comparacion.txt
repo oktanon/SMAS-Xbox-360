@@ -1,0 +1,14 @@
+hashes: IGUALES (22 líneas del guion)
+archivo ll.png: igual
+archivo menu.png: igual
+archivo menu.wav: igual
+archivo smb1.png: igual
+archivo smb1_coop.png: igual
+archivo smb2.png: igual
+archivo smb3.png: igual
+archivo smb3_mapa.png: igual
+archivo smb3_wide.png: igual
+--- benchmarks (60 fps = tiempo real)
+FIN: smastool_main devolvió 0 en 398.9 s
+FIN del título
+RESULTADO: IGUALES

@@ -32,3 +32,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   iguales. Hito 2b cerrado; el port dibuja con 2 hilos (hilos hardware 2 y 4).
 - 0015 (2026-11-06) — Hito 3: vídeo con vulkan4xenon (`video_vk`, shaders, `smas_video.xex`) con prueba de color leída
   del front buffer; en Xenia se ve el juego y las 4 barras pasan (run 015); run 016 preparada; documentación al día.
+- 0016 (2026-11-06) — Run 016: colores correctos en consola, hashes iguales, vídeo 0,3 ms, 60 fps en 4:3; widescreen de
+  SMB2/SMB3 y co-op ancho por encima de 16,7 ms (→ hito 8). Hito 3 hecho en 4:3. Mosaico de tamaño 1 por el camino
+  rápido.
