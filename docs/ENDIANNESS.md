@@ -79,7 +79,12 @@ enteros nativos (WAV es little-endian); ahora escribe byte a byte y en x86 sale 
 rechaza (`loadstate failed`, el `magic` invertido) y deja la máquina como estaba.
 
 Lo que qemu **no** cubre y queda para la consola (hito 2): el GCC de xsdk y newlib en vez del GCC de Linux y glibc
-(`std::exp` de la tabla del DSP, el resto del float), y el rendimiento.
+(`std::exp` de la tabla del DSP, el resto del float), y el rendimiento. En la run 007 (consola, base v1.0) las 8
+capturas y el WAV del guion salieron idénticos a los de x86: el GCC de xsdk y newlib calculan igual, audio incluido.
+
+**Base v1.1.1 (tarea 0008):** `compare.sh` también ejecuta `msu1_test` (una pista MSU-1 sintética) en las dos builds.
+Upstream añadió `src/core/msu1.cpp`, que tenía el único error de orden de bytes encontrado en el código del juego
+(§3.4).
 
 ## 3. Lista de puntos a revisar
 
@@ -110,6 +115,14 @@ Lo que qemu **no** cubre y queda para la consola (hito 2): el GCC de xsdk y newl
    - PNG (`png.cpp`): portable, escribe cabeceras y CRC con desplazamientos (`be32`) y lee los píxeles como valores.
    - Datos incrustados (`logo_data.h`, fuentes TTF): bytes, sin problema; si alguna tabla es de `uint16_t`/`uint32_t`
      generada como bytes, revisarla.
+   - **Pistas MSU-1** (`.pcm`, v1.1): "MSU1", el bucle de 32 bits y muestras estéreo de 16 bits, todo little-endian.
+     La cabecera se lee byte a byte, pero `Msu1::nextSample` leía las muestras como `int16_t` del host (su comentario:
+     "x86 and ARM are little-endian"): en Xbox, ruido. **Corregido** (tarea 0008) con un `bswap16` bajo
+     `__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__`. Lo comprueba `xenon/qemu/msu1_test.cpp` dentro de `compare.sh`; sin la
+     corrección, PowerPC da otras muestras (control hecho a mano en la tarea 0008). Los states de MSU-1 se escriben
+     byte a byte (`put32`/`get`).
+   - Portadas (`imageload.cpp`, stb_image) y exportación de logros (`achexport.cpp`, `writePng`): bytes y valores,
+     portables.
 5. **Búsqueda estática** (bt3xbx §5.2, encontró 7 casos que su detector no veía). Repetirla antes de cada hito y
    tras cambios grandes:
    ```

@@ -15,14 +15,21 @@ de prueba, mensajes de commit o `run.md`. Nada de rutas de disco de Windows (`C:
 - en comandos, partir de `<raíz>` como carpeta actual; si una herramienta exige una ruta absoluta, construirla al
   ejecutar (`$PWD/...`), nunca escribirla.
 
-Antes de cada commit, esta búsqueda (desde `<raíz>`) no debe encontrar nada fuera de esta sección §0 y de los
-`game:\` del título o de los logs de la consola:
-`git grep -nIE '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/' -- . ':!SuperMarioAllStars-main/docs/re' ':!SuperMarioAllStars-main/android/gradlew'`
+Antes de cada commit, estas dos búsquedas (desde `<raíz>`, con lo del commit ya en el índice) no deben encontrar nada
+fuera de esta sección §0 y de los `game:\` del título o de los logs de la consola:
 
-Los scripts no llevan `#!` (es una ruta absoluta): se ejecutan con `bash <script>`. Las dos exclusiones son del port
-de PC original (rutas del autor en sus notas de ingeniería inversa y el `gradlew` de Gradle) y no se tocan, igual que
-los documentos de las dependencias (`xsdk-main/`, `vulkan4xenon-main/`, `SDL-xenon-xenon/`), que son de otros
-proyectos.
+```
+# lo nuestro entero
+git grep --cached -nIE '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/' -- AGENTS.md CLAUDE.md docs runs SuperMarioAllStars-main/xenon SuperMarioAllStars-main/src/platform/xenon
+# lo que añadimos a ficheros de upstream
+git diff --cached -U0 -- SuperMarioAllStars-main ':!SuperMarioAllStars-main/xenon' ':!SuperMarioAllStars-main/src/platform/xenon' | grep -E '^\+[^+]' | grep -E '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/'
+```
+
+Los scripts no llevan `#!` (es una ruta absoluta): se ejecutan con `bash <script>`. El código y los documentos de
+upstream (el port de PC: sus notas de ingeniería inversa, el README y la versión Linux traen rutas de su autor y de
+Linux) no se tocan por esta regla, igual que los de las dependencias (`xsdk-main/`, `vulkan4xenon-main/`,
+`SDL-xenon-xenon/`). En un commit que actualiza el port base, la segunda búsqueda muestra las líneas de upstream:
+basta con que no aparezca ninguna escrita por nosotros.
 
 ## 1. Objetivo
 
@@ -59,13 +66,14 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | Qué | Ruta (relativa a `<raíz>`) | Notas |
 |---|---|---|
 | ROM | `Super Mario All-Stars (USA).sfc` | CRC32 `925637C7`, 2 MiB. **Ignorada por git.** |
-| Juego (código fuente del port de PC) | `SuperMarioAllStars-main/` | `README.md` describe todas las funciones |
+| Juego (código fuente del port de PC) | `SuperMarioAllStars-main/` | **Base: upstream v1.1.1** (`github.com/Darhkfox/SuperMarioAllStars`, commit `0c49e5e`), con nuestros cambios encima (§5, "Actualizar el port base"). `README.md` describe todas las funciones |
 | Núcleo de emulación (65816, SPC700, DSP, PPU) | `SuperMarioAllStars-main/src/core/` | Portable, sin dependencias |
 | Lógica de cada juego, logros, paleta | `SuperMarioAllStars-main/src/game/` | Portable |
 | App: launcher, menú, config, música, logros | `SuperMarioAllStars-main/src/app/` | `launcher.cpp`, `menu.cpp`, `app.cpp`, `canvas.h`, `achstore.cpp` |
 | Capa Windows (referencia) | `src/app/app_win.cpp`, `video.cpp`, `audio.cpp`, `input.cpp`, `canvas_d2d.cpp` | D3D11/D2D/XAudio2/XInput |
-| Capa Android (**plantilla del port**) | `SuperMarioAllStars-main/src/platform/android/` | SDL2 + GLES 3; misma estructura que tendrá Xbox |
-| Build Android (plantilla de CMake) | `SuperMarioAllStars-main/android/app/src/main/cpp/CMakeLists.txt` | Lista exacta de fuentes comunes |
+| Capa Linux / Steam Deck (**plantilla del bucle de la app**) | `SuperMarioAllStars-main/src/platform/linux/app_linux.cpp` | `main`, `App::init/run/shutdown`, búsqueda de ROM, `openUrl`, `httpGet`; usa las capas de vídeo, audio e input de Android |
+| Capa Android (**plantilla de vídeo, audio e input**) | `SuperMarioAllStars-main/src/platform/android/` | SDL2 + GLES 3; `video_gles.cpp` dibuja el texto con FreeType fuera de Android |
+| Build Linux (lista de fuentes comunes) | `SuperMarioAllStars-main/CMakeLists.txt`, rama `UNIX AND NOT ANDROID` | Los ficheros de `src/app` que entran en un build no Windows |
 | **Capa Xbox 360 (a crear)** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5 |
 | **Build Xbox 360 (a crear)** | `SuperMarioAllStars-main/xenon/CMakeLists.txt` | Toolchain de xsdk |
 | xsdk | `xsdk-main/` | `CLAUDE.md`, `docs/GETTING_STARTED.md`, `docs/GUIDE.md`, `docs/PITFALLS.md`, `docs/PARITY.md`, `docs/HARDWARE.md` |
@@ -170,17 +178,21 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
 
 ## 5. Arquitectura del port
 
-El port de PC ya separa núcleo y plataforma; Android demuestra que la app entera (launcher incluido) compila sin
-Windows. El port de Xbox sigue exactamente ese modelo: **se reutiliza `src/core`, `src/game` y la parte común de
-`src/app`** (`app.cpp`, `config.cpp`, `menu.cpp`, `launcher.cpp`, `music.cpp`, `achstore.cpp`, `utf8.cpp`,
-`sys_posix.cpp`) y se escribe solo la capa de plataforma en `src/platform/xenon/`:
+El port de PC ya separa núcleo y plataforma; Android y Linux demuestran que la app entera (launcher incluido) compila
+sin Windows. El port de Xbox sigue exactamente ese modelo: **se reutiliza `src/core`, `src/game` y la parte común de
+`src/app`** (la del build Linux: `app.cpp`, `config.cpp`, `menu.cpp`, `launcher.cpp`, `music.cpp`, `achstore.cpp`,
+`utf8.cpp`, `sys_posix.cpp`, `imageload.cpp`, `msupack.cpp`, `achexport.cpp`, `updatecheck.cpp`) y se escribe solo la
+capa de plataforma en `src/platform/xenon/`. Lo que cada plataforma aporta (ver `app_linux.cpp`): `main` y
+`App::init/run/shutdown`, `App::findRom/pickRom/pollPick`, `App::pickArt/pollArtPick`, `App::applyDisplayMode`,
+`App::touchFrame`, y de `sys.h` `openUrl`, `httpGet` y `openFolder` (en Xbox: sin selector de ficheros, sin navegador;
+`httpGet` devuelve `false` hasta decidir si se usa curl-xenon).
 
 | Fichero (a crear) | Hace | Base |
 |---|---|---|
-| `app_xenon.cpp` | `main`, bucle de frames, pausa con la Guía (`xsdk_system_ui_open`), rutas `game:\` | `platform/android/app_android.cpp` |
+| `app_xenon.cpp` | `main`, bucle de frames, pausa con la Guía (`xsdk_system_ui_open`), rutas `game:\`, funciones de plataforma de arriba | `platform/linux/app_linux.cpp` |
 | `video_vk.cpp/.h` | Swapchain 1280×720 de vulkan4xenon, sube el framebuffer SNES (256 px o ancho widescreen) como textura, escalado/aspecto/filtros, paleta de color | `platform/android/video_gles.cpp` |
 | `canvas_vk.cpp` | Implementa `Canvas` (`src/app/canvas.h`) para launcher, menú y música: rectángulos, redondeados, gradientes, polígonos, formas guardadas, imágenes de vista previa, texto | `GlesCanvas` en `video_gles.cpp` |
-| texto | `stb_truetype` (a añadir en `third_party/stb/`) con `LuckiestGuy-Regular.ttf` (títulos) y una fuente UI libre empaquetada (Android usa la del sistema vía JNI; aquí no existe) | |
+| texto | Como Linux: `LuckiestGuy-Regular.ttf` (títulos) y DejaVu Sans normal y negrita (UI), empaquetadas junto al `.xex`. Linux usa FreeType; en Xbox, FreeType portado a xsdk o `stb_truetype` (decidir en el hito 5) | `video_gles.cpp`, `loadFace` |
 | `input_sdl3.cpp/.h` | Mandos con SDL3 (`SDL_Gamepad`, hasta 4, vibración); mapeo como el de Xbox en Windows | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
 | `audio_sdl3.cpp/.h` | Audio con `SDL_AudioStream` a 48 kHz (SDL-xenon lo lleva al driver de xsdk) | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
 | `ach_xam.cpp/.h` | Espejo de logros nativos (fase de §7) | |
@@ -221,6 +233,21 @@ Puntos de riesgo que hay que tratar explícitamente:
   `achievements.ini`, `rompath.txt`, `screenshots\`. Escritura atómica: Xenia no hace `rename` (ver su CLAUDE.md), así
   que el guardado seguro se verifica en consola.
 
+### Actualizar el port base
+
+El port base es un proyecto vivo (upstream). Para pasar a una versión nueva (hecho de v1.0 a v1.1.1 en la tarea 0008):
+
+1. Clonar upstream en el scratchpad (carpeta nueva, nunca dentro del repositorio).
+2. `git diff --binary --full-index <tag actual> <tag nuevo>` y aplicarlo con
+   `git apply --3way --directory=SuperMarioAllStars-main`.
+3. Comprobar que el resultado es exactamente el tag nuevo más nuestros cambios (comparar el árbol con el del tag).
+4. Añadir a `xenon/qemu/build.sh` y `xenon/CMakeLists.txt` las fuentes nuevas del núcleo (`CORE_SOURCES` del
+   `CMakeLists.txt` de upstream).
+5. Revisar todo código nuevo que lea o escriba binarios (búsqueda de `docs/ENDIANNESS.md` §3.5) y pasar
+   `xenon/qemu/compare.sh`. La referencia de la consola (run 004) cambia si cambian el núcleo o los juegos: hacer una
+   run de qemu nueva y usarla como referencia.
+6. Anotar en §2 la versión base nueva.
+
 Reglas para las dependencias:
 
 - **No modificar SDL-xenon**: su `AGENTS.md` prohíbe código generado por IA en ese proyecto. Se usa tal cual; si hace
@@ -233,12 +260,16 @@ Reglas para las dependencias:
 ## 6. Paridad con PC: qué cambia en Xbox
 
 - **Se porta:** todo lo de §1, incluido el launcher, Options (Display, Graphics, Colour, Audio, Controls), logros y
-  música.
+  música. De la v1.1/1.1.1: música MSU-1 (carpeta `msu\`; ya corregida para big-endian, `docs/ENDIANNESS.md`),
+  volúmenes de música y efectos, portadas y fondo del launcher (carpeta `covers\`, PNG/JPG con stb_image), los
+  cuatro estilos de menú, NES Brick Bounce, Menu Buttons y la exportación de logros (CSV y PNG en `game:\`).
 - **Se adapta:** controles solo de mando (sin teclado): Back = Menú, LT/RT = rewind/fast forward como en PC; F5/F8
   (states) y F12 (captura) pasan a combinaciones o al menú. "Quit to Desktop" vuelve al dashboard (`terminate.h`).
   La Guía pausa el juego.
 - **No aplica:** ventana/pantalla completa, monitores, VSync configurable, Black Frame Insertion, High Frame Rate,
-  slang shaders/librashader (DLL de Windows), selector de ficheros. Se ocultan esas opciones en el menú.
+  slang shaders/librashader (DLL de Windows), selector de ficheros (ROM y portadas se copian por FTP). Se ocultan esas
+  opciones en el menú. La comprobación de actualizaciones (v1.1.1, `updatecheck.cpp`) queda apagada al principio: pide
+  HTTPS (curl-xenon + mbedtls-xenon) y red; decidir con el usuario si se porta.
 - **ROM:** se busca junto al `.xex`, en `roms\`, o en carpetas padre (igual que en PC). Sin ROM, el launcher muestra
   *ROM not found* con lo que hace falta.
 

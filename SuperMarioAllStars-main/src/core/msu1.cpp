@@ -159,6 +159,11 @@ bool Msu1::nextSample(int16_t* lr) {
     buf_.resize(want * 2);
     const size_t got = fread(buf_.data(), 4, want, track_);
     buf_.resize(got * 2);
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    // xenon port: the files are little-endian; a big-endian host (Xbox 360) turns each sample round
+    // (docs/ENDIANNESS.md; xenon/qemu/msu1_test.cpp checks it)
+    for (int16_t& v : buf_) v = (int16_t)__builtin_bswap16((uint16_t)v);
+#endif
     bufAt_ = 0;
     if (got == 0) {
       playing_ = false;

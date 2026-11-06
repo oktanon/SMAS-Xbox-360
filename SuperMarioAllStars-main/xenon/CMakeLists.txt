@@ -19,6 +19,7 @@ add_library(smascore STATIC
   ${SRC}/core/png.cpp
   ${SRC}/core/fileio.cpp
   ${SRC}/core/rewind.cpp
+  ${SRC}/core/msu1.cpp
   ${SRC}/game/achievements.cpp
   ${SRC}/game/smas.cpp
   ${SRC}/game/smb1.cpp

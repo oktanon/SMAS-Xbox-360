@@ -15,3 +15,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   el núcleo; `hashall`, `waitload`, WAV portable; scripts en `xenon/qemu/`; control negativo.
 - 0007 (2026-11-06) — Hito 2: primer build de Xbox (`xenon/CMakeLists.txt`), `smas_hito2.xex` con el guion y
   benchmarks; humo en Xenia OK (run 006); esperando la consola (run 007).
+- 0008 (2026-11-06) — Port base actualizado a upstream v1.1.1 (sin conflictos); error de orden de bytes de MSU-1
+  corregido y probado en qemu; run 007 (consola): salidas idénticas a x86, falta el log; run 009 preparada.

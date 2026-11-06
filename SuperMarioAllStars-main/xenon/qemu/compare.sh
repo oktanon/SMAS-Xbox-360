@@ -36,6 +36,16 @@ run ppc qemu-ppc "$root/build-qemu/ppc/smastool"
 
 for b in x86 ppc; do grep -E '^(HASHALL|ACH|WAITLOAD) ' "$out/$b/salida.txt" > "$out/$b/hashes.txt"; done
 
+# MSU-1 (pistas .pcm little-endian): prueba aparte, en su propia carpeta de trabajo
+msu_ok=1
+for b in x86 ppc; do
+  mkdir -p "$out/$b/msu1"
+  if [ $b = x86 ]; then runner=(); else runner=(qemu-ppc); fi
+  (cd "$out/$b/msu1" && "${runner[@]}" "$root/build-qemu/$b/msu1_test" > ../msu1.txt 2>&1)
+  rm -rf "$out/$b/msu1"
+done
+cmp -s "$out/x86/msu1.txt" "$out/ppc/msu1.txt" || msu_ok=0
+
 {
   echo "build: $stx"
   echo "lineas x86: $(wc -l < "$out/x86/hashes.txt"), ppc: $(wc -l < "$out/ppc/hashes.txt")"
@@ -47,7 +57,7 @@ fi
 # Archivos que deja el guion (capturas PNG, WAV, dumps...): deben ser idénticos byte a byte. Los save states no
 # entran: guardan los bytes en el orden del host y se espera que difieran (docs/ENDIANNESS.md §3.4).
 for b in x86 ppc; do
-  (cd "$out/$b" && find . -maxdepth 1 -type f ! -name salida.txt ! -name hashes.txt ! -name archivos.sha1 \
+  (cd "$out/$b" && find . -maxdepth 1 -type f ! -name salida.txt ! -name hashes.txt ! -name archivos.sha1 ! -name msu1.txt \
     ! -name '*.state' -printf '%f\n' | sort | xargs -r sha1sum) > "$out/$b/archivos.sha1"
 done
 files_ok=1
@@ -57,6 +67,8 @@ else
   rm -f "$out/diferencias_archivos.txt"
 fi
 echo "archivos: $(wc -l < "$out/x86/archivos.sha1") ($( [ $files_ok = 1 ] && echo iguales || echo DISTINTOS))" >> "$out/resumen.txt"
+echo "msu1: $( [ $msu_ok = 1 ] && echo igual || echo DISTINTO) ($(cat "$out/x86/msu1.txt") / $(cat "$out/ppc/msu1.txt"))" >> "$out/resumen.txt"
+[ $msu_ok = 1 ] || files_ok=0
 
 if diff -u "$out/x86/hashes.txt" "$out/ppc/hashes.txt" > "$out/diferencias.txt" && [ $files_ok = 1 ]; then
   echo "RESULTADO: IGUALES ($(wc -l < "$out/x86/hashes.txt") líneas, $(wc -l < "$out/x86/archivos.sha1") archivos)" | tee -a "$out/resumen.txt"

@@ -40,3 +40,4 @@ SuperMarioAllStars-main/third_party/SDL2-*/
 *.wav
 runs/**/*.png
 runs/**/*.sram
+runs/**/*.tmp

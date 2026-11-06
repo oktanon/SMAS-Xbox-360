@@ -2,7 +2,8 @@
 #   x86 : g++ nativo, little-endian (la referencia)
 #   ppc : powerpc-linux-gnu-g++ -static, big-endian, se ejecuta con qemu-ppc
 # Uso, desde la raíz del repositorio, en WSL:  bash SuperMarioAllStars-main/xenon/qemu/build.sh [x86|ppc|all]
-# Salida en build-qemu/<x86|ppc>/smastool, más build-qemu/<x86|ppc>/stamp.txt con el commit compilado.
+# Salida en build-qemu/<x86|ppc>/smastool y msu1_test (xenon/qemu/msu1_test.cpp), más build-qemu/<x86|ppc>/stamp.txt
+# con el commit compilado.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,7 +14,7 @@ which_builds="${1:-all}"
 
 sources=(
   src/core/cpu65816.cpp src/core/apu.cpp src/core/dsp.cpp src/core/ppu.cpp src/core/snes.cpp src/core/disasm.cpp
-  src/core/png.cpp src/core/fileio.cpp src/core/rewind.cpp
+  src/core/png.cpp src/core/fileio.cpp src/core/rewind.cpp src/core/msu1.cpp
   src/game/achievements.cpp src/game/smas.cpp src/game/smb1.cpp src/game/smb1coop.cpp src/game/palette.cpp
   src/game/smb3.cpp src/game/smb3coop.cpp src/game/smb2.cpp
   tools/smastool.cpp
@@ -35,6 +36,7 @@ build() {
   done
   wait
   "$cxx" "$@" "${objs[@]}" -o "$out/$name/smastool"
+  (cd "$game" && "$cxx" "${flags[@]}" "$@" xenon/qemu/msu1_test.cpp "$out/$name/obj/src_core_msu1.cpp.o"     -o "$out/$name/msu1_test")
   echo "$stamp" > "$out/$name/stamp.txt"
   echo "$name: build-qemu/$name/smastool ($stamp)"
 }
