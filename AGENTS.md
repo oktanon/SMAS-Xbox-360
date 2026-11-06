@@ -2,6 +2,27 @@
 
 Guía para cualquier agente (o persona) que trabaje en este repositorio. Léela entera antes de tocar nada.
 
+## 0. Regla: nada de rutas absolutas
+
+**No se escriben rutas absolutas en ningún sitio**: ni en documentos (`.md`), ni en código, scripts, CMake, guiones
+de prueba, mensajes de commit o `run.md`. Nada de rutas de disco de Windows (`C:` y similares), de `/mnt/`, `/home/`,
+`/usr/` ni del disco de la consola (`Hdd1:`). En su lugar:
+
+- rutas relativas a `<raíz>` (la carpeta de este `AGENTS.md`), o relativas a la carpeta del fichero cuando es
+  código o un script;
+- fuera del repositorio, relativas a `<raíz>` (`../Varios/...`) o descritas ("el home de WSL");
+- en el título, en tiempo de ejecución, relativas a `game:\` (la carpeta desde la que se lanzó el `.xex`);
+- en comandos, partir de `<raíz>` como carpeta actual; si una herramienta exige una ruta absoluta, construirla al
+  ejecutar (`$PWD/...`), nunca escribirla.
+
+Antes de cada commit, esta búsqueda no debe encontrar nada fuera de esta sección §0 y de los `game:\` del título
+(desde `<raíz>`; cuando haya código de la capa Xbox, quitar la exclusión de `SuperMarioAllStars-main` y revisar
+también sus ficheros nuevos):
+`git grep -nE '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/' -- ':!SuperMarioAllStars-main'`
+
+Los documentos de las dependencias (`xsdk-main/`, `vulkan4xenon-main/`, `SDL-xenon-xenon/`) son de otros proyectos y
+no se tocan.
+
 ## 1. Objetivo
 
 Hacer un **porteo completo** del port de PC *Super Mario All-Stars* (`SuperMarioAllStars-main/`) a una **Xbox 360 con
@@ -31,8 +52,8 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 
 ## 2. Rutas
 
-Raíz del proyecto (repositorio git): `C:\Users\estan\OneDrive\Escritorio\SuperMarioAllStars-main`
-En WSL: `/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main` (abajo, `<raíz>`).
+`<raíz>` es la carpeta que contiene este `AGENTS.md` (el repositorio git). Todas las rutas son relativas a ella
+(§0).
 
 | Qué | Ruta (relativa a `<raíz>`) | Notas |
 |---|---|---|
@@ -54,35 +75,37 @@ En WSL: `/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main` (abajo,
 | SDL-xenon | `SDL-xenon-xenon/` | `docs/README-xsdk.md` |
 | Xenia (fork para xsdk) | `XSDK Xenia/xsdk_xenia.exe` | `xenia_canary.exe` es el mismo binario (mismo MD5) |
 | Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
-| Port de referencia (BT3, PS2 → Xbox 360) | `C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
+| Port de referencia (BT3, PS2 → Xbox 360) | `../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
 | Runs (pruebas) | `runs/` | Ver §9 |
 | Builds | `build-xenon/` (y `build-*` en las dependencias) | Ignorados por git |
 
 Toolchain (WSL, distro **Ubuntu 26.04**, no Debian como dicen los docs de xsdk):
 
-- GCC 15 / binutils / newlib para `powerpc-xsdk-elf` en `~/xsdk-gcc` (prefijo `~/xsdk-gcc/bin/powerpc-xsdk-elf-`).
-- `cmake`, `ninja`, `make`, `python3`, `g++` y `qemu-ppc` (qemu-user 10.2) en `/usr/bin`.
-- Para la comparación big-endian falta `powerpc-linux-gnu-g++`: `sudo apt install g++-powerpc-linux-gnu` (lo instala
-  el usuario; requiere sudo).
-- En el home de WSL hay copias viejas (`~/Xbox-360-SDK`, `~/vulkan4xenon`): **no son las canónicas**. Se compila
+- GCC 15 / binutils / newlib para `powerpc-xsdk-elf` en la carpeta `xsdk-gcc` del home de WSL (donde
+  la busca `xsdk-main/cmake/xsdk.cmake`; prefijo `bin/powerpc-xsdk-elf-`).
+- `cmake`, `ninja`, `make`, `python3`, `g++`, `qemu-ppc` (qemu-user 10.2) y `powerpc-linux-gnu-g++` 15.2
+  (paquete `g++-powerpc-linux-gnu`, instalado 2026-11-06), todos en el `PATH`. Para qemu se enlaza con `-static`, así
+  no hace falta indicarle la carpeta de bibliotecas de PowerPC.
+- En el home de WSL hay copias viejas (`Xbox-360-SDK`, `vulkan4xenon`): **no son las canónicas**. Se compila
   siempre contra las carpetas de `<raíz>`.
-- Llamar a WSL desde PowerShell: `wsl.exe -d Ubuntu --exec bash -c '...'` (Git Bash reescribe rutas absolutas).
+- Llamar a WSL desde PowerShell abierto en `<raíz>`: `wsl.exe -d Ubuntu --exec bash -c '...'`. WSL arranca en la
+  misma carpeta, así que los comandos usan rutas relativas. No usar Git Bash para esto (reescribe las rutas).
 - La raíz está en OneDrive: si la sincronización bloquea ficheros durante un build, pausarla o compilar en una carpeta
-  de WSL (`~/smas-build`) y copiar el `.xex`.
+  del home de WSL y copiar el `.xex`.
 
 ## 3. Compilar
 
-Orden: xsdk → vulkan4xenon → SDL-xenon → juego. Desde PowerShell:
+Orden: xsdk → vulkan4xenon → SDL-xenon → juego. Desde PowerShell, en `<raíz>`:
 
 ```powershell
 # 1. xsdk (libxsdk.a)
-wsl.exe -d Ubuntu --exec bash -c 'cd "/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main/xsdk-main" && make'
+wsl.exe -d Ubuntu --exec bash -c 'cd xsdk-main && make'
 # 2. vulkan4xenon (libvulkan4xenon.a); su Makefile busca ../Xbox-360-SDK por defecto
-wsl.exe -d Ubuntu --exec bash -c 'cd "/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main/vulkan4xenon-main" && make XSDK=../xsdk-main'
+wsl.exe -d Ubuntu --exec bash -c 'cd vulkan4xenon-main && make XSDK=../xsdk-main'
 # 3. SDL-xenon (estática)
-wsl.exe -d Ubuntu --exec bash -c 'cd "/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main/SDL-xenon-xenon" && cmake -S. -Bbuild-xsdk -GNinja -DCMAKE_TOOLCHAIN_FILE=../xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xsdk'
+wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -GNinja -DCMAKE_TOOLCHAIN_FILE=../xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xsdk'
 # 4. El juego -> build-xenon/SuperMarioAllStars.xex
-wsl.exe -d Ubuntu --exec bash -c 'cd "/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main" && cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk -DV4X_DIR=$PWD/vulkan4xenon-main && cmake --build build-xenon'
+wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk -DV4X_DIR=$PWD/vulkan4xenon-main && cmake --build build-xenon'
 ```
 
 Cada link de xsdk ejecuta `tools/xenia_scan.py`, que lista instrucciones que Xenia no implementa: si aparece una
@@ -99,7 +122,8 @@ Xenia se marca como "pendiente de consola" en su `.md` y en la run.
 Xenia:
 
 ```powershell
-& "C:\Users\estan\OneDrive\Escritorio\SuperMarioAllStars-main\XSDK Xenia\xsdk_xenia.exe" --exit_on_crash "<raíz>\build-xenon\SuperMarioAllStars.xex"
+# desde <raíz>
+& ".\XSDK Xenia\xsdk_xenia.exe" --exit_on_crash ".\build-xenon\SuperMarioAllStars.xex"
 ```
 
 - Se queda abierto al terminar el título: cerrarlo tras unos segundos.
@@ -112,7 +136,7 @@ Xenia:
 
 Consola física (RGH del usuario):
 
-1. Copiar por FTP a una carpeta propia (p. ej. `Hdd1:\Homebrew\SMAS\`): `SuperMarioAllStars.xex`, la ROM y los
+1. Copiar por FTP a una carpeta propia en el disco de la consola: `SuperMarioAllStars.xex`, la ROM y los
    ficheros del juego (fuente del título, `README.txt`).
 2. Lanzarlo desde el dashboard.
 3. El usuario devuelve el log (`game:\SuperMarioAllStars.log`; con `net_log.txt` junto al `.xex` llega por red a
@@ -140,7 +164,7 @@ Windows. El port de Xbox sigue exactamente ese modelo: **se reutiliza `src/core`
 Puntos de riesgo que hay que tratar explícitamente:
 
 - **Big-endian. Detalle completo en `docs/ENDIANNESS.md` (leerlo antes de tocar el núcleo o la capa de vídeo/audio).**
-  Resumen, con lo aprendido de los ports de BT3 a Xbox 360 (`C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main`):
+  Resumen, con lo aprendido de los ports de BT3 a Xbox 360 (`../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main`):
   - Se compila **nativo big-endian** con el GCC de xsdk, sin el pase LLVM de BT3: la memoria de la SNES son arrays de
     bytes y el núcleo arma los valores byte a byte; no hay `union`s ni casts de punteros a enteros.
   - **Verificación antes de la consola:** `smastool` compilado para x86 y para PowerPC big-endian

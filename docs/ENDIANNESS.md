@@ -1,7 +1,7 @@
 # Orden de bytes: de little-endian (PC) a big-endian (Xenon)
 
 Estrategia del port para el orden de bytes, con lo aprendido en los ports de Budokai Tenkaichi 3 a Xbox 360
-(`C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main`, abajo **BT3**):
+(`../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main`, relativo a la raíz del repositorio; abajo **BT3**):
 
 - **BT3/port/xenon** (`AGENTS.md` "Byte order", `docs/port/xenon_plan.md` X1, `docs/port/xenon_optimizations.md`):
   xsdk + vulkan4xenon, el código del juego compilado con un pase LLVM que invierte cada load/store.
@@ -31,7 +31,7 @@ Antes de tocar la consola, el núcleo se compila dos veces en WSL Ubuntu y se co
 | Build | Compilador | Corre en |
 |---|---|---|
 | Referencia LE | `g++` nativo x86-64 | WSL |
-| BE | `powerpc-linux-gnu-g++` (paquete `g++-powerpc-linux-gnu`, **no instalado aún**: `sudo apt install g++-powerpc-linux-gnu`) | `qemu-ppc -L /usr/powerpc-linux-gnu` (`qemu-user` 10.2 ya instalado) |
+| BE | `powerpc-linux-gnu-g++ -static` (paquete `g++-powerpc-linux-gnu` 15.2, instalado 2026-11-06) | `qemu-ppc` (`qemu-user` 10.2); con `-static` no necesita la carpeta de bibliotecas de PowerPC |
 
 Las dos ejecutan `tools/smastool.cpp` (headless, ya portable) con el mismo guion de entradas y escriben hashes cada
 N frames. Cualquier diferencia solo puede venir del orden de bytes (o del float, ver §3.6). Esto es mucho más rápido

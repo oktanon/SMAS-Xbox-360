@@ -9,7 +9,7 @@
   - `docs/ROADMAP.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/CHANGELOG.md`.
   - `runs/README.md` y `runs/_PLANTILLA/run.md`.
   - `.gitignore` (ROM, builds, dependencias externas, Xenia) y `git init`.
-- **Comprobado:** CRC32 de la ROM = `925637C7`; toolchain presente en WSL Ubuntu (`~/xsdk-gcc`); `libxsdk.a` ya
+- **Comprobado:** CRC32 de la ROM = `925637C7`; toolchain presente en WSL Ubuntu (carpeta `xsdk-gcc` del home); `libxsdk.a` ya
   compilada en `xsdk-main/build/`; vulkan4xenon y SDL-xenon aún sin compilar.
 - **Probado:** no aplica (solo documentación). Sin run.
 - **Siguiente:** hito 1 del roadmap (compilar dependencias y correr sus tests en consola).

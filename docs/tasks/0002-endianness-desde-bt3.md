@@ -2,7 +2,7 @@
 
 - **Fecha:** 2026-11-06
 - **Objetivo:** revisar el port de Budokai Tenkaichi 3 a Xbox 360 del usuario
-  (`C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main`) y traer lo útil sobre
+  (`../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main`, relativo a la raíz) y traer lo útil sobre
   little-endian → big-endian.
 - **Revisado:** `AGENTS.md` ("Byte order"), `docs/port/xenon_plan.md` (X0, X1, X3), `docs/port/xenon_optimizations.md`,
   `bt3xbx-main/AGENTS.md`, `bt3xbx-main/docs/x360/guia-de-port.md` (§2 herramientas, §5 aprendizajes de bytes);
