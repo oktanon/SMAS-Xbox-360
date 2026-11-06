@@ -103,7 +103,10 @@ wsl.exe -d Ubuntu --exec bash -c 'cd xsdk-main && make'
 # 2. vulkan4xenon (libvulkan4xenon.a); su Makefile busca ../Xbox-360-SDK por defecto
 wsl.exe -d Ubuntu --exec bash -c 'cd vulkan4xenon-main && make XSDK=../xsdk-main'
 # 3. SDL-xenon (estática)
-wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -GNinja -DCMAKE_TOOLCHAIN_FILE=../xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xsdk'
+#    (la configuración tarda >10 min sobre OneDrive; la ruta del toolchain se construye con $PWD)
+wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xsdk'
+# 3b. Título de prueba de SDL -> SDL-xenon-xenon/build-xsdk-check/sdl_check.xex
+wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B build-xsdk-check -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DSDL3_DIR=$PWD/build-xsdk && cmake --build build-xsdk-check'
 # 4. El juego -> build-xenon/SuperMarioAllStars.xex
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk -DV4X_DIR=$PWD/vulkan4xenon-main && cmake --build build-xenon'
 ```

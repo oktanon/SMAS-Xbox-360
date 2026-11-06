@@ -5,7 +5,7 @@ Cada hito se cierra solo con una run en la consola física (`runs/`). Xenia sirv
 | # | Hito | Cómo se verifica | Estado |
 |---|---|---|---|
 | 0 | AGENTS.md, estructura de docs/runs, repositorio git | — | Hecho (tarea 0001) |
-| 1 | Compilar xsdk, vulkan4xenon (`XSDK=../xsdk-main`) y SDL-xenon con el toolchain de WSL Ubuntu; correr `xsdk_test.xex`, `vulkan4xenon_test.xex` y `test/xsdk` de SDL en consola | Logs de los tres tests en consola | Pendiente |
+| 1 | Compilar xsdk, vulkan4xenon (`XSDK=../xsdk-main`) y SDL-xenon con el toolchain de WSL Ubuntu; correr `xsdk_test.xex`, `vulkan4xenon_test.xex` y `test/xsdk` de SDL en consola | Logs de los tres tests en consola | Compilado; esperando logs de consola (run 001, tarea 0004) |
 | 1b | Núcleo big-endian en WSL: `smastool` para x86 y para `powerpc-linux-gnu` bajo `qemu-ppc`, guion fijo de los cuatro juegos, comparación automática de hashes de memoria y framebuffer (`ENDIANNESS.md` §2); corregir toda diferencia | Hashes idénticos x86 vs qemu-ppc (runs `qemu`); no necesita consola | Pendiente |
 | 2 | `xenon/CMakeLists.txt` + núcleo headless: carga la ROM desde `game:\`, corre N frames de cada juego y escribe hashes de frame y de WRAM en el log | Mismos hashes que `smastool` en PC (detecta errores de endianness) | Pendiente |
 | 3 | Vídeo: swapchain 720p de vulkan4xenon, framebuffer SNES como textura, aspecto, widescreen | Imagen correcta y 60 fps en consola | Pendiente |

@@ -7,3 +7,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   x86 vs qemu-ppc (hito 1b).
 - 0003 (2026-11-06) — Regla de no usar rutas absolutas (`AGENTS.md` §0); rutas de los documentos pasadas a
   relativas; compilador PowerPC para qemu comprobado.
+- 0004 (2026-11-06) — Hito 1: xsdk, vulkan4xenon y SDL-xenon compilados; cuatro títulos de prueba listos para la
+  consola (run 001, pendiente de logs).
