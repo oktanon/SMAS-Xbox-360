@@ -1,12 +1,15 @@
 # Run 001 — Tests de las dependencias en consola (hito 1)
 
-- **Fecha:** 2026-11-06 (compilado; pendiente de ejecutar en consola)
-- **Dónde:** Consola (RGH)
-- **Commit:** tarea 0004
-- **Qué se prueba:** `xsdk_test.xex` (xsdk), `vulkan4xenon_test.xex` y `vkbench.xex` (vulkan4xenon),
-  `sdl_check.xex` (SDL-xenon), compilados con el toolchain de WSL Ubuntu. SHA1 en `xex.sha1`.
-- **Esperado:** vulkan4xenon_test todo PASS; xsdk_test casi todo PASS (sin perfil, sin `net_host.txt` o lanzado
-  desde USB fallan unos pocos, como en BT3: 624 de 630); sdl_check PASS con el mando.
-- **Resultado:** pendiente — copiar aquí `xsdk_test.log`, `vulkan4xenon_test.log`, `vkbench.log`,
-  `vkbench_summary.csv`, `sdl_check.log`.
-- **Siguiente:** con los logs, cerrar el hito 1 (o anotar qué falla y por qué).
+- **Fecha:** 2026-11-06
+- **Dónde:** Consola (RGH), lanzado desde USB, sin perfil, sin `net_host.txt`; salida de vídeo 1080p.
+- **Commit:** `47e7f86` (tarea 0004); SHA1 de los `.xex` en `xex.sha1`.
+- **Resultado:** OK.
+  - `vulkan4xenon_test`: 550/550. `vkbench`: 17/17 (frames de ~16,7 ms, sincronizados a 60 Hz).
+  - `sdl_check`: 18/18 (mando Xbox 360 con botones, sticks, gatillos y vibración; audio 6 canales a 48 kHz sin frames
+    en silencio; reloj de 201 ns; base path `game:\`).
+  - `xsdk_test`: 624/630. Los 6 fallos son del entorno, los mismos que vio BT3: coste de una línea de log en USB
+    (1758 µs > 1500), 4 de XAM/saves en paquete (sin perfil, el enumerador no da el disco duro) y la red sin
+    `net_host.txt`.
+- **Logs:** `xsdk_test.log`, `vulkan4xenon_test.log`, `vkbench.log`, `vkbench_summary.csv`, `vkbench_frames.csv`,
+  `sdl_check.log`.
+- **Siguiente:** hito 1b (comparación x86 / qemu-ppc).

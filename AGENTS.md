@@ -145,6 +145,20 @@ Consola física (RGH del usuario):
 3. El usuario devuelve el log (`game:\SuperMarioAllStars.log`; con `net_log.txt` junto al `.xex` llega por red a
    `xsdk-main/tools/net_log.py`) y, si hace falta, foto/captura.
 4. Se guarda todo en la run (§9). Pedir una run en consola cuando un hito o una duda sobre el hardware real lo necesite.
+   El paquete para el FTP se arma en `build-xenon/consola/<hito>/`; los logs que vuelven de la consola suelen quedar
+   ahí (junto a los `.xex`): buscarlos también en esa carpeta y copiarlos a la run.
+
+Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port debe tener en cuenta:
+
+- Se lanza desde **USB** y sin perfil. Escribir ficheros normales en `game:\` funciona; las partidas en paquete de XAM
+  (`xsdk_save_mount`) fallan sin perfil. El port guarda en ficheros normales, como en PC.
+- **Una línea de log cuesta ~1,8 ms en USB.** Nada de logs por frame: acumular en memoria y escribir pocas veces, o
+  mandarlo por red (`net_log.txt`).
+- Salida de vídeo 1080p; xsdk/vulkan4xenon dibujan a 1280x720 y la consola escala.
+- Mando Xbox 360 completo por SDL (botones, sticks, gatillos analógicos, vibración); audio por SDL a 48 kHz,
+  6 canales, sin cortes.
+- Resultados de referencia: `vulkan4xenon_test` 550/550, `vkbench` 17/17, `sdl_check` 18/18, `xsdk_test` 624/630
+  (los 6 fallos son del entorno: USB, sin perfil, sin `net_host.txt`).
 
 ## 5. Arquitectura del port
 

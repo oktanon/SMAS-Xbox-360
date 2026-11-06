@@ -9,3 +9,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   relativas; compilador PowerPC para qemu comprobado.
 - 0004 (2026-11-06) — Hito 1: xsdk, vulkan4xenon y SDL-xenon compilados; cuatro títulos de prueba listos para la
   consola (run 001, pendiente de logs).
+- 0005 (2026-11-06) — Hito 1 hecho en consola: v4x 550/550, vkbench 17/17, sdl_check 18/18, xsdk_test 624/630
+  (6 fallos del entorno).
