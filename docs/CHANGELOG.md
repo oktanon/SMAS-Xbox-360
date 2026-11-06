@@ -13,3 +13,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   (6 fallos del entorno).
 - 0006 (2026-11-06) — Hito 1b hecho: smastool x86 y PowerPC big-endian (qemu) dan lo mismo en todo el guion sin cambiar
   el núcleo; `hashall`, `waitload`, WAV portable; scripts en `xenon/qemu/`; control negativo.
+- 0007 (2026-11-06) — Hito 2: primer build de Xbox (`xenon/CMakeLists.txt`), `smas_hito2.xex` con el guion y
+  benchmarks; humo en Xenia OK (run 006); esperando la consola (run 007).

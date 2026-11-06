@@ -108,9 +108,16 @@ wsl.exe -d Ubuntu --exec bash -c 'cd vulkan4xenon-main && make XSDK=../xsdk-main
 wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xsdk'
 # 3b. Título de prueba de SDL -> SDL-xenon-xenon/build-xsdk-check/sdl_check.xex
 wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B build-xsdk-check -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DSDL3_DIR=$PWD/build-xsdk && cmake --build build-xsdk-check'
-# 4. El juego -> build-xenon/SuperMarioAllStars.xex
-wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk -DV4X_DIR=$PWD/vulkan4xenon-main && cmake --build build-xenon'
+# 4. El port (SuperMarioAllStars-main/xenon/CMakeLists.txt) -> build-xenon/
+#    hoy: smas_hito2.xex y guion.txt (hito 2); después SuperMarioAllStars.xex, que añadirá
+#    -DSDL3_DIR=$PWD/SDL-xenon-xenon/build-xsdk y vulkan4xenon
+wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
 ```
+
+El núcleo se compila en Xbox con las mismas opciones que la comparación en qemu (`-O2 -ffp-contract=off
+-fno-strict-aliasing`) y con `SMAS_XENON` y `SMAS_BIG_ENDIAN` definidos. El paquete de cada run de consola se arma
+en `build-xenon/consola/<hito>/`; para Xenia, una copia en `build-xenon/xenia/<hito>/` (Xenia escribe junto al
+`.xex`).
 
 Cada link de xsdk ejecuta `tools/xenia_scan.py`, que lista instrucciones que Xenia no implementa: si aparece una
 función del juego, cualquier resultado de Xenia que pase por ella **no vale**.

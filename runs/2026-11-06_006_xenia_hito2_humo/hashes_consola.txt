@@ -1,0 +1,7 @@
+HASHALL arranque f239 wram=e91750b8 vram=e6baa10c cgram=5ba749e8 oam=35b44580 aram=c016da48 sram=0a3f9a96 pic=45019899 cpu=d8bc726d audio=25ce1421
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1208
+HASHALL smb1_cargado f1268 wram=04a4db5a vram=3ed41a5e cgram=85b8df7c oam=037ba0bd aram=eafa70c9 sram=34e11aa8 pic=9b544af2 cpu=e8b5b899 audio=816e7d9c
+HASHALL smb1_jugado f1538 wram=05d302e2 vram=962dbdac cgram=d11a7c2a oam=874b1e05 aram=7f1a1f4c sram=34e11aa8 pic=93ee8176 cpu=e8b5b899 audio=2ca0fb7a
+HASHALL smb1_rewind f1658 wram=574ad5a3 vram=395a0dae cgram=d11a7c2a oam=faaeab3d aram=6a30b40b sram=34e11aa8 pic=aa25b184 cpu=c4362538 audio=6d1189c7
+HASHALL smb1_cargar_state f1539 wram=1f96edcb vram=962dbdac cgram=d11a7c2a oam=112bc895 aram=fbb14ae9 sram=34e11aa8 pic=87400f86 cpu=c4362538 audio=c1192d43

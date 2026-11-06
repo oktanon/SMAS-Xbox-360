@@ -1,0 +1,4 @@
+hashes: el log se corta en la línea 7 de 22 (¿se colgó o no terminó?); las 7 que hay coinciden
+archivos: no se trajo ninguno (PNG/WAV), solo se compararon los hashes
+--- benchmarks (60 fps = tiempo real)
+RESULTADO: DISTINTOS

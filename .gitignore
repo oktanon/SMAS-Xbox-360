@@ -38,6 +38,5 @@ SuperMarioAllStars-main/third_party/SDL2-*/
 *.oam
 *.aram
 *.wav
-runs/*_qemu_*/x86/*.png
-runs/*_qemu_*/ppc/*.png
-runs/*_qemu_*/*/*.sram
+runs/**/*.png
+runs/**/*.sram
