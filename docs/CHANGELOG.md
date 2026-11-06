@@ -35,3 +35,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0016 (2026-11-06) — Run 016: colores correctos en consola, hashes iguales, vídeo 0,3 ms, 60 fps en 4:3; widescreen de
   SMB2/SMB3 y co-op ancho por encima de 16,7 ms (→ hito 8). Hito 3 hecho en 4:3. Mosaico de tamaño 1 por el camino
   rápido.
+- 0017 (2026-11-06) — Hito 4: `Audio` e `Input` de la app con SDL3 (`audio_sdl3`, `input_sdl3`) y `smas_jugar.xex`,
+  el cartucho jugable con mando y sonido; arranca en Xenia (run 017); run 018 preparada.

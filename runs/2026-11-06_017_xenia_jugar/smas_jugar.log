@@ -1,0 +1,15 @@
+log: game:\smas_jugar.log
+log: named after \Device\Harddisk0\Partition1\smas_jugar.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 960 after 0 us
+smas_jugar: hito 4, mandos y audio (Back + Start 3 s para salir)
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 960 after 0 us
+video: pantalla Xbox 360 video output, 1280x720 a 60000 mHz
+video: staging 0xbe870000 (alineado a 4 KB: si), 675840 bytes
+video: staging 0xbe7c0000 (alineado a 4 KB: si), 675840 bytes
+audio: 48000 Hz, bloques de 1024 frames, latencia 64 ms
+JUGAR f600 (Game Select gameplay=0 ext=0+0 (req 0), wide 0): emulación 13.75 ms, vídeo 0.99 ms por frame, el peor 229.56 ms, 104 de 600 de más; audio: cola vacía 11 veces, mínimo 0 frames, ahora 2158; kernel: 2016 frames, 0 en silencio
+JUGAR f1200 (Game Select gameplay=0 ext=0+0 (req 0), wide 0): emulación 14.38 ms, vídeo 0.84 ms por frame, el peor 26.29 ms, 155 de 600 de más; audio: cola vacía 4 veces, mínimo 0 frames, ahora 1710; kernel: 1919 frames, 0 en silencio
+JUGAR f1800 (Game Select gameplay=0 ext=0+0 (req 0), wide 0): emulación 14.53 ms, vídeo 0.83 ms por frame, el peor 20.75 ms, 159 de 600 de más; audio: cola vacía 2 veces, mínimo 0 frames, ahora 1496; kernel: 1892 frames, 0 en silencio
