@@ -17,3 +17,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   benchmarks; humo en Xenia OK (run 006); esperando la consola (run 007).
 - 0008 (2026-11-06) — Port base actualizado a upstream v1.1.1 (sin conflictos); error de orden de bytes de MSU-1
   corregido y probado en qemu; run 007 (consola): salidas idénticas a x86, falta el log; run 009 preparada.
+- 0009 (2026-11-06) — Hito 2 hecho en consola (run 009); nombres de temporales en el USB corregidos para Xbox;
+  sonda de rendimiento (PPU sí/no, -O2/-O3) preparada (run 010); docs/PERFORMANCE.md.

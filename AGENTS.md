@@ -83,7 +83,7 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | vulkan4xenon | `vulkan4xenon-main/` | `include/vulkan4xenon.h`, `docs/SUPPORT.md`, `tools/build_shaders.py` |
 | SDL-xenon | `SDL-xenon-xenon/` | `docs/README-xsdk.md` |
 | Xenia (fork para xsdk) | `XSDK Xenia/xsdk_xenia.exe` | `xenia_canary.exe` es el mismo binario (mismo MD5) |
-| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
+| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/PERFORMANCE.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
 | Port de referencia (BT3, PS2 → Xbox 360) | `../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
 | Runs (pruebas) | `runs/` | Ver §9 |
 | Builds | `build-xenon/` (y `build-*` en las dependencias) | Ignorados por git |
@@ -175,6 +175,14 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
   6 canales, sin cortes.
 - Resultados de referencia: `vulkan4xenon_test` 550/550, `vkbench` 17/17, `sdl_check` 18/18, `xsdk_test` 624/630
   (los 6 fallos son del entorno: USB, sin perfil, sin `net_host.txt`).
+- **El emulador da los mismos resultados en la consola que en x86** (run 009: 22 líneas de hashes y 9 salidas).
+- **Va a 22-38 fps en un hilo** (36-63 % del tiempo real), ~5,8 veces más lento que el PC; en x86 la PPU se lleva
+  ~75 % del tiempo. Antes del vídeo va el hito 2b: `docs/PERFORMANCE.md`.
+- **Nombres de fichero en el USB:** un nombre cuya parte antes del último punto mide 8 caracteres y lleva un punto
+  (`menu.png.tmp`) se crea recortado (`menu.tmp`). `writeFileSafely` usa en Xbox un temporal sin puntos
+  (`menu_png.tmp`, `src/core/fileio.cpp`). No crear nombres así en el port.
+- Una run de consola dura lo que tarda: la de la run 009, 9,5 minutos con la pantalla negra; el título vuelve al
+  dashboard al terminar.
 
 ## 5. Arquitectura del port
 

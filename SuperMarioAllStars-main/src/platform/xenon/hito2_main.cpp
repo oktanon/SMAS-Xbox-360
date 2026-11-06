@@ -25,16 +25,25 @@ void diagnoseFiles()
 {
   std::printf("DIAG guardado seguro\n");
   const char data[] = "smas_hito2 prueba de escritura\n";
-  const char* names[] = {"diag_a.png", "diag_bbbbbbbb.png", "diag_c.state", "diag_d.png"};
+  // run 009: "menu.png.tmp" quedó como "menu.tmp". Nombres creados con fopen directo para ver la regla: la parte
+  // antes del último punto de 8 caracteres con un punto dentro (los que fallaron) y otros alrededor.
+  const char* raw[] = {"rq.png.tmp", "rqst.png.tmp", "rqstu.png.tmp", "rqs.pngx.tmp", "rqstuvwx.tmp", "r.q.s.t.tmp",
+                       "rqst.png.t", "rqst.pn.tmp"};
+  for (const char* n : raw) {
+    FILE* f = std::fopen(n, "wb");
+    if (f) std::fputs("r", f), std::fclose(f);
+    struct stat st;
+    std::printf("DIAG fopen %s: %s; existe con ese nombre: %s\n", n, f ? "ok" : "falla", stat(n, &st) == 0 ? "si" : "NO");
+  }
+  // writeFileSafely (en Xbox, el temporal con los puntos como _: fileio.cpp) con los nombres que fallaban
+  const char* names[] = {"diag_a.png", "menu_diag.png", "abcd.png", "abc.defg", "smb9.png", "diag_c.state"};
   for (const char* n : names) {
     errno = 0;
     const bool ok = writeFileSafely(std::string(n), data, sizeof data - 1);
     struct stat st;
-    const bool there = stat(n, &st) == 0;
-    const std::string tmp = std::string(n) + ".tmp";
-    const bool tmpThere = stat(tmp.c_str(), &st) == 0;
-    std::printf("DIAG writeFileSafely %s: %s, errno %d (%s); queda %s: %s; queda %s: %s\n", n, ok ? "ok" : "FALLA", errno,
-                std::strerror(errno), n, there ? "si" : "no", tmp.c_str(), tmpThere ? "si" : "no");
+    const bool there = stat(n, &st) == 0 && st.st_size == (off_t)(sizeof data - 1);
+    std::printf("DIAG writeFileSafely %s: %s, errno %d (%s); queda %s con su contenido: %s\n", n, ok ? "ok" : "FALLA",
+                errno, std::strerror(errno), n, there ? "si" : "NO");
   }
   // rename a pelo: sobre un destino que no existe y sobre uno que existe
   FILE* f = std::fopen("diag_r.png.tmp", "wb");

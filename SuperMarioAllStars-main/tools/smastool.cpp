@@ -237,6 +237,12 @@ static void execLine(const std::string& line) {
     int n = 1;
     ss >> n;
     runFrames(n);
+  } else if (cmd == "render") {
+    // render on|off: the PPU draws its lines or not (ppu.skipRender, as the app's skipped frames): bench with it off
+    // gives the CPU and APU's share (xenon port, docs/PERFORMANCE.md)
+    std::string v;
+    ss >> v;
+    s.ppu.skipRender = v == "off";
   } else if (cmd == "waitload") {
     // waitload MAX: run frames until a level select / launcher start has finished loading (at most MAX)
     int maxFrames = 3000, n = 0;

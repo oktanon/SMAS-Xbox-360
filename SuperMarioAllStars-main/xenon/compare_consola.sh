@@ -1,13 +1,13 @@
 # Compara lo que devolvió smas_hito2.xex en la consola con la referencia x86 de la run 004 (hito 2).
 # Uso, desde la raíz del repositorio, en WSL:
-#   bash SuperMarioAllStars-main/xenon/compare_consola.sh <carpeta de la run de consola>
-# La carpeta debe tener smas_hito2.log y, si se trajeron, los PNG y el WAV que escribió el título.
+#   bash SuperMarioAllStars-main/xenon/compare_consola.sh <carpeta de la run de consola> [nombre del .xex]
+# La carpeta debe tener <nombre>.log (por defecto smas_hito2.log) y, si se trajeron, los PNG y el WAV que escribió el título.
 # Sale con 0 si todo lo que se pudo comparar coincide.
 set -uo pipefail
 
-run="${1:?uso: compare_consola.sh <carpeta de la run>}"
+run="${1:?uso: compare_consola.sh <carpeta de la run> [nombre del .xex]}"
 ref="runs/2026-11-06_004_qemu_hito1b/x86"
-log="$run/smas_hito2.log"
+log="$run/${2:-smas_hito2}.log"
 [ -f "$log" ] || { echo "falta $log" >&2; exit 2; }
 [ -f "$ref/hashes.txt" ] || { echo "falta la referencia $ref/hashes.txt (ejecutar desde la raíz)" >&2; exit 2; }
 

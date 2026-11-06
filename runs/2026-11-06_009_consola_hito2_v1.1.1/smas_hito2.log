@@ -1,0 +1,86 @@
+log: game:\smas_hito2.log
+log: named after \Device\Mass0\games\smas\smas_hito2.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 18294 us
+smas_hito2: el guion de xenon/qemu en la consola (tarda unos minutos; al terminar vuelve al dashboard)
+HASHALL arranque f239 wram=e91750b8 vram=e6baa10c cgram=5ba749e8 oam=35b44580 aram=c016da48 sram=0a3f9a96 pic=45019899 cpu=d8bc726d audio=25ce1421
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+rename: NtCreateFile(game:\menu.png.tmp) failed: 0xC0000034
+unlink: NtCreateFile(game:\menu.png.tmp) failed: 0xC0000034
+audio: 159937 samples, peak 10004, rms 1103.9
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1208
+HASHALL smb1_cargado f1268 wram=04a4db5a vram=3ed41a5e cgram=85b8df7c oam=037ba0bd aram=eafa70c9 sram=34e11aa8 pic=9b544af2 cpu=e8b5b899 audio=816e7d9c
+HASHALL smb1_jugado f1538 wram=05d302e2 vram=962dbdac cgram=d11a7c2a oam=874b1e05 aram=7f1a1f4c sram=34e11aa8 pic=93ee8176 cpu=e8b5b899 audio=2ca0fb7a
+rename: NtCreateFile(game:\smb1.png.tmp) failed: 0xC0000034
+unlink: NtCreateFile(game:\smb1.png.tmp) failed: 0xC0000034
+snapshots 60 (0.0 KB kept, 0.0 KB each), push 6.072 ms, step back 59: 0 mismatched, 48.191 ms each
+resumed from frame 2: identical to the first run (0 bytes differ of 279049); SRAM kept: yes
+HASHALL smb1_rewind f1658 wram=574ad5a3 vram=395a0dae cgram=d11a7c2a oam=faaeab3d aram=6a30b40b sram=34e11aa8 pic=aa25b184 cpu=c4362538 audio=6d1189c7
+HASHALL smb1_cargar_state f1539 wram=1f96edcb vram=962dbdac cgram=d11a7c2a oam=112bc895 aram=fbb14ae9 sram=34e11aa8 pic=87400f86 cpu=c4362538 audio=c1192d43
+WAITLOAD loaded after 1178 frames, Super Mario Bros.: The Lost Levels gameplay=1 ext=0+0 (req 0) f1177
+HASHALL ll_jugado f1412 wram=461dc750 vram=7c5cc00e cgram=d11a7c2a oam=196c5acc aram=75e94507 sram=d9f97b1e pic=c4cca259 cpu=10c0468f audio=86ecfcd8
+WAITLOAD loaded after 1371 frames, Super Mario Bros. 2 gameplay=1 ext=0+0 (req 0) f1370
+HASHALL smb2_jugado f1640 wram=7a9d4e45 vram=795cd2f3 cgram=0ecdaa8d oam=40381c9d aram=ae851927 sram=cb1a7787 pic=c17fee47 cpu=881719f5 audio=c6108f58
+rename: NtCreateFile(game:\smb2.png.tmp) failed: 0xC0000034
+unlink: NtCreateFile(game:\smb2.png.tmp) failed: 0xC0000034
+WAITLOAD loaded after 1526 frames, Super Mario Bros. 3 gameplay=0 ext=0+0 (req 0) f1525
+HASHALL smb3_mapa f1585 wram=726c457b vram=409bc9fc cgram=7e5d47c1 oam=397b7498 aram=851061bc sram=b33da9bf pic=21168423 cpu=17a99997 audio=1a5e0225
+WAITLOAD loaded after 1111 frames, Super Mario Bros. 3 gameplay=1 ext=0+0 (req 0) f1111
+HASHALL smb3_jugado f1371 wram=f9474b63 vram=550d81f0 cgram=4d876e11 oam=a3fe2fdd aram=159521b4 sram=b33da9bf pic=8689bbdb cpu=2cd2edeb audio=46e42863
+rename: NtCreateFile(game:\smb3.png.tmp) failed: 0xC0000034
+unlink: NtCreateFile(game:\smb3.png.tmp) failed: 0xC0000034
+HASHALL smb3_wide f1431 wram=c4e5813c vram=fb4a7685 cgram=4d876e11 oam=c7c446c5 aram=d25444cb sram=b33da9bf pic=11991c7c cpu=939ee4d4 audio=ed0cc0c5
+ACH unlock smb3_items 0 f1504
+HASHALL smb3_trucos f1551 wram=bdb21f68 vram=8a295c5b cgram=7e5d47c1 oam=e0033f8a aram=d5bd661f sram=b33da9bf pic=38259ca3 cpu=eba2458c audio=4fae6223
+HASHALL smb3_paleta f1581 wram=1d081a7e vram=65dd7a8c cgram=7e5d47c1 oam=1df0b9f2 aram=75dea387 sram=b33da9bf pic=5201e3bb cpu=3a1289a7 audio=2d9b6391
+WAITLOAD loaded after 1179 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1179
+HASHALL smb1_coop f1419 wram=f759c248 vram=c7823150 cgram=0b523cb6 oam=e0d599d3 aram=9f593e01 sram=34e11aa8 pic=a925966e cpu=e8b5b899 audio=f7b8c109
+HASHALL tras_reset f239 wram=e1a28589 vram=3732a639 cgram=c0744aa3 oam=35b44580 aram=7bf25b82 sram=ded59978 pic=a4d1e31d cpu=695f11e8 audio=cb052bd5
+ BENCH menu de All-Stars
+600 frames in 15804.7 ms (38.0 fps)
+ BENCH smb1 1-1 corriendo
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1508
+600 frames in 22679.9 ms (26.5 fps)
+ BENCH smb2 1-1
+WAITLOAD loaded after 1412 frames, Super Mario Bros. 2 gameplay=1 ext=0+0 (req 0) f1411
+600 frames in 24982.0 ms (24.0 fps)
+ BENCH smb3 1-1 corriendo
+WAITLOAD loaded after 1344 frames, Super Mario Bros. 3 gameplay=1 ext=0+0 (req 0) f1343
+600 frames in 20815.6 ms (28.8 fps)
+ BENCH smb3 1-1 widescreen 64
+600 frames in 23911.4 ms (25.1 fps)
+ BENCH smb1 co-op
+WAITLOAD loaded after 1179 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1179
+600 frames in 27568.8 ms (21.8 fps)
+ BENCH fin
+FIN: smastool_main devolvió 0 en 567.2 s
+DIAG guardado seguro
+DIAG writeFileSafely diag_a.png: ok, errno 2 (No such file or directory); queda diag_a.png: si; queda diag_a.png.tmp: no
+DIAG writeFileSafely diag_bbbbbbbb.png: ok, errno 2 (No such file or directory); queda diag_bbbbbbbb.png: si; queda diag_bbbbbbbb.png.tmp: no
+DIAG writeFileSafely diag_c.state: ok, errno 2 (No such file or directory); queda diag_c.state: si; queda diag_c.state.tmp: no
+DIAG writeFileSafely diag_d.png: ok, errno 2 (No such file or directory); queda diag_d.png: si; queda diag_d.png.tmp: no
+DIAG rename diag_r.png.tmp -> diag_r.png (no existe): 0, errno 0 (Success)
+DIAG rename diag_r.png.tmp -> diag_r.png (existe): 0, errno 0 (Success)
+DIAG listado de game:\
+DIAG   guion.txt (2565 bytes)
+DIAG   smas_hito2.xex (2158592 bytes)
+DIAG   Super Mario All-Stars (USA).sfc (2097152 bytes)
+DIAG   smas_hito2.log (5466 bytes)
+DIAG   menu.tmp (172334 bytes)
+DIAG   menu.wav (639792 bytes)
+DIAG   smb1.tmp (172334 bytes)
+DIAG   smb1.state (279049 bytes)
+DIAG   ll.png (172334 bytes)
+DIAG   smb2.tmp (172334 bytes)
+DIAG   smb3_mapa.png (172334 bytes)
+DIAG   smb3.tmp (172334 bytes)
+DIAG   smb3_wide.png (258355 bytes)
+DIAG   smb1_coop.png (172334 bytes)
+DIAG   diag_a.png (31 bytes)
+DIAG   diag_bbbbbbbb.png (31 bytes)
+DIAG   diag_c.state (31 bytes)
+DIAG   diag_d.png (31 bytes)
+DIAG   diag_r.png (1 bytes)
+FIN del título
+exit: status 0
