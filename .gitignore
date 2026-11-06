@@ -28,3 +28,16 @@ SuperMarioAllStars-main/third_party/SDL2-*/
 .vs/
 .vscode/
 *.user
+
+# Contenido derivado del juego que dejan las runs (states, volcados de memoria, capturas, audio):
+# no se sube; la evidencia son los hashes (hashes.txt, archivos.sha1)
+*.state
+*.wram
+*.vram
+*.cgram
+*.oam
+*.aram
+*.wav
+runs/*_qemu_*/x86/*.png
+runs/*_qemu_*/ppc/*.png
+runs/*_qemu_*/*/*.sram

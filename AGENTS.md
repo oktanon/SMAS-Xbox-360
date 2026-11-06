@@ -187,11 +187,16 @@ Puntos de riesgo que hay que tratar explícitamente:
   - **Verificación antes de la consola:** `smastool` compilado para x86 y para PowerPC big-endian
     (`powerpc-linux-gnu-g++` bajo `qemu-ppc` en WSL), mismo guion, comparando hashes de WRAM/VRAM/CGRAM/OAM/ARAM y
     del framebuffer. Toda diferencia es un error de bytes (o de float). Así no se gasta una run de consola por
-    intento. Xenia no sirve para esto.
+    intento. Xenia no sirve para esto. Scripts en `SuperMarioAllStars-main/xenon/qemu/` (`build.sh`, `compare.sh`,
+    `guion.txt`, `guion_control.txt`); cómo usarlos en `docs/ENDIANNESS.md` §2.1. **Pasar `compare.sh` después de
+    cualquier cambio en `src/core`, `src/game` o en código común de `src/app` que entre en smastool.**
+  - **Hito 1b hecho (run 004):** el núcleo y los juegos dan lo mismo en big-endian que en x86 sin cambiar nada; el
+    control negativo (run 005) demuestra que la comparación detecta las diferencias. Falta la consola (GCC de xsdk,
+    newlib).
   - Puntos conocidos: píxeles `0x00RRGGBB` (comprobar canales con una textura de prueba en consola; arreglar con
     swizzle, no en CPU); audio con `SDL_AUDIO_S16` nativo, nunca `S16LE`; save states con los bytes en el orden del
-    host: **los de PC no valen en Xbox** y hay que rechazarlos por el `magic` invertido (una suma de bytes no lo
-    detecta); `.srm`, `.ini` y PNG son portables; `-ffp-contract=off` (GCC PPC funde `a*b+c` en `fmadd`) y la tabla
+    host: **los de PC no valen en Xbox**; `loadState` ya los rechaza por el `magic` invertido sin tocar la máquina
+    (comprobado en qemu), pero la app debería decir "state de otra plataforma" (hito 7); `.srm`, `.ini` y PNG son portables; `-ffp-contract=off` (GCC PPC funde `a*b+c` en `fmadd`) y la tabla
     del DSP hecha con `std::exp` puede diferir entre libm.
   - Cambios en código común solo dentro de `#if`, con el original en el `#else`. `SMAS_BIG_ENDIAN` para correcciones
     de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`).
@@ -274,7 +279,9 @@ Plan: `docs/ACHIEVEMENTS_X360.md`.
    consistente). Nunca dejar trabajo sin commitear al terminar una tarea. No hacer push sin que el usuario lo pida.
 
 Nunca se commitea: la ROM (`*.sfc`, `*.smc`), saves, states, builds, binarios de Xenia, ni las carpetas de dependencias (`xsdk-main/`, `vulkan4xenon-main/`, `SDL-xenon-xenon/`,
-`XSDK Xenia/`), que son repos externos. `.gitignore` ya lo cubre.
+`XSDK Xenia/`), que son repos externos. Tampoco lo que sale de la ROM al ejecutarla en las runs de qemu: save states
+(`*.state`), volcados de memoria (`*.wram`, `*.vram`, ...), audio (`*.wav`) y capturas PNG; de eso se suben los
+hashes (`hashes.txt`, `archivos.sha1`). `.gitignore` ya lo cubre.
 
 ## 9. Runs
 

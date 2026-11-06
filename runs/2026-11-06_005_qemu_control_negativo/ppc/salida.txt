@@ -1,0 +1,2 @@
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+ppc: código 0 en 17 s

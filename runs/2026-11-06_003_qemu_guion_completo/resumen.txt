@@ -1,0 +1,4 @@
+build: b89ef02+cambios
+lineas x86: 22, ppc: 22
+capturas: 8 (iguales)
+RESULTADO: IGUALES (22 líneas, 8 capturas)

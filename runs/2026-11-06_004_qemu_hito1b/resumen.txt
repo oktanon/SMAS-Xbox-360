@@ -1,0 +1,4 @@
+build: b89ef02+cambios
+lineas x86: 22, ppc: 22
+archivos: 9 (iguales)
+RESULTADO: IGUALES (22 líneas, 9 archivos)

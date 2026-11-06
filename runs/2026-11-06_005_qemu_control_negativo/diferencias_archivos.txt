@@ -1,0 +1,11 @@
+--- runs/2026-11-06_005_qemu_control_negativo/x86/archivos.sha1	2026-11-06 15:52:16.006662700 +0000
++++ runs/2026-11-06_005_qemu_control_negativo/ppc/archivos.sha1	2026-11-06 15:52:16.104895900 +0000
+@@ -1,6 +1,6 @@
+ cf4ac4c9c469ca791af11a2e3f58fe2b4dd486ab  control.aram
+-8aca0c84abb0e2798e7bc80d47715b473dff4ee7  control.cgram
++91976fe239378acde84e14ebb459dcdaca12e3c6  control.cgram
+ 3ddfaa9f876c81ce4eef5de642c9ed4359d22a55  control.oam
+ 15625177930d22a314547de6fef19673fae7b849  control.sram
+-bd898f02009ef62ae1d93d1bc69245932a7ad8ee  control.vram
++594df87d9b8fccdf8a0e24c871ac1bf7250a818d  control.vram
+ 532f2324e5e756cc8ce8e986943d896d8e83caeb  control.wram

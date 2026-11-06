@@ -1,0 +1,105 @@
+# Guion de comparación x86 / qemu-ppc (hito 1b, docs/ENDIANNESS.md §2).
+# Lo ejecutan las dos builds de smastool con la misma ROM; compare.sh compara las líneas HASHALL, ACH y WAITLOAD y
+# las capturas PNG. Las rutas de save/load/shot son relativas a la carpeta de trabajo de cada build.
+# Después de cada warp, waitload espera a que termine la carga (tarda cientos de frames).
+
+# Encendido y menú de All-Stars (con su música)
+run 240
+hashall arranque
+press start 4 200
+hashall menu
+shot menu.png
+# 5 s de la música del menú: el WAV (little-endian) debe salir idéntico en las dos builds
+rec
+run 300
+wav menu.wav
+
+# Logros activos desde aquí: los eventos ACH deben salir iguales en las dos builds
+ach on
+
+# SMB1 1-1: correr y saltar
+warp 1 1 1
+waitload 3000
+run 60
+hashall smb1_cargado
+hold right+b
+run 90
+press right+b+a 20 40
+press right+b+a 30 60
+hold none
+run 30
+hashall smb1_jugado
+shot smb1.png
+save smb1.state
+rewindtest 120 60
+hashall smb1_rewind
+load smb1.state
+run 1
+hashall smb1_cargar_state
+
+# The Lost Levels 1-1
+warp 2 1 1
+waitload 3000
+run 60
+hold right
+run 120
+press right+a 25 30
+hold none
+hashall ll_jugado
+shot ll.png
+
+# SMB2 1-1
+warp 3 1 1
+waitload 3000
+run 60
+hold right+b
+run 120
+press right+b+a 30 60
+hold none
+hashall smb2_jugado
+shot smb2.png
+
+# SMB3: mapa del mundo 1 y nivel 1-1
+warp 4 1 1
+waitload 3000
+run 60
+hashall smb3_mapa
+shot smb3_mapa.png
+warp 4 1 2
+waitload 3000
+run 60
+hold right+b
+run 120
+press right+b+a 30 50
+hold none
+hashall smb3_jugado
+shot smb3.png
+
+# Widescreen, trucos y paleta
+wide 64
+run 60
+hashall smb3_wide
+shot smb3_wide.png
+cheats ff000000
+run 120
+hashall smb3_trucos
+palette 1
+run 30
+hashall smb3_paleta
+wide 0
+palette 0
+cheats 0
+
+# Co-op en SMB1 4-1
+coop 1
+warp 1 4 1
+waitload 3000
+run 240
+hashall smb1_coop
+shot smb1_coop.png
+coop 0
+
+# Reset de consola
+reset
+run 240
+hashall tras_reset

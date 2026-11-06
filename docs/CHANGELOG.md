@@ -11,3 +11,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   consola (run 001, pendiente de logs).
 - 0005 (2026-11-06) — Hito 1 hecho en consola: v4x 550/550, vkbench 17/17, sdl_check 18/18, xsdk_test 624/630
   (6 fallos del entorno).
+- 0006 (2026-11-06) — Hito 1b hecho: smastool x86 y PowerPC big-endian (qemu) dan lo mismo en todo el guion sin cambiar
+  el núcleo; `hashall`, `waitload`, WAV portable; scripts en `xenon/qemu/`; control negativo.

@@ -1,0 +1,17 @@
+HASHALL arranque f239 wram=e91750b8 vram=e6baa10c cgram=5ba749e8 oam=35b44580 aram=c016da48 sram=0a3f9a96 pic=45019899 cpu=d8bc726d audio=25ce1421
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+HASHALL smb1_cargado f563 wram=64717937 vram=86e72e03 cgram=5e36a7a2 oam=7c0a7ce0 aram=8cfc29fe sram=8b7fe3b6 pic=67953b86 cpu=695f11e8 audio=76753612
+HASHALL smb1_jugado f833 wram=b5c58179 vram=f2c20964 cgram=59dadb58 oam=3e2ff3fd aram=b99a02c6 sram=34e11aa8 pic=d005e6b2 cpu=e8b5b899 audio=f5f4a824
+snapshots 60 (0.0 KB kept, 0.0 KB each), push 10.445 ms, step back 59: 0 mismatched, 53.073 ms each
+resumed from frame 2: identical to the first run (0 bytes differ of 279045); SRAM kept: yes
+HASHALL smb1_rewind f953 wram=b9e2adb5 vram=6d55d749 cgram=85b8df7c oam=7e909bbd aram=939cd367 sram=34e11aa8 pic=07b4d5e5 cpu=c4362538 audio=bfa5eb60
+HASHALL smb1_cargar_state f833 wram=b5c58179 vram=f2c20964 cgram=59dadb58 oam=3e2ff3fd aram=b99a02c6 sram=34e11aa8 pic=07b4d5e5 cpu=e8b5b899 audio=bfa5eb60
+HASHALL ll_jugado f294 wram=c0f617ef vram=b9733be8 cgram=52071e78 oam=35b44580 aram=05c8fdcb sram=ded59978 pic=e4eccc3b cpu=d8bc726d audio=ac2230ac
+HASHALL smb2_jugado f684 wram=71cbf87d vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=140f9c6d sram=ded59978 pic=1f4413c5 cpu=695f11e8 audio=609e26e7
+HASHALL smb3_mapa f864 wram=d519086e vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=74350504 sram=ded59978 pic=1f4413c5 cpu=695f11e8 audio=c355cc72
+HASHALL smb3_jugado f1244 wram=fae74462 vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=bb118de9 sram=ded59978 pic=1f4413c5 cpu=d8bc726d audio=061c5aa1
+HASHALL smb3_wide f1304 wram=f91f80a6 vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=4398e510 sram=ded59978 pic=708f0771 cpu=d8bc726d audio=261fe138
+HASHALL smb3_trucos f1424 wram=142b13d1 vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=5d6d5a13 sram=ded59978 pic=708f0771 cpu=695f11e8 audio=ea434e37
+HASHALL smb3_paleta f1454 wram=ef6f47a3 vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=298e8df2 sram=ded59978 pic=708f0771 cpu=d8bc726d audio=37a5ab5f
+HASHALL smb1_coop f1694 wram=1c7f6948 vram=85d1c308 cgram=5e36a7a2 oam=7c0a7ce0 aram=35990cc7 sram=ded59978 pic=1f4413c5 cpu=d8bc726d audio=63b39ea4
+ppc: código 0 en 124 s

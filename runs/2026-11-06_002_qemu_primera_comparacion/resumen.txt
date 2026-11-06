@@ -1,0 +1,3 @@
+build: b89ef02+cambios
+lineas x86: 14, ppc: 14
+RESULTADO: IGUALES (14 líneas)

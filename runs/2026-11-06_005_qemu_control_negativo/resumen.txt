@@ -1,0 +1,4 @@
+build: b89ef02+cambios
+lineas x86: 1, ppc: 1
+archivos: 6 (DISTINTOS)
+RESULTADO: DISTINTOS (ver diferencias*.txt)

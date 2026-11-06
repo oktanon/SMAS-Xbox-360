@@ -104,6 +104,16 @@ static std::vector<uint8_t> readFile(const std::string& path) {
 }
 
 static std::vector<int16_t> g_audio;
+
+// hashall: FNV-1a over values, not raw memory, so a little- and a big-endian build give the same hash for the same
+// state (xenon port, docs/ENDIANNESS.md: VRAM and CGRAM are uint16_t, the picture uint32_t, the audio int16_t).
+struct Fnv {
+  uint32_t h = 2166136261u;
+  void b(uint8_t v) { h = (h ^ v) * 16777619u; }
+  void w(uint16_t v) { b(uint8_t(v)); b(uint8_t(v >> 8)); }
+  void d(uint32_t v) { w(uint16_t(v)); w(uint16_t(v >> 16)); }
+};
+static Fnv g_audioHash;  // every sample since power-on (or the last `hashall reset`)
 static bool g_recordAudio = false;
 
 // Widescreen picture scan (seamscan on TOP BOTTOM PATH): after every frame,
@@ -185,6 +195,7 @@ static void runFrames(int n) {
              e.id.c_str(), e.value, (unsigned)g_snes->frameCount());
     std::vector<int16_t> a;
     g_snes->takeAudio(a);
+    for (int16_t v : a) g_audioHash.w(uint16_t(v));
     if (g_recordAudio) g_audio.insert(g_audio.end(), a.begin(), a.end());
   }
 }
@@ -194,8 +205,12 @@ static void writeWav(const std::string& path, const std::vector<int16_t>& s) {
   if (!f) return;
   uint32_t dataBytes = (uint32_t)s.size() * 2;
   uint32_t rate = 32040;
-  auto w32 = [&](uint32_t v) { fwrite(&v, 4, 1, f); };
-  auto w16 = [&](uint16_t v) { fwrite(&v, 2, 1, f); };
+  // WAV is little-endian: written a byte at a time, so a big-endian build (xenon port, qemu-ppc) writes the same file
+  auto w16 = [&](uint16_t v) {
+    uint8_t b[2] = {uint8_t(v), uint8_t(v >> 8)};
+    fwrite(b, 1, 2, f);
+  };
+  auto w32 = [&](uint32_t v) { w16(uint16_t(v)), w16(uint16_t(v >> 16)); };
   fwrite("RIFF", 1, 4, f);
   w32(36 + dataBytes);
   fwrite("WAVEfmt ", 1, 8, f);
@@ -208,7 +223,7 @@ static void writeWav(const std::string& path, const std::vector<int16_t>& s) {
   w16(16);
   fwrite("data", 1, 4, f);
   w32(dataBytes);
-  fwrite(s.data(), 2, s.size(), f);
+  for (int16_t v : s) w16(uint16_t(v));
   fclose(f);
 }
 
@@ -222,6 +237,13 @@ static void execLine(const std::string& line) {
     int n = 1;
     ss >> n;
     runFrames(n);
+  } else if (cmd == "waitload") {
+    // waitload MAX: run frames until a level select / launcher start has finished loading (at most MAX)
+    int maxFrames = 3000, n = 0;
+    ss >> maxFrames;
+    while (n < maxFrames && g_game->levelLoading()) runFrames(1), n++;
+    printf("WAITLOAD %s after %d frames, %s f%u\n", g_game->levelLoading() ? "timeout" : "loaded", n,
+           g_game->describe().substr(0, g_game->describe().find('\n')).c_str(), (unsigned)g_snes->frameCount());
   } else if (cmd == "rewindtest") {
     // rewindtest PLAY BACK: play PLAY frames (held buttons, A pulsed) taking a
     // snapshot every other frame as the app does, rewind BACK steps as the app
@@ -769,6 +791,30 @@ static void execLine(const std::string& line) {
     uint32_t h = 2166136261u;
     for (uint8_t b : s.wram) h = (h ^ b) * 16777619u;
     printf("HASH %s %08x\n", name.c_str(), h);
+  } else if (cmd == "hashall") {
+    // hashall NAME: hashes of every memory, the CPU, the picture and the audio so far, by value (see Fnv);
+    // hashall reset: start the audio hash again
+    std::string name;
+    ss >> name;
+    if (name == "reset") {
+      g_audioHash = Fnv();
+    } else {
+      Fnv wram, vram, cgram, oam, aram, sram, pic, cpu;
+      for (uint8_t v : s.wram) wram.b(v);
+      for (uint16_t v : s.ppu.vram) vram.w(v);
+      for (uint16_t v : s.ppu.cgram) cgram.w(v);
+      for (uint8_t v : s.ppu.oam) oam.b(v);
+      for (uint8_t v : s.apu.ram) aram.b(v);
+      for (uint8_t v : s.sram) sram.b(v);
+      for (uint32_t v : s.ppu.frame) pic.d(v);
+      const CpuRegs& r = s.cpu.r;
+      for (uint16_t v : {r.a, r.x, r.y, r.sp, r.dp, r.pc}) cpu.w(v);
+      cpu.b(r.db), cpu.b(r.pb);
+      cpu.b(uint8_t(r.c | r.z << 1 | r.v << 2 | r.n << 3 | r.i << 4 | r.d << 5 | r.xf << 6 | r.mf << 7)), cpu.b(r.e);
+      printf("HASHALL %s f%u wram=%08x vram=%08x cgram=%08x oam=%08x aram=%08x sram=%08x pic=%08x cpu=%08x audio=%08x\n",
+             name.c_str(), (unsigned)s.frameCount(), wram.h, vram.h, cgram.h, oam.h, aram.h, sram.h, pic.h, cpu.h,
+             g_audioHash.h);
+    }
   } else if (cmd == "game") {
     printf("%s\n", g_game->describe().c_str());
   } else if (cmd == "echo") {

@@ -1,0 +1,8 @@
+# Control negativo de compare.sh: debe dar DISTINTOS.
+# `dump` escribe cada memoria en crudo; la VRAM y la CGRAM son arrays de uint16_t, así que sus ficheros salen con los
+# bytes de cada par invertidos en big-endian. Los de WRAM, OAM, ARAM y SRAM (bytes) deben salir iguales, igual que
+# el hashall (por valor). Si este guion diera IGUALES, la comparación no estaría viendo nada.
+run 240
+press start 4 200
+hashall menu
+dump control

@@ -52,6 +52,35 @@ Reglas de comparación (bt3xbx §5.4):
 - Guion fijo: los cuatro juegos desde power-on, `warp` a niveles concretos, `rewindtest`, save/load state, cheats,
   `wide`, co-op, `ach on` (los eventos de logros deben salir idénticos en las dos builds).
 
+### 2.1 Cómo se ejecuta (hito 1b, hecho 2026-11-06)
+
+Desde la raíz del repositorio, en WSL (desde PowerShell: `wsl.exe -d Ubuntu --exec bash -c '...'`):
+
+```
+SuperMarioAllStars-main/xenon/qemu/build.sh all            # build-qemu/x86/smastool y build-qemu/ppc/smastool
+SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run>   # guion.txt en las dos; sale 0 si todo coincide
+SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run> SuperMarioAllStars-main/xenon/qemu/guion_control.txt
+```
+
+- `smastool` tiene para esto `hashall NOMBRE` (FNV-1a por valor de WRAM, VRAM, CGRAM, OAM, ARAM, SRAM, imagen, CPU y
+  de todo el audio desde el arranque) y `waitload MAX` (corre frames hasta que termina la carga de un `warp`, que
+  tarda 500-1500 frames).
+- `compare.sh` compara las líneas `HASHALL`, `ACH` y `WAITLOAD` y los SHA1 de todos los archivos que deja el guion
+  (PNG, WAV, volcados) salvo los save states. Exige que las dos builds sean del mismo commit y borra antes las
+  salidas de la run anterior.
+- El guion tarda ~50 s en x86 y ~7,5 min en qemu-ppc.
+- **Control negativo** (`guion_control.txt`, run 005): `dump` vuelca la VRAM y la CGRAM (arrays de `uint16_t`) en
+  crudo, y la comparación debe dar DISTINTOS solo en esos dos ficheros. Repetirlo si se cambia `compare.sh`.
+
+**Resultado (run 004):** las dos builds dan lo mismo en todo el guion **sin cambiar nada del núcleo, de los juegos ni
+de la app**. Solo `smastool` tenía un fallo de bytes: escribía la cabecera y las muestras del WAV con `fwrite` de
+enteros nativos (WAV es little-endian); ahora escribe byte a byte y en x86 sale el mismo archivo que antes (mismo SHA1).
+`dump` sigue volcando en el orden del host (es el control negativo). Un state de x86 cargado en la build PowerPC se
+rechaza (`loadstate failed`, el `magic` invertido) y deja la máquina como estaba.
+
+Lo que qemu **no** cubre y queda para la consola (hito 2): el GCC de xsdk y newlib en vez del GCC de Linux y glibc
+(`std::exp` de la tabla del DSP, el resto del float), y el rendimiento.
+
 ## 3. Lista de puntos a revisar
 
 1. **Píxeles para la GPU.** La PPU escribe `uint32_t` 0x00RRGGBB (`src/core/ppu.cpp:1259`). En memoria LE son los
@@ -114,7 +143,9 @@ Reglas de comparación (bt3xbx §5.4):
 ## 4. Reglas de código (de bt3xbx `AGENTS.md`)
 
 - **El código común solo cambia dentro de `#if`**, dejando el original en el `#else`, para que Windows y Android
-  sigan compilando igual.
+  sigan compilando igual. Única excepción: reescribir un escritor o lector de un formato fijo byte a byte (como el
+  WAV de smastool), siempre que en little-endian dé exactamente los mismos bytes que antes, comprobado con un SHA1
+  antes y después y anotado en la tarea.
 - Dos macros distintas, para que la comparación en qemu siga siendo válida:
   - `SMAS_BIG_ENDIAN` (o `__BYTE_ORDER__`): correcciones de orden de bytes. Valen en qemu-ppc y en la Xbox.
   - `SMAS_XENON`: comportamiento propio de la consola (rutas `game:\`, Guía, XAM). Solo en el `.xex`.
