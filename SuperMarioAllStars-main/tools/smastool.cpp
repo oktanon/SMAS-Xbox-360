@@ -252,6 +252,16 @@ static void execLine(const std::string& line) {
         for (uint32_t v : s.ppu.subFrame[k - 1]) pic.d(v);
       printf("PIC %s f%u %08x\n", name.c_str(), (unsigned)s.frameCount(), pic.h);
     }
+  } else if (cmd == "threads") {
+    // threads N: the PPU's render threads besides this one (xenon port, docs/PERFORMANCE.md §3.3; 0 = none)
+    int n = 0;
+    ss >> n;
+#ifdef SMAS_PPU_FAST
+    s.ppu.setRenderThreads(n);
+    printf("render threads: %d\n", s.ppu.renderThreads());
+#else
+    printf("render threads: needs SMAS_PPU_FAST\n");
+#endif
   } else if (cmd == "render") {
     // render on|off: the PPU draws its lines or not (ppu.skipRender, as the app's skipped frames): bench with it off
     // gives the CPU and APU's share (xenon port, docs/PERFORMANCE.md)

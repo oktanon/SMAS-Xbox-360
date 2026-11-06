@@ -1,8 +1,7 @@
 # Build del port a Xbox 360 con xsdk (AGENTS.md §3). Desde la raíz del repositorio, en WSL:
 #   cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake
 #   cmake --build build-xenon
-# Hoy: smas_hito2.xex (-O2) y smas_hito2_o3.xex (-O3), el emulador sin ventana con el guion de xenon/qemu más
-# benchmarks (hitos 2 y 2b). El juego se añade aquí después.
+# Hoy: smas_hito2.xex (-O3), el emulador sin ventana con el guion de xenon/qemu más benchmarks (hitos 2 y 2b). El juego se añade aquí después.
 cmake_minimum_required(VERSION 3.25)
 project(SMASXenon CXX)
 
@@ -38,7 +37,7 @@ function(smas_hito2_variant suffix opt)
   target_include_directories(smascore${suffix} PUBLIC ${SRC})
   set_target_properties(smascore${suffix} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
   target_compile_options(smascore${suffix} PUBLIC ${opt} -ffp-contract=off -fno-strict-aliasing)
-  target_compile_definitions(smascore${suffix} PUBLIC SMAS_XENON SMAS_BIG_ENDIAN SMAS_PPU_FAST)
+  target_compile_definitions(smascore${suffix} PUBLIC SMAS_XENON SMAS_BIG_ENDIAN SMAS_PPU_FAST SMAS_PORT_FIXES)
 
   # smastool con su main renombrado y un main de Xbox (src/platform/xenon/hito2_main.cpp)
   add_library(smastool_obj${suffix} OBJECT ${GAME_DIR}/tools/smastool.cpp)
@@ -52,14 +51,16 @@ function(smas_hito2_variant suffix opt)
   xsdk_add_xex(smas_hito2${suffix} NAME "SMAS hito 2${suffix}")
 endfunction()
 
-smas_hito2_variant("" -O2)
-smas_hito2_variant("_o3" -O3)
+# (-O2 y -O3 medidos en la consola, runs 010 y 012: el núcleo va con -O3)
+smas_hito2_variant("" -O3)
 
-# El guion de la consola: el de qemu tal cual, más los benchmarks al final (no imprimen líneas que se comparen).
+# El guion de la consola: dibujar con 2 hilos (hito2_hilos.txt), el de qemu tal cual (sus líneas se comparan con
+# la run 004: el dibujo en hilos debe dar lo mismo) y los benchmarks al final (no imprimen líneas que se comparen).
 set(GUION_CONSOLA ${CMAKE_CURRENT_BINARY_DIR}/guion.txt)
 add_custom_command(OUTPUT ${GUION_CONSOLA}
-  COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt
+  COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_CURRENT_SOURCE_DIR}/hito2_hilos.txt ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt
           ${CMAKE_CURRENT_SOURCE_DIR}/hito2_bench.txt > ${GUION_CONSOLA}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt ${CMAKE_CURRENT_SOURCE_DIR}/hito2_bench.txt
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hito2_hilos.txt ${CMAKE_CURRENT_SOURCE_DIR}/qemu/guion.txt
+          ${CMAKE_CURRENT_SOURCE_DIR}/hito2_bench.txt
   VERBATIM)
 add_custom_target(guion_consola ALL DEPENDS ${GUION_CONSOLA})

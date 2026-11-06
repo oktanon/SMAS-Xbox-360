@@ -1,0 +1,5 @@
+build: 6b5df39+cambios
+lineas x86: 22, ppc: 22
+archivos: 9 (iguales)
+msu1: igual (MSU1 status=32 playing=1 hash=3fc57098 s[100]=-16502,-20227 s[50000]=17682,11936 / MSU1 status=32 playing=1 hash=3fc57098 s[100]=-16502,-20227 s[50000]=17682,11936)
+RESULTADO: IGUALES (22 líneas, 9 archivos)

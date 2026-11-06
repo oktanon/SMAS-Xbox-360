@@ -83,7 +83,7 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | vulkan4xenon | `vulkan4xenon-main/` | `include/vulkan4xenon.h`, `docs/SUPPORT.md`, `tools/build_shaders.py` |
 | SDL-xenon | `SDL-xenon-xenon/` | `docs/README-xsdk.md` |
 | Xenia (fork para xsdk) | `XSDK Xenia/xsdk_xenia.exe` | `xenia_canary.exe` es el mismo binario (mismo MD5) |
-| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/PERFORMANCE.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
+| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/PERFORMANCE.md`, `docs/UPSTREAM.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
 | Port de referencia (BT3, PS2 → Xbox 360) | `../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
 | Runs (pruebas) | `runs/` | Ver §9 |
 | Builds | `build-xenon/` (y `build-*` en las dependencias) | Ignorados por git |
@@ -231,7 +231,12 @@ Puntos de riesgo que hay que tratar explícitamente:
     (comprobado en qemu), pero la app debería decir "state de otra plataforma" (hito 7); `.srm`, `.ini` y PNG son portables; `-ffp-contract=off` (GCC PPC funde `a*b+c` en `fmadd`) y la tabla
     del DSP hecha con `std::exp` puede diferir entre libm.
   - Cambios en código común solo dentro de `#if`, con el original en el `#else`. `SMAS_BIG_ENDIAN` para correcciones
-    de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`).
+    de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`);
+    `SMAS_PPU_FAST` para la PPU rápida y en hilos (`docs/PERFORMANCE.md` §3.1 y §3.3); `SMAS_PORT_FIXES` para
+    corregir fallos de upstream (cada uno anotado en `docs/UPSTREAM.md`, para reportarlo). Las tres últimas valen en
+    qemu y en el `.xex`.
+  - Los sanitizers de GCC en WSL (`-fsanitize=thread` con `threads N`, `-fsanitize=address,undefined`) se pasan
+    después de tocar los hilos o código delicado; lo que encuentren en upstream va a `docs/UPSTREAM.md`.
   - Un `bswap` solo compila en big-endian (`__BYTE_ORDER__`): uno que corre en cualquier host rompe los datos de la
     consola. Las cargas con bytes invertidos (`lwbrx`) cuestan lo mismo que las normales.
 - **CPU.** El emulador corre en un núcleo PPE in-order a 3.2 GHz, mucho más lento por ciclo que un PC. Las vistas

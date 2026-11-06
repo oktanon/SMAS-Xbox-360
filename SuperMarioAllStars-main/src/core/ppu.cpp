@@ -10,6 +10,10 @@
 #include <cmath>
 #include <cstring>
 #include <vector>
+#ifdef SMAS_PPU_FAST
+#include <atomic>
+#include <thread>
+#endif
 
 namespace {
 // bits per pixel for each layer by mode (0 = not present)
@@ -862,6 +866,12 @@ void Ppu::renderLine(int line) {
 
   if (brightness_ > 0) curLit_ = true;
   uint8_t used = (tm_ | ts_) & debugLayers;
+#ifdef SMAS_PPU_FAST
+  // xenon port: the same work on the render threads too (docs/PERFORMANCE.md §3.3)
+  if (pool_) {
+    renderLineThreaded(fb, row, x0, x1, eL, eR, used);
+  } else {
+#endif
   for (int l = 0; l < 4; l++) {
     Px* o = layer_[l] + kMaxExt;
     bool present = mode_ == 7 ? (l == 0 || (l == 1 && (setini_ & 0x40))) : kBpp[mode_][l] != 0;
@@ -886,6 +896,9 @@ void Ppu::renderLine(int line) {
   }
   computeWindows(x0, x1);
   composeLine(fb, x0, x1, eL, eR);
+#ifdef SMAS_PPU_FAST
+  }
+#endif
   if (subs > 1) std::memcpy(layerMain_, layer_, sizeof layerMain_);
   for (int k = 1; k < subs; k++) renderSubLine(row, k, x0, x1, eL, eR);
 }
@@ -1309,16 +1322,32 @@ PlaneLut makePlaneLut(bool flip) {
 const PlaneLut kPlane[2] = {makePlaneLut(false), makePlaneLut(true)};
 }  // namespace
 
-void Ppu::renderBg(int l, int row, int x0, int x1) {
-  const Bg& b = bg_[l];
+bool Ppu::bgDrawnGeneric(int l) const {
   const int bpp = kBpp[mode_][l];
   const bool direct = bpp == 8 && (cgwsel_ & 1);
   const bool opt = (mode_ == 2 || mode_ == 4 || mode_ == 6) && l < 2;
+  return opt || bg_[l].mosaic || direct;
+}
+
+void Ppu::renderBg(int l, int row, int x0, int x1) {
   // The cases drawn the original way: offset-per-tile, mosaic and direct colour.
-  if (opt || b.mosaic || direct) {
+  if (bgDrawnGeneric(l)) {
     renderBgGeneric(l, row, x0, x1);
     return;
   }
+  renderBgStretch(l, row, x0, std::min(x1, 0), true);
+  renderBgStretch(l, row, std::max(x0, 0), std::min(x1, 256), false);
+  renderBgStretch(l, row, std::max(x0, 256), x1, true);
+}
+
+// One stretch of the line: the left margin, the 4:3 part or the right margin. The original fetches a tile again
+// whenever a pixel's tile, its half of a 16x16 tile or its margin flag differs from the last fetch: so once per
+// 8 pixels inside a stretch, and always at a stretch's start; and after the game's tile hook says "blank", at the
+// next pixel again (it calls the hook pixel by pixel then). The hook is called for the margins, and for the 4:3
+// part too where the game asks (wideFetchAll), in the same order as the original: left to right.
+void Ppu::renderBgStretch(int l, int row, int s0, int s1, bool margin) {
+  const Bg& b = bg_[l];
+  const int bpp = kBpp[mode_][l];
   Px* out = layer_[l] + kMaxExt;
   const int palBase = mode_ == 0 ? l * 32 : 0;
   const int tileWords = bpp * 4;
@@ -1327,89 +1356,84 @@ void Ppu::renderBg(int l, int row, int x0, int x1) {
   const int vofs = b.vofs + (sub_ ? subVofs_[l] : 0);
   const int py = (row + 1 + vofs) & 0x3ff;  // (no mosaic: ly is the line)
   const int ty = py >> tileShift;
-
-  // One stretch of the line: the left margin, the 4:3 part or the right margin. The original fetches a tile again
-  // whenever a pixel's tile, its half of a 16x16 tile or its margin flag differs from the last fetch: so once per
-  // 8 pixels inside a stretch, and always at a stretch's start; and after the game's tile hook says "blank", at the
-  // next pixel again (it calls the hook pixel by pixel then). The hook is called for the margins, and for the 4:3
-  // part too where the game asks (wideFetchAll), in the same order as the original: left to right.
-  auto stretch = [&](int s0, int s1, bool margin) {
-    if (s0 >= s1) return;
-    if (margin && hideWideBg[l]) {
-      for (int x = s0; x < s1; x++) out[x].pri = 0;
-      return;
+  if (s0 >= s1) return;
+  if (margin && hideWideBg[l]) {
+    for (int x = s0; x < s1; x++) out[x].pri = 0;
+    return;
+  }
+  const bool useHook = (margin || wideFetchAll[l]) && hooks;
+  int x = s0;
+  while (x < s1) {
+    const int px = (x + hofs) & 0x3ff;
+    const int tx = px >> tileShift;
+    uint16_t en;
+    if (useHook) {
+      const int wr = hooks->fetchWideTile(*this, l, tx, ty, x, &en);
+      if (wr == PpuHooks::kWideBlank) {
+        out[x].pri = 0;
+        x++;
+        continue;
+      }
+      if (wr == PpuHooks::kWideVram) en = mapEntry(l, tx, ty);
+    } else {
+      en = mapEntry(l, tx, ty);
     }
-    const bool useHook = (margin || wideFetchAll[l]) && hooks;
-    int x = s0;
-    while (x < s1) {
-      const int px = (x + hofs) & 0x3ff;
-      const int tx = px >> tileShift;
-      uint16_t en;
-      if (useHook) {
-        const int wr = hooks->fetchWideTile(*this, l, tx, ty, x, &en);
-        if (wr == PpuHooks::kWideBlank) {
-          out[x].pri = 0;
-          x++;
-          continue;
-        }
-        if (wr == PpuHooks::kWideVram) en = mapEntry(l, tx, ty);
-      } else {
-        en = mapEntry(l, tx, ty);
+    int tile = en & 0x3ff;
+    const uint8_t pal = (en >> 10) & 7;
+    const uint8_t pri = (en & 0x2000) ? 2 : 1;
+    const bool hf = en & 0x4000, vf = en & 0x8000;
+    if (b.bigTiles) {
+      int subx = (px >> 3) & 1, suby = (py >> 3) & 1;
+      if (hf) subx ^= 1;
+      if (vf) suby ^= 1;
+      tile += subx + suby * 16;
+    }
+    int fy = py & 7;
+    if (vf) fy = 7 - fy;
+    const uint16_t adr = (b.charBase + (tile & 0x3ff) * tileWords + fy) & 0x7fff;
+    const PlaneLut& t = kPlane[hf ? 1 : 0];
+    const uint16_t w0 = vram[adr];
+    uint32_t r0 = t.lo[w0 & 0xff] | t.lo[w0 >> 8] << 1;
+    uint32_t r1 = t.hi[w0 & 0xff] | t.hi[w0 >> 8] << 1;
+    if (bpp >= 4) {
+      const uint16_t w1 = vram[(adr + 8) & 0x7fff];
+      r0 |= t.lo[w1 & 0xff] << 2 | t.lo[w1 >> 8] << 3;
+      r1 |= t.hi[w1 & 0xff] << 2 | t.hi[w1 >> 8] << 3;
+    }
+    if (bpp == 8) {
+      const uint16_t w2 = vram[(adr + 16) & 0x7fff], w3 = vram[(adr + 24) & 0x7fff];
+      r0 |= t.lo[w2 & 0xff] << 4 | t.lo[w2 >> 8] << 5 | t.lo[w3 & 0xff] << 6 | t.lo[w3 >> 8] << 7;
+      r1 |= t.hi[w2 & 0xff] << 4 | t.hi[w2 >> 8] << 5 | t.hi[w3 & 0xff] << 6 | t.hi[w3 >> 8] << 7;
+    }
+    const uint16_t* colors = bpp == 8 ? cgram : bpp == 4 ? cgram + (pal << 4) : cgram + palBase + (pal << 2);
+    // this tile's pixels from px's column to the tile's end or the stretch's (a tile never crosses the map's
+    // 1024-pixel wrap: both are multiples of 8)
+    int c = px & 7;
+    const int end = std::min(x + (8 - c), s1);
+    for (; x < end; x++, c++) {
+      const uint8_t p = uint8_t(c < 4 ? r0 >> (8 * c) : r1 >> (8 * (c - 4)));
+      if (!p) {
+        out[x].pri = 0;  // (as the original: col and pal are left as they were)
+        continue;
       }
-      int tile = en & 0x3ff;
-      const uint8_t pal = (en >> 10) & 7;
-      const uint8_t pri = (en & 0x2000) ? 2 : 1;
-      const bool hf = en & 0x4000, vf = en & 0x8000;
-      if (b.bigTiles) {
-        int subx = (px >> 3) & 1, suby = (py >> 3) & 1;
-        if (hf) subx ^= 1;
-        if (vf) suby ^= 1;
-        tile += subx + suby * 16;
-      }
-      int fy = py & 7;
-      if (vf) fy = 7 - fy;
-      const uint16_t adr = (b.charBase + (tile & 0x3ff) * tileWords + fy) & 0x7fff;
-      const PlaneLut& t = kPlane[hf ? 1 : 0];
-      const uint16_t w0 = vram[adr];
-      uint32_t r0 = t.lo[w0 & 0xff] | t.lo[w0 >> 8] << 1;
-      uint32_t r1 = t.hi[w0 & 0xff] | t.hi[w0 >> 8] << 1;
-      if (bpp >= 4) {
-        const uint16_t w1 = vram[(adr + 8) & 0x7fff];
-        r0 |= t.lo[w1 & 0xff] << 2 | t.lo[w1 >> 8] << 3;
-        r1 |= t.hi[w1 & 0xff] << 2 | t.hi[w1 >> 8] << 3;
-      }
-      if (bpp == 8) {
-        const uint16_t w2 = vram[(adr + 16) & 0x7fff], w3 = vram[(adr + 24) & 0x7fff];
-        r0 |= t.lo[w2 & 0xff] << 4 | t.lo[w2 >> 8] << 5 | t.lo[w3 & 0xff] << 6 | t.lo[w3 >> 8] << 7;
-        r1 |= t.hi[w2 & 0xff] << 4 | t.hi[w2 >> 8] << 5 | t.hi[w3 & 0xff] << 6 | t.hi[w3 >> 8] << 7;
-      }
-      const uint16_t* colors = bpp == 8 ? cgram : bpp == 4 ? cgram + (pal << 4) : cgram + palBase + (pal << 2);
-      // this tile's pixels from px's column to the tile's end or the stretch's (a tile never crosses the map's
-      // 1024-pixel wrap: both are multiples of 8)
-      int c = px & 7;
-      const int end = std::min(x + (8 - c), s1);
-      for (; x < end; x++, c++) {
-        const uint8_t p = uint8_t(c < 4 ? r0 >> (8 * c) : r1 >> (8 * (c - 4)));
-        if (!p) {
-          out[x].pri = 0;  // (as the original: col and pal are left as they were)
-          continue;
-        }
-        out[x].col = colors[p];
+      out[x].col = colors[p];
 #ifdef SMAS_PPU_FAST_CONTROL
-        // (negative control of xenon/qemu/compare_ppu.sh: a colour bit off in one BG, which it must catch)
-        if (l == 0 && x == 100) out[x].col ^= 1;
+      // (negative control of xenon/qemu/compare_ppu.sh: a colour bit off in one BG, which it must catch)
+      if (l == 0 && x == 100) out[x].col ^= 1;
 #endif
-        out[x].pri = pri;
-        out[x].pal = pal;
-      }
+      out[x].pri = pri;
+      out[x].pal = pal;
     }
-  };
-  stretch(x0, std::min(x1, 0), true);
-  stretch(std::max(x0, 0), std::min(x1, 256), false);
-  stretch(std::max(x0, 256), x1, true);
+  }
 }
 
 void Ppu::composeLine(uint32_t* fb, int x0, int x1, int eL, int eR) {
+  composePixels(fb, x0, x1);
+  composeTail(fb, eL, eR);
+}
+
+// The pixels x0..x1 of the line (a part of it, on a render thread: each pixel on its own).
+void Ppu::composePixels(uint32_t* fb, int x0, int x1) {
   const PriEntry* list;
   int n;
   switch (mode_) {
@@ -1536,6 +1560,10 @@ void Ppu::composeLine(uint32_t* fb, int x0, int x1, int eL, int eR) {
       fb[x + kMaxExt] = (uint32_t(lut[r]) << 16) | (uint32_t(lut[g]) << 8) | lut[b];
     }
   }
+}
+
+// What composeLine clears after the pixels: outside the margins in use, and what the line's hooks black out.
+void Ppu::composeTail(uint32_t* fb, int eL, int eR) {
   // clear unused area outside current extension
   for (int x = 0; x < kMaxExt - eL; x++) fb[x] = 0;
   for (int x = kMaxExt + 256 + eR; x < kLineW; x++) fb[x] = 0;
@@ -1545,6 +1573,194 @@ void Ppu::composeLine(uint32_t* fb, int x0, int x1, int eL, int eR) {
   }
   for (int x = -eL; x < std::min(0, wideShowLo); x++) fb[x + kMaxExt] = 0;
   for (int x = std::max(256, wideShowHi); x < 256 + eR; x++) fb[x + kMaxExt] = 0;
+}
+// ---------------------------------------------------------------------------
+// xenon port (docs/PERFORMANCE.md §3.3): a visible line's work on several threads. The emulation's thread hands
+// out the line's tasks, does its own share and waits for the rest before the emulation goes on, so every line is
+// drawn from the state the original draws it from. Tasks: a BG layer's 4:3 part, a Mode 7 layer, the sprites, then
+// a part of the composition. The emulation's thread keeps what calls the games' tile hooks (the margins, the layers
+// a hook asks for whole, the layers drawn the original way), applyRemap (it has a static buffer) and the windows.
+//
+// Hand-out: one atomic word holds the task round (high 24 bits) and the next task's index (low 8); a thread takes a
+// task by moving the index on with a compare-and-swap that only succeeds in the round it saw, so a thread late from
+// the last round never takes a task of the next one. Two sets of tasks alternate by round.
+
+struct Ppu::RenderPool {
+  enum Kind : uint8_t { kBg, kMode7, kObj, kCompose };
+  struct Task {
+    Kind kind;
+    uint8_t layer;
+    int16_t a, b;
+  };
+  struct Round {
+    Task tasks[16];
+    // (atomic: a thread late from two rounds back may read it as the next round's set is filled; its
+    // compare-and-swap then fails, but the read must not race)
+    std::atomic<int> count{0};
+    int row = 0;
+    uint32_t* fb = nullptr;
+    alignas(128) std::atomic<int> done{0};
+  };
+  Ppu* ppu;
+  Round rounds[2];
+  alignas(128) std::atomic<uint32_t> work{0};
+  alignas(128) std::atomic<bool> quit{false};
+  std::vector<std::thread> threads;
+  uint32_t round = 0;  // (the emulation's thread's)
+
+  static void relax() {
+#if defined(__i386__) || defined(__x86_64__)
+    __builtin_ia32_pause();
+#endif
+  }
+  void run(const Round& r, const Task& t) {
+    switch (t.kind) {
+      case kBg: ppu->renderBgStretch(t.layer, r.row, t.a, t.b, false); break;
+      case kMode7: ppu->renderMode7(t.layer, r.row, t.a, t.b); break;
+      case kObj: ppu->renderObj(r.row, t.a, t.b); break;
+      case kCompose: ppu->composePixels(r.fb, t.a, t.b); break;
+    }
+  }
+  // Takes and runs tasks of round g while there are any.
+  void work_on(uint32_t g) {
+    Round& r = rounds[g & 1];
+    for (;;) {
+      uint32_t w = work.load(std::memory_order_acquire);
+      if ((w >> 8) != (g & 0xffffff) || (int)(w & 0xff) >= r.count.load(std::memory_order_relaxed)) return;
+      if (work.compare_exchange_weak(w, w + 1, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        run(r, r.tasks[w & 0xff]);
+        r.done.fetch_add(1, std::memory_order_release);
+      }
+    }
+  }
+  void worker(int index) {
+    if (Ppu::renderThreadStart) Ppu::renderThreadStart(index);
+    uint32_t seen = work.load(std::memory_order_acquire) >> 8;
+    unsigned idle = 0;
+    while (!quit.load(std::memory_order_acquire)) {
+      const uint32_t g = work.load(std::memory_order_acquire) >> 8;
+      if (g == seen) {
+        relax();
+        if (++idle > (1u << 16)) {  // (a long wait, as in a menu: let other threads in)
+          std::this_thread::yield();
+          idle = 0;
+        }
+        continue;
+      }
+      seen = g;
+      idle = 0;
+      work_on(g);
+    }
+  }
+  // The emulation's thread: the next round's set, to fill before start().
+  Round& next() { return rounds[(round + 1) & 1]; }
+  void start() {
+    Round& r = next();
+    r.done.store(0, std::memory_order_relaxed);
+    round++;
+    work.store((round & 0xffffff) << 8, std::memory_order_release);
+  }
+  // ... its share of the round's tasks, then waits for the others'.
+  void finish() {
+    work_on(round);
+    const Round& r = rounds[round & 1];
+    const int count = r.count.load(std::memory_order_relaxed);
+    while (r.done.load(std::memory_order_acquire) < count) relax();
+  }
+};
+
+void (*Ppu::renderThreadStart)(int index) = nullptr;
+
+Ppu::~Ppu() { setRenderThreads(0); }
+
+int Ppu::renderThreads() const { return pool_ ? (int)pool_->threads.size() : 0; }
+
+void Ppu::setRenderThreads(int n) {
+  if (n < 0) n = 0;
+  if (n > 5) n = 5;
+  if (n == renderThreads()) return;
+  if (pool_) {
+    pool_->quit.store(true, std::memory_order_release);
+    for (std::thread& t : pool_->threads) t.join();
+    delete pool_;
+    pool_ = nullptr;
+  }
+  if (!n) return;
+  pool_ = new RenderPool();
+  pool_->ppu = this;
+  for (int i = 0; i < n; i++) pool_->threads.emplace_back([p = pool_, i] { p->worker(i); });
+}
+
+void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int eR, uint8_t used) {
+  RenderPool& pool = *pool_;
+  // Layers: the 4:3 parts, Mode 7 and the sprites to the render threads; what calls the games' tile hooks here.
+  bool drawn[4] = {};
+  int mine[4], nMine = 0;  // (whole layers this thread draws the original way, or that a hook asks for whole)
+  bool margins[4] = {};
+  {
+    RenderPool::Round& r = pool.next();
+    int count = 0;
+    r.row = row;
+    for (int l = 0; l < 4; l++) {
+      Px* o = layer_[l] + kMaxExt;
+      bool present = mode_ == 7 ? (l == 0 || (l == 1 && (setini_ & 0x40))) : kBpp[mode_][l] != 0;
+      if (!present || !(used & (1 << l))) {
+        for (int x = x0; x < x1; x++) o[x].pri = 0;
+        continue;
+      }
+      drawn[l] = true;
+      if (mode_ == 7) {
+        r.tasks[count++] = {RenderPool::kMode7, (uint8_t)l, (int16_t)x0, (int16_t)x1};
+      } else if (bgDrawnGeneric(l) || (wideFetchAll[l] && hooks)) {
+        mine[nMine++] = l;
+      } else {
+        const int a = std::max(x0, 0), b = std::min(x1, 256);
+        if (a < b) r.tasks[count++] = {RenderPool::kBg, (uint8_t)l, (int16_t)a, (int16_t)b};
+        margins[l] = true;
+      }
+    }
+    if (used & 0x10) r.tasks[count++] = {RenderPool::kObj, 4, (int16_t)x0, (int16_t)x1};
+    r.count.store(count, std::memory_order_relaxed);
+    pool.start();
+  }
+  // this thread: the margins and the whole layers, BG1 to BG4 as the original (the hooks' calls in its order)
+  for (int l = 0, m = 0; l < 4; l++) {
+    if (m < nMine && mine[m] == l) {
+      renderBg(l, row, x0, x1);
+      m++;
+    } else if (margins[l]) {
+      renderBgStretch(l, row, x0, std::min(x1, 0), true);
+      renderBgStretch(l, row, std::max(x0, 256), x1, true);
+    }
+  }
+  pool.finish();
+  for (int l = 0; l < 4; l++)
+    if (drawn[l]) applyRemap(l, x0, x1);
+  if (used & 0x10) {
+    if (hideWideObj) {
+      Px* o = layer_[4] + kMaxExt;
+      for (int x = x0; x < 0; x++) o[x].pri = 0;
+      for (int x = 256; x < x1; x++) o[x].pri = 0;
+    }
+  } else {
+    Px* o = layer_[4] + kMaxExt;
+    for (int x = x0; x < x1; x++) o[x].pri = 0;
+  }
+  computeWindows(x0, x1);
+  // the composition in parts, one for each thread (32-pixel steps)
+  {
+    RenderPool::Round& r = pool.next();
+    int count = 0;
+    r.row = row;
+    r.fb = fb;
+    const int parts = (int)pool.threads.size() + 1;
+    const int step = ((x1 - x0 + parts - 1) / parts + 31) & ~31;
+    for (int a = x0; a < x1; a += step) r.tasks[count++] = {RenderPool::kCompose, 0, (int16_t)a, (int16_t)std::min(a + step, x1)};
+    r.count.store(count, std::memory_order_relaxed);
+    pool.start();
+  }
+  pool.finish();
+  composeTail(fb, eL, eR);
 }
 #endif  // SMAS_PPU_FAST
 

@@ -1,65 +1,109 @@
 
 # --- Solo en la consola: velocidad del emulador (60 fps = tiempo real) ---
 # Va después de todo el guion de comparación, así que no cambia ninguna línea HASHALL/ACH/WAITLOAD anterior.
-# Cada juego se mide con la PPU dibujando (render on) y sin dibujar (render off): la diferencia es lo que cuesta
-# la PPU; lo que queda, la CPU 65816 y la APU (SPC700 + DSP). docs/PERFORMANCE.md.
-echo BENCH menu de All-Stars
+# Cada escena se mide con 0, 1, 2 y 3 hilos de dibujo además del de la emulación (threads N,
+# docs/PERFORMANCE.md §3.3), y una vez sin dibujar (lo que cuestan la CPU, la APU y los juegos).
 reset
 run 240
 press start 4 200
+threads 0
+echo BENCH menu de All-Stars hilos 0
 bench 600
-render off
-echo BENCH menu de All-Stars sin dibujar
+threads 1
+echo BENCH menu de All-Stars hilos 1
 bench 600
-render on
-echo BENCH smb1 1-1 corriendo
+threads 2
+echo BENCH menu de All-Stars hilos 2
+bench 600
+threads 3
+echo BENCH menu de All-Stars hilos 3
+bench 600
 warp 1 1 1
 waitload 3000
 hold right+b
+threads 0
+echo BENCH smb1 1-1 corriendo hilos 0
 bench 600
+threads 1
+echo BENCH smb1 1-1 corriendo hilos 1
+bench 600
+threads 2
+echo BENCH smb1 1-1 corriendo hilos 2
+bench 600
+threads 3
+echo BENCH smb1 1-1 corriendo hilos 3
+bench 600
+threads 0
 render off
 echo BENCH smb1 1-1 corriendo sin dibujar
 bench 600
 render on
 hold none
-echo BENCH smb2 1-1
 warp 3 1 1
 waitload 3000
 hold right+b
+threads 0
+echo BENCH smb2 1-1 hilos 0
 bench 600
-render off
-echo BENCH smb2 1-1 sin dibujar
+threads 1
+echo BENCH smb2 1-1 hilos 1
 bench 600
-render on
+threads 2
+echo BENCH smb2 1-1 hilos 2
+bench 600
+threads 3
+echo BENCH smb2 1-1 hilos 3
+bench 600
 hold none
-echo BENCH smb3 1-1 corriendo
 warp 4 1 2
 waitload 3000
 hold right+b
+threads 0
+echo BENCH smb3 1-1 corriendo hilos 0
 bench 600
-render off
-echo BENCH smb3 1-1 corriendo sin dibujar
+threads 1
+echo BENCH smb3 1-1 corriendo hilos 1
 bench 600
-render on
-hold none
-echo BENCH smb3 1-1 widescreen 64
+threads 2
+echo BENCH smb3 1-1 corriendo hilos 2
+bench 600
+threads 3
+echo BENCH smb3 1-1 corriendo hilos 3
+bench 600
 wide 64
-hold right+b
+threads 0
+echo BENCH smb3 1-1 widescreen 64 hilos 0
+bench 600
+threads 1
+echo BENCH smb3 1-1 widescreen 64 hilos 1
+bench 600
+threads 2
+echo BENCH smb3 1-1 widescreen 64 hilos 2
+bench 600
+threads 3
+echo BENCH smb3 1-1 widescreen 64 hilos 3
 bench 600
 hold none
 wide 0
-echo BENCH smb1 co-op
 coop 1
 warp 1 1 1
 waitload 3000
 hold right+b
+threads 0
+echo BENCH smb1 co-op hilos 0
 bench 600
-render off
-echo BENCH smb1 co-op sin dibujar
+threads 1
+echo BENCH smb1 co-op hilos 1
 bench 600
-render on
+threads 2
+echo BENCH smb1 co-op hilos 2
+bench 600
+threads 3
+echo BENCH smb1 co-op hilos 3
+bench 600
 hold none
 coop 0
-echo BENCH rewind en smb1 (push: lo que cuesta guardar un frame; step back: volver uno)
+threads 2
+echo BENCH rewind en smb1, hilos 2 (push: guardar un frame; step back: volver uno)
 rewindtest 120 60
 echo BENCH fin

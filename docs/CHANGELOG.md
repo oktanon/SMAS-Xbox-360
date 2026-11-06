@@ -25,3 +25,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   frame a frame (9020 frames, control negativo), 2-3× en x86; qemu-ppc igual (run 011); run 012 preparada.
 - 0012 (2026-11-06) — Run 012: la PPU rápida es 2,4-4,3× más rápida en la consola, resultados idénticos; con `-O3`
   63-65 fps en juego (50 en widescreen y co-op); el núcleo pasa a `-O3`.
+- 0013 (2026-11-06) — Paso 2 del rendimiento: el dibujo de cada línea en varios hilos (`threads N`), idéntico frame
+  a frame, ThreadSanitizer y ASan/UBSan limpios; fallo de upstream en SMB2 corregido (`SMAS_PORT_FIXES`,
+  `docs/UPSTREAM.md`); qemu con 2 hilos igual (run 013); run 014 preparada.

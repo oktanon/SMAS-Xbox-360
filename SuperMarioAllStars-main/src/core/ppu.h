@@ -54,6 +54,18 @@ class Ppu {
 public:
   Ppu();
   void reset(bool hard);
+#ifdef SMAS_PPU_FAST
+  // xenon port (docs/PERFORMANCE.md §3.3): each visible line's layers and its composition drawn by `n` more threads
+  // as well as the emulation's (0, the default: all on the emulation's thread). The emulation still waits for each
+  // line, so the picture is the same; the games' tile hooks are only called on the emulation's thread.
+  ~Ppu();
+  Ppu(const Ppu&) = delete;
+  Ppu& operator=(const Ppu&) = delete;
+  void setRenderThreads(int n);
+  int renderThreads() const;
+  // Called first on each render thread (0, 1, ...): the platform places it (the Xbox 360: on a hardware thread).
+  static void (*renderThreadStart)(int index);
+#endif
 
   uint8_t read(uint8_t reg, uint8_t openBus);
   void write(uint8_t reg, uint8_t val);
@@ -278,6 +290,15 @@ private:
   // these are the original versions, which the fast ones fall back to in the cases they don't cover
   void renderBgGeneric(int l, int row, int x0, int x1);
   void composeLineGeneric(uint32_t* fb, int x0, int x1, int eL, int eR);
+  bool bgDrawnGeneric(int l) const;  // (offset-per-tile, mosaic, direct colour: renderBgGeneric)
+  void renderBgStretch(int l, int row, int s0, int s1, bool margin);
+  void composePixels(uint32_t* fb, int x0, int x1);
+  void composeTail(uint32_t* fb, int eL, int eR);
+  // (docs/PERFORMANCE.md §3.3) the line's layers and its composition on the render threads too
+  struct RenderPool;
+  friend struct RenderPool;
+  RenderPool* pool_ = nullptr;
+  void renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int eR, uint8_t used);
 #endif
   void renderObj(int row, int x0, int x1);
   void computeWindows(int x0, int x1);

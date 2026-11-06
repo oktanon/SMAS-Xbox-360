@@ -114,3 +114,30 @@ pero los números valen solo de la consola).
    widescreen y co-op.
 3. **Rewind:** ~6 ms por frame guardado.
 
+### 3.3 El dibujo en varios hilos (tarea 0013)
+
+`Ppu::setRenderThreads(n)` (bajo `SMAS_PPU_FAST`; `threads N` en smastool): cada línea visible se dibuja entre el
+hilo de la emulación y `n` hilos más. La emulación sigue esperando cada línea, así que la imagen se dibuja del mismo
+estado que en el original (nada de dibujo diferido: ver abajo por qué).
+
+- **Reparto:** los hilos auxiliares toman la parte 4:3 de cada fondo (`renderBgStretch`), el modo 7 y los sprites
+  (`renderObj`); el hilo de la emulación, lo que llama a los ganchos de los juegos (los márgenes del widescreen, los
+  fondos que un gancho pide enteros con `wideFetchAll`, los dibujados por el original: mosaico, offset-per-tile, color
+  directo), además de `applyRemap` (usa un búfer `static`) y las ventanas. Después, la composición
+  (`composePixels`) en tantos tramos como hilos, y `composeTail` en el de la emulación.
+- **Por qué los ganchos se quedan en el hilo de la emulación:** `fetchWideTile` lee el estado de cada motor (cámara,
+  columnas, copias) y la WRAM a través de funciones que no se han auditado para hilos; ninguno escribe en el `Ppu`
+  (comprobado), pero así no hace falta que sean seguros entre hilos.
+- **Reparto de tareas:** una palabra atómica con la ronda (24 bits) y el índice de la siguiente tarea (8 bits); un hilo
+  toma una tarea con un compare-and-swap que solo vale en la ronda que vio. Dos conjuntos de tareas alternan por ronda.
+  Los auxiliares esperan dando vueltas (con `yield` tras ~65 000 vueltas sin trabajo).
+- **Colocación:** la plataforma da `Ppu::renderThreadStart`; en la consola, `hito2_main.cpp` lleva los hilos a los
+  hilos hardware 2, 4, 3, 5, 1 (`xsdk_thread_move`); la emulación va en el 0.
+- **Comprobado:** `HILOS=1|2|3 compare_ppu.sh`: 9020 frames iguales al original; ThreadSanitizer sin avisos (los
+  cuatro juegos, widescreen, High Frame Rate, co-op, cambios de número de hilos); qemu-ppc con 2 hilos (run 013).
+- **En x86 no gana** (la línea dura ~4 µs y sincronizar entre núcleos, bajo WSL, se come la ganancia); en la consola
+  una línea dura ~45 µs, así que la sincronización pesa unas 10 veces menos: lo mide la run 014.
+- **El dibujo diferido** (dibujar la línea N mientras la CPU sigue) daría más, pero pide guardar por línea el estado
+  de la PPU, la VRAM/CGRAM/OAM que cambian a mitad de frame y el de los juegos que leen los ganchos. Queda como
+  siguiente paso si esto no basta.
+

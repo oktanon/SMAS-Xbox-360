@@ -1010,6 +1010,12 @@ int Smb2Engine::playerReachesEdge() const {
     const int dr[] = {1, -1, 0, 0}, dc[] = {0, 0, 1, -1};
     for (int k = 0; k < 4; k++) {
       int rr = r + dr[k], cc = c + dc[k];
+#ifdef SMAS_PORT_FIXES
+      // xenon port: cc can be -1 or 16, and at the first row's left edge or the last row's right edge
+      // rr * 16 + cc falls outside `seen`: the original read there (and could write) past the vector (found by
+      // ThreadSanitizer, task 0013). Such a step is taken as seen; every other step is as the original's.
+      if (rr * 16 + cc < 0 || rr * 16 + cc >= rows * 16) continue;
+#endif
       if (rr < 0 || rr >= rows || rr < top || rr > bottom || seen[rr * 16 + cc] || !open(rr, cc)) continue;
       seen[rr * 16 + cc] = 1;
       todo.push_back(rr * 16 + cc);

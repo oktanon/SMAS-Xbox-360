@@ -1,0 +1,3 @@
+# Solo en la consola, antes del guion de comparación: dibujar con 2 hilos además del de la emulación
+# (docs/PERFORMANCE.md §3.3). Las líneas del guion deben salir iguales a las de la run 004.
+threads 2
