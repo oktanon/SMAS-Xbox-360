@@ -1,0 +1,130 @@
+log: game:\smas_hito2.log
+log: named after \Device\Mass0\Games\SMAS\smas_hito2.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 28642 us
+smas_hito2: el guion de xenon/qemu en la consola (tarda unos minutos; al terminar vuelve al dashboard)
+smas_hito2: la emulación en el hilo hardware 0
+render threads: 2
+HASHALL arranque f239 wram=e91750b8 vram=e6baa10c cgram=5ba749e8 oam=35b44580 aram=c016da48 sram=0a3f9a96 pic=45019899 cpu=d8bc726d audio=25ce1421
+HASHALL menu f443 wram=4aafcc01 vram=6218bc2a cgram=52071e78 oam=7c0a7ce0 aram=682c30de sram=0a3f9a96 pic=1244ddc5 cpu=08af177e audio=6c52ff28
+audio: 159937 samples, peak 10004, rms 1103.9
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1208
+HASHALL smb1_cargado f1268 wram=04a4db5a vram=3ed41a5e cgram=85b8df7c oam=037ba0bd aram=eafa70c9 sram=34e11aa8 pic=9b544af2 cpu=e8b5b899 audio=816e7d9c
+HASHALL smb1_jugado f1538 wram=05d302e2 vram=962dbdac cgram=d11a7c2a oam=874b1e05 aram=7f1a1f4c sram=34e11aa8 pic=93ee8176 cpu=e8b5b899 audio=2ca0fb7a
+snapshots 60 (0.0 KB kept, 0.0 KB each), push 5.890 ms, step back 59: 0 mismatched, 17.320 ms each
+resumed from frame 2: identical to the first run (0 bytes differ of 279049); SRAM kept: yes
+HASHALL smb1_rewind f1658 wram=574ad5a3 vram=395a0dae cgram=d11a7c2a oam=faaeab3d aram=6a30b40b sram=34e11aa8 pic=aa25b184 cpu=c4362538 audio=6d1189c7
+HASHALL smb1_cargar_state f1539 wram=1f96edcb vram=962dbdac cgram=d11a7c2a oam=112bc895 aram=fbb14ae9 sram=34e11aa8 pic=87400f86 cpu=c4362538 audio=c1192d43
+WAITLOAD loaded after 1178 frames, Super Mario Bros.: The Lost Levels gameplay=1 ext=0+0 (req 0) f1177
+HASHALL ll_jugado f1412 wram=461dc750 vram=7c5cc00e cgram=d11a7c2a oam=196c5acc aram=75e94507 sram=d9f97b1e pic=c4cca259 cpu=10c0468f audio=86ecfcd8
+WAITLOAD loaded after 1371 frames, Super Mario Bros. 2 gameplay=1 ext=0+0 (req 0) f1370
+HASHALL smb2_jugado f1640 wram=7a9d4e45 vram=795cd2f3 cgram=0ecdaa8d oam=40381c9d aram=ae851927 sram=cb1a7787 pic=c17fee47 cpu=881719f5 audio=c6108f58
+WAITLOAD loaded after 1526 frames, Super Mario Bros. 3 gameplay=0 ext=0+0 (req 0) f1525
+HASHALL smb3_mapa f1585 wram=726c457b vram=409bc9fc cgram=7e5d47c1 oam=397b7498 aram=851061bc sram=b33da9bf pic=21168423 cpu=17a99997 audio=1a5e0225
+WAITLOAD loaded after 1111 frames, Super Mario Bros. 3 gameplay=1 ext=0+0 (req 0) f1111
+HASHALL smb3_jugado f1371 wram=f9474b63 vram=550d81f0 cgram=4d876e11 oam=a3fe2fdd aram=159521b4 sram=b33da9bf pic=8689bbdb cpu=2cd2edeb audio=46e42863
+HASHALL smb3_wide f1431 wram=c4e5813c vram=fb4a7685 cgram=4d876e11 oam=c7c446c5 aram=d25444cb sram=b33da9bf pic=11991c7c cpu=939ee4d4 audio=ed0cc0c5
+ACH unlock smb3_items 0 f1504
+HASHALL smb3_trucos f1551 wram=bdb21f68 vram=8a295c5b cgram=7e5d47c1 oam=e0033f8a aram=d5bd661f sram=b33da9bf pic=38259ca3 cpu=eba2458c audio=4fae6223
+HASHALL smb3_paleta f1581 wram=1d081a7e vram=65dd7a8c cgram=7e5d47c1 oam=1df0b9f2 aram=75dea387 sram=b33da9bf pic=5201e3bb cpu=3a1289a7 audio=2d9b6391
+WAITLOAD loaded after 1179 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1179
+HASHALL smb1_coop f1419 wram=f759c248 vram=c7823150 cgram=0b523cb6 oam=e0d599d3 aram=9f593e01 sram=34e11aa8 pic=a925966e cpu=e8b5b899 audio=f7b8c109
+HASHALL tras_reset f239 wram=e1a28589 vram=3732a639 cgram=c0744aa3 oam=35b44580 aram=7bf25b82 sram=ded59978 pic=a4d1e31d cpu=695f11e8 audio=cb052bd5
+render threads: 0
+ BENCH menu de All-Stars hilos 0
+600 frames in 6171.8 ms (97.2 fps)
+render threads: 1
+ BENCH menu de All-Stars hilos 1
+600 frames in 5645.5 ms (106.3 fps)
+render threads: 2
+ BENCH menu de All-Stars hilos 2
+600 frames in 5578.2 ms (107.6 fps)
+render threads: 3
+ BENCH menu de All-Stars hilos 3
+600 frames in 5697.7 ms (105.3 fps)
+WAITLOAD loaded after 465 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f3308
+render threads: 0
+ BENCH smb1 1-1 corriendo hilos 0
+600 frames in 9041.4 ms (66.4 fps)
+render threads: 1
+ BENCH smb1 1-1 corriendo hilos 1
+600 frames in 6861.0 ms (87.5 fps)
+render threads: 2
+ BENCH smb1 1-1 corriendo hilos 2
+600 frames in 6261.0 ms (95.8 fps)
+render threads: 3
+ BENCH smb1 1-1 corriendo hilos 3
+600 frames in 6501.4 ms (92.3 fps)
+render threads: 0
+ BENCH smb1 1-1 corriendo sin dibujar
+600 frames in 3261.2 ms (184.0 fps)
+WAITLOAD loaded after 1412 frames, Super Mario Bros. 2 gameplay=1 ext=0+0 (req 0) f1411
+render threads: 0
+ BENCH smb2 1-1 hilos 0
+600 frames in 9503.3 ms (63.1 fps)
+render threads: 1
+ BENCH smb2 1-1 hilos 1
+600 frames in 7312.7 ms (82.0 fps)
+render threads: 2
+ BENCH smb2 1-1 hilos 2
+600 frames in 6622.3 ms (90.6 fps)
+render threads: 3
+ BENCH smb2 1-1 hilos 3
+600 frames in 6946.5 ms (86.4 fps)
+WAITLOAD loaded after 1344 frames, Super Mario Bros. 3 gameplay=1 ext=0+0 (req 0) f1343
+render threads: 0
+ BENCH smb3 1-1 corriendo hilos 0
+600 frames in 9291.9 ms (64.6 fps)
+render threads: 1
+ BENCH smb3 1-1 corriendo hilos 1
+600 frames in 6679.0 ms (89.8 fps)
+render threads: 2
+ BENCH smb3 1-1 corriendo hilos 2
+600 frames in 6224.4 ms (96.4 fps)
+render threads: 3
+ BENCH smb3 1-1 corriendo hilos 3
+600 frames in 6493.7 ms (92.4 fps)
+render threads: 0
+ BENCH smb3 1-1 widescreen 64 hilos 0
+600 frames in 11374.4 ms (52.7 fps)
+render threads: 1
+ BENCH smb3 1-1 widescreen 64 hilos 1
+600 frames in 8267.3 ms (72.6 fps)
+render threads: 2
+ BENCH smb3 1-1 widescreen 64 hilos 2
+600 frames in 7410.3 ms (81.0 fps)
+render threads: 3
+ BENCH smb3 1-1 widescreen 64 hilos 3
+600 frames in 7639.8 ms (78.5 fps)
+WAITLOAD loaded after 1179 frames, Super Mario Bros. gameplay=1 ext=0+0 (req 0) f1179
+render threads: 0
+ BENCH smb1 co-op hilos 0
+600 frames in 11654.2 ms (51.5 fps)
+render threads: 1
+ BENCH smb1 co-op hilos 1
+600 frames in 9563.0 ms (62.7 fps)
+render threads: 2
+ BENCH smb1 co-op hilos 2
+600 frames in 8963.2 ms (66.9 fps)
+render threads: 3
+ BENCH smb1 co-op hilos 3
+600 frames in 9144.3 ms (65.6 fps)
+render threads: 2
+ BENCH rewind en smb1, hilos 2 (push: guardar un frame; step back: volver uno)
+snapshots 60 (0.0 KB kept, 0.0 KB each), push 5.831 ms, step back 59: 0 mismatched, 17.324 ms each
+resumed from frame 2: identical to the first run (0 bytes differ of 279049); SRAM kept: yes
+ BENCH fin
+FIN: smastool_main devolvió 0 en 364.2 s
+hilo de dibujo 0: pedido el hilo hardware 2, quedó en el 2 (estado 0x00000000)
+hilo de dibujo 1: pedido el hilo hardware 4, quedó en el 4 (estado 0x00000000)
+hilo de dibujo 2: pedido el hilo hardware 3, quedó en el 3 (estado 0x00000000)
+DIAG guardado seguro
+DIAG writeFileSafely diag_a.png: ok, errno 0 (Success); queda diag_a.png con su contenido: si
+DIAG writeFileSafely menu_diag.png: ok, errno 0 (Success); queda menu_diag.png con su contenido: si
+DIAG writeFileSafely abcd.png: ok, errno 0 (Success); queda abcd.png con su contenido: si
+DIAG writeFileSafely abc.defg: ok, errno 0 (Success); queda abc.defg con su contenido: si
+DIAG writeFileSafely smb9.png: ok, errno 0 (Success); queda smb9.png con su contenido: si
+DIAG writeFileSafely diag_c.state: ok, errno 0 (Success); queda diag_c.state con su contenido: si
+FIN del título
+exit: status 0

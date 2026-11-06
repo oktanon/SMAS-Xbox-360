@@ -177,9 +177,10 @@ Lo que la consola del usuario ya mostró (run 001, 2026-11-06), y que el port de
   (los 6 fallos son del entorno: USB, sin perfil, sin `net_host.txt`).
 - **El emulador da los mismos resultados en la consola que en x86** (run 009: 22 líneas de hashes y 9 salidas).
 - **Va a 22-38 fps en un hilo** (36-63 % del tiempo real). **La PPU es el 77-85 % de cada frame** (20-36 ms); sin
-  dibujar, el resto va a ~160 fps (run 010). Con la PPU rápida (`SMAS_PPU_FAST`) y `-O3`: 63-65 fps en juego,
-  95 en el menú, ~50 en widescreen y co-op (run 012). El núcleo se compila con `-O3`. Antes del vídeo va el hito
-  2b: `docs/PERFORMANCE.md`.
+  dibujar, el resto va a ~160 fps (run 010). Con la PPU rápida (`SMAS_PPU_FAST`), `-O3` y 2 hilos de dibujo
+  (hilos hardware 2 y 4): 91-96 fps en juego, 108 en el menú, 81 en widescreen, 67 en co-op (run 014; hito 2b
+  cerrado). El núcleo se compila con `-O3` y dibuja con 2 hilos; los hilos hardware 1, 3 y 5 quedan para audio,
+  vídeo y rewind. `docs/PERFORMANCE.md`.
 - **Nombres de fichero en el USB:** un nombre con dos o más puntos y la primera parte de 4 caracteres se crea
   recortado (`menu.png.tmp` → `menu.tmp`, `rqst.png.t` → `rqst.tng`), y puede quedar **duplicado** en la carpeta
   (runs 009 y 010). `writeFileSafely` usa en Xbox un temporal sin puntos (`menu_png.tmp`, `src/core/fileio.cpp`).

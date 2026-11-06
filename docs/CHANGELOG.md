@@ -28,3 +28,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0013 (2026-11-06) — Paso 2 del rendimiento: el dibujo de cada línea en varios hilos (`threads N`), idéntico frame
   a frame, ThreadSanitizer y ASan/UBSan limpios; fallo de upstream en SMB2 corregido (`SMAS_PORT_FIXES`,
   `docs/UPSTREAM.md`); qemu con 2 hilos igual (run 013); run 014 preparada.
+- 0014 (2026-11-06) — Run 014: con 2 hilos de dibujo, 91-96 fps en juego, 81 en widescreen, 67 en co-op, hashes
+  iguales. Hito 2b cerrado; el port dibuja con 2 hilos (hilos hardware 2 y 4).

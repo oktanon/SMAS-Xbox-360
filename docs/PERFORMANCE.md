@@ -141,3 +141,26 @@ estado que en el original (nada de dibujo diferido: ver abajo por qué).
   de la PPU, la VRAM/CGRAM/OAM que cambian a mitad de frame y el de los juegos que leen los ganchos. Queda como
   siguiente paso si esto no basta.
 
+**En la consola (run 014, `-O3`, PPU rápida):** resultados idénticos a la run 004 dibujando con 2 hilos. fps según
+los hilos de dibujo además del de la emulación (en los hilos hardware 2, 4 y 3):
+
+| Escena | 0 | 1 | **2** | 3 | ms/frame, 0 → 2 |
+|---|---|---|---|---|---|
+| Menú de All-Stars | 97,2 | 106,3 | **107,6** | 105,3 | 10,3 → 9,3 |
+| SMB1 1-1 corriendo | 66,4 | 87,5 | **95,8** | 92,3 | 15,1 → 10,4 |
+| SMB2 1-1 | 63,1 | 82,0 | **90,6** | 86,4 | 15,8 → 11,0 |
+| SMB3 1-1 corriendo | 64,6 | 89,8 | **96,4** | 92,4 | 15,5 → 10,4 |
+| SMB3 1-1, widescreen 64 | 52,7 | 72,6 | **81,0** | 78,5 | 19,0 → 12,3 |
+| SMB1 co-op | 51,5 | 62,7 | **66,9** | 65,6 | 19,4 → 14,9 |
+
+- **2 hilos es lo mejor**; el tercero (hilo hardware 3) comparte núcleo con el primero y resta. El port dibuja con 2
+  hilos en los hilos hardware 2 y 4, y deja libres el 1, el 3 y el 5 (audio, vídeo, rewind).
+- Sin dibujar, el resto va a 184 fps (5,4 ms).
+- Margen por frame hasta 16,7 ms: ~6 ms en juego, 4,4 ms en widescreen, **1,8 ms en co-op**.
+- **Rewind:** guardar un snapshot cuesta 5,8 ms y la app guarda uno cada 2 frames (`app.cpp`, `rewindCount & 1`):
+  ~2,9 ms de media por frame, picos de 5,8 ms. No cabe en co-op; candidato a ir a otro hilo (hito 8). Volver un
+  frame: 17 ms (antes 22-48).
+
+**Hito 2b cerrado** con esto (tarea 0014). El margen del co-op y el rewind se miden con el juego entero (vídeo, audio,
+interfaz) en el hito 8.
+
