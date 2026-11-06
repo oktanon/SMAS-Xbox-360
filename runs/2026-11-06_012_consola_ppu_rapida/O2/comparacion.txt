@@ -1,0 +1,38 @@
+hashes: IGUALES (22 líneas del guion)
+archivo ll.png: igual
+archivo menu.png: igual
+archivo menu.wav: igual
+archivo smb1.png: igual
+archivo smb1_coop.png: igual
+archivo smb2.png: igual
+archivo smb3.png: igual
+archivo smb3_mapa.png: igual
+archivo smb3_wide.png: igual
+--- benchmarks (60 fps = tiempo real)
+BENCH menu de All-Stars
+600 frames in 7071.9 ms (84.8 fps)
+BENCH menu de All-Stars sin dibujar
+600 frames in 3778.8 ms (158.8 fps)
+BENCH smb1 1-1 corriendo
+600 frames in 10471.0 ms (57.3 fps)
+BENCH smb1 1-1 corriendo sin dibujar
+600 frames in 3833.0 ms (156.5 fps)
+BENCH smb2 1-1
+600 frames in 10777.7 ms (55.7 fps)
+BENCH smb2 1-1 sin dibujar
+600 frames in 3829.3 ms (156.7 fps)
+BENCH smb3 1-1 corriendo
+600 frames in 10885.8 ms (55.1 fps)
+BENCH smb3 1-1 corriendo sin dibujar
+600 frames in 3891.0 ms (154.2 fps)
+BENCH smb3 1-1 widescreen 64
+600 frames in 13572.0 ms (44.2 fps)
+BENCH smb1 co-op
+600 frames in 13431.8 ms (44.7 fps)
+BENCH smb1 co-op sin dibujar
+600 frames in 6502.0 ms (92.3 fps)
+BENCH rewind en smb1 (push: lo que cuesta guardar un frame; step back: volver uno)
+BENCH fin
+FIN: smastool_main devolvió 0 en 327.6 s
+FIN del título
+RESULTADO: IGUALES

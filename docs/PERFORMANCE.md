@@ -40,6 +40,8 @@ Dos funciones de `src/core/ppu.cpp` concentran el 69 % del tiempo.
 
 ## 3. Plan (hito 2b)
 
+Estado: paso 1 hecho y medido en consola (run 012); siguen los pasos 2-5 y lo que queda de la PPU (§3.2).
+
 En orden; cada paso se mide en la consola (`bench`) y se comprueba que los hashes no cambian (qemu y consola).
 
 1. **`renderBg` y `composeLine` para un procesador in-order, en un hilo.** Sin cambiar resultados: menos ramas por
@@ -81,6 +83,34 @@ negativo (`compare_ppu.sh <carpeta> control`, un bit de color en un píxel de BG
 SMB3 1,72 → ~0,94; widescreen 64: 3,11 → 1,96 ms el frame entero; co-op 1,58 → ~0,77. Entre 2 y 3 veces. La consola
 lo dirá (run 012); el `composeLine` sin saltos está pensado para ella (en x86 rinde como la primera versión).
 
+**En la consola (run 012):** la PPU es 2,4-4,3 veces más rápida (más que en x86: el `composeLine` sin saltos rinde
+en el procesador in-order), y los resultados siguen idénticos a la run 004.
+
+| Escena | Antes `-O2` | Ahora `-O2` | Antes `-O3` | **Ahora `-O3`** | PPU `-O3` (ms/frame) antes → ahora |
+|---|---|---|---|---|---|
+| Menú de All-Stars | 38,0 | 84,8 | 37,1 | **95,1 fps** | 21,4 → 5,0 |
+| SMB1 1-1 corriendo | 26,5 | 57,3 | 27,1 | **65,3 fps** | 31,4 → 9,9 |
+| SMB2 1-1 | 24,0 | 55,7 | 25,0 | **62,9 fps** | 34,5 → 10,5 |
+| SMB3 1-1 corriendo | 28,8 | 55,1 | 30,5 | **63,0 fps** | 27,1 → 10,2 |
+| SMB3 1-1, widescreen 64 | 25,1 | 44,2 | 26,8 | **50,4 fps** | — |
+| SMB1 co-op | 21,8 | 44,7 | 22,3 | **51,4 fps** | 35,9 → 10,5 |
+
+- Con `-O3` los cuatro juegos pasan de 60 fps en un hilo; `-O3` ahora gana un 12-14 % sobre `-O2`, así que **el
+  núcleo se compila con `-O3`** en el port.
+- Falta margen: el frame tiene que dejar sitio al vídeo, el audio y la interfaz (y al rewind), y el widescreen y el
+  co-op siguen por debajo de 60. La PPU sigue siendo ~65 % del frame (~10 ms de ~15,5).
+- El rewind: volver un frame bajó de 48 a 22-24 ms (redibuja); guardar uno sigue en ~6 ms.
+
 Herramientas: `smastool` (`bench`, `render on|off`, `hashall`, `pichash`), `xenon/qemu/compare_ppu.sh`, `xenon/qemu/compare.sh` para los resultados,
 `xenon/hito2_bench.txt` para la consola, gprof en x86 para encontrar el código caliente (la proporción es parecida,
 pero los números valen solo de la consola).
+
+### 3.2 Siguiente
+
+1. **Lo que queda de la PPU en un hilo:** el widescreen (los márgenes) y el co-op son los peores casos; en el perfil de
+   x86 quedan `composeLine` (la parte por píxel del color math y la salida), `renderObj` y `computeWindows`.
+2. **El dibujo en otros hilos hardware** (paso 2): con la PPU en ~10 ms y el resto en ~5,5 ms, pasar el dibujo a otro
+   hilo dejaría el frame del hilo principal en ~6 ms; es lo que da el margen para vídeo, audio, interfaz, rewind,
+   widescreen y co-op.
+3. **Rewind:** ~6 ms por frame guardado.
+

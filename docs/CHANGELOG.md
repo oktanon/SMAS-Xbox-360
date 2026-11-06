@@ -23,3 +23,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   perfil en x86 (`renderBg` + `composeLine` = 69 %); plan del hito 2b; regla de nombres del USB corregida.
 - 0011 (2026-11-06) — Paso 1 del rendimiento: `renderBg` y `composeLine` rápidas bajo `SMAS_PPU_FAST`, idénticas
   frame a frame (9020 frames, control negativo), 2-3× en x86; qemu-ppc igual (run 011); run 012 preparada.
+- 0012 (2026-11-06) — Run 012: la PPU rápida es 2,4-4,3× más rápida en la consola, resultados idénticos; con `-O3`
+  63-65 fps en juego (50 en widescreen y co-op); el núcleo pasa a `-O3`.
