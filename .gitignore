@@ -1,0 +1,30 @@
+# ROM y datos del juego: nunca al repositorio
+*.sfc
+*.smc
+*.srm
+*.sst
+saves/
+screenshots/
+
+# Dependencias externas (repos propios)
+/xsdk-main/
+/vulkan4xenon-main/
+/SDL-xenon-xenon/
+/XSDK Xenia/
+
+# Builds
+build/
+build-*/
+*.xex
+*.elf
+*.o
+*.a
+
+# Android / IDE
+SuperMarioAllStars-main/android/.gradle/
+SuperMarioAllStars-main/android/app/build/
+SuperMarioAllStars-main/android/app/.cxx/
+SuperMarioAllStars-main/third_party/SDL2-*/
+.vs/
+.vscode/
+*.user

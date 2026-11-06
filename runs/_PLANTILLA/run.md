@@ -1,0 +1,9 @@
+# Run NNN — <descripción>
+
+- **Fecha:** AAAA-MM-DD
+- **Dónde:** Xenia | Consola (RGH)
+- **Commit:** `<hash corto>` (tarea NNNN)
+- **Qué se probó:** …
+- **Resultado:** OK | Falla | Parcial — una o dos frases.
+- **Logs:** `SuperMarioAllStars.log`, …
+- **Siguiente:** …

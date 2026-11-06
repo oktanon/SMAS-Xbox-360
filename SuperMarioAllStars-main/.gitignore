@@ -1,0 +1,29 @@
+# ROMs and other game data: never commit them (players supply their own copy)
+*.sfc
+*.smc
+*.swc
+*.fig
+roms/
+*.zip
+*.7z
+*.rar
+
+# builds and packaged output
+build/
+build_*/
+dist/
+
+# save states, input recordings, settings and captures (states hold game RAM / VRAM)
+*.state
+*.sst
+*.pads
+*.srm
+saves/
+screenshots/
+smas_port.ini
+smas_port.log
+achievements.ini
+rompath.txt
+
+# SDL2 source for the Android build (fetched by android/fetch_sdl.ps1)
+third_party/SDL2-*/
