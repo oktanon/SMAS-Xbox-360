@@ -90,10 +90,16 @@ add_custom_command(OUTPUT ${GUION_VIDEO}
   VERBATIM)
 add_custom_target(guion_video ALL DEPENDS ${GUION_VIDEO})
 
-# Hito 4: smas_jugar.xex, el cartucho jugable con mando y sonido por SDL3 (SDL-xenon), vídeo por VideoVk.
+# Hito 4: SuperMarioAllStars.xex (antes smas_jugar.xex), el cartucho jugable con mando y sonido por SDL3 (SDL-xenon),
+# vídeo por VideoVk; el que se convertirá en el juego (hito 5). Con su ID de título y su nombre (AGENTS.md §7): el
+# dashboard y Aurora leen el nombre del recurso XDBF que xsdk_add_xex mete en el .xex (xsdk docs/GUIDE.md, "A title
+# ID keeps saves apart"). Un solo sitio para los dos: SMAS_TITLE_ID / SMAS_TITLE_NAME.
 set(SDL3_DIR ${GAME_DIR}/../SDL-xenon-xenon/build-xsdk CACHE PATH "SDL-xenon compilado (SDL3Config.cmake)")
 find_package(SDL3 REQUIRED CONFIG)
-add_executable(smas_jugar
+set(SMAS_TITLE_ID 534D4153)  # "SMAS"
+set(SMAS_TITLE_NAME "Super Mario All-Stars")
+set(SMAS_VERSION 0.4.0.0)    # (hito 4)
+add_executable(SuperMarioAllStars
   ${SRC}/platform/xenon/play_main.cpp
   ${SRC}/platform/xenon/video_vk.cpp
   ${SRC}/platform/xenon/screen_shaders.c
@@ -102,9 +108,11 @@ add_executable(smas_jugar
   ${SRC}/app/config.cpp
   ${SRC}/app/utf8.cpp
   ${SRC}/app/sys_posix.cpp)
-target_include_directories(smas_jugar PRIVATE ${V4X_DIR}/include ${V4X_DIR}/third_party/vulkan-headers/include
+target_include_directories(SuperMarioAllStars PRIVATE ${V4X_DIR}/include ${V4X_DIR}/third_party/vulkan-headers/include
   ${V4X_DIR}/tests)
-target_link_libraries(smas_jugar PRIVATE smascore SDL3::SDL3-static ${V4X_DIR}/build/libvulkan4xenon.a)
-set_target_properties(smas_jugar PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
-xsdk_add_xex(smas_jugar NAME "SMAS hito 4 jugar")
+target_link_libraries(SuperMarioAllStars PRIVATE smascore SDL3::SDL3-static ${V4X_DIR}/build/libvulkan4xenon.a)
+target_compile_definitions(SuperMarioAllStars PRIVATE SMAS_TITLE_ID_HEX="${SMAS_TITLE_ID}"
+  SMAS_TITLE_NAME="${SMAS_TITLE_NAME}")
+set_target_properties(SuperMarioAllStars PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
+xsdk_add_xex(SuperMarioAllStars TITLE_ID 0x${SMAS_TITLE_ID} NAME "${SMAS_TITLE_NAME}" VERSION ${SMAS_VERSION})
 

@@ -44,3 +44,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0020 (2026-11-06) — Run 020: sticks y salida bien; tirones en 16:9, SMB3 y la batalla de SMB3 (40-55 ms). Hito 4
   hecho. El log del juego, en memoria (la escritura periódica en el USB costaba un refresco); refrescos perdidos en el
   log; run 021 opcional.
+- 0021 (2026-11-06) — El juego con ID de título `534D4153` y nombre "Super Mario All-Stars" (`SuperMarioAllStars.xex`,
+  antes `smas_jugar.xex`), comprobado al arrancar; Xenia lo muestra; run 022 para Aurora.

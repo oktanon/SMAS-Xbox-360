@@ -30,6 +30,7 @@
 #include "xsdk/audio.h"
 #include "xsdk/splash.h"
 #include "xsdk/thread.h"
+#include "xsdk/kernel.h"
 #include "xsdk/xam.h"
 
 namespace {
@@ -126,6 +127,21 @@ int main()
   Ppu::renderThreadStart = placeRenderThread;
   std::printf("smas_jugar: hito 4, mandos y audio (Back + LB + RB 3 s para salir)\n");
 
+#if defined(SMAS_TITLE_ID_HEX) && defined(SMAS_TITLE_NAME)
+  // The title's name, as the dashboard and Aurora read it: the XDBF resource named after the title ID that
+  // xsdk_add_xex puts in the .xex (xsdk tests/cmake/cmake_check.cpp does the same check).
+  {
+    HANDLE module = 0;
+    const uint32_t found = XexGetModuleHandle(nullptr, &module);
+    const void* data = nullptr;
+    uint32_t size = 0;
+    const NTSTATUS st = found == 0 ? XexGetModuleSection(module, SMAS_TITLE_ID_HEX, &data, &size) : 0;
+    const std::string db = data ? std::string(static_cast<const char*>(data), size) : std::string();
+    const bool named = NT_SUCCESS(st) && db.compare(0, 4, "XDBF") == 0 && db.find(SMAS_TITLE_NAME) != std::string::npos;
+    std::printf("%s: título %s \"%s\" en el .xex (XexGetModuleSection 0x%08X, %u bytes)\n", named ? "PASS" : "FAIL",
+                SMAS_TITLE_ID_HEX, SMAS_TITLE_NAME, (unsigned)st, (unsigned)size);
+  }
+#endif
   if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
     std::printf("FIN: SDL_Init falló: %s\n", SDL_GetError());
     return 1;

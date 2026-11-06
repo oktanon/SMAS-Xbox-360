@@ -74,7 +74,7 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | Capa Linux / Steam Deck (**plantilla del bucle de la app**) | `SuperMarioAllStars-main/src/platform/linux/app_linux.cpp` | `main`, `App::init/run/shutdown`, búsqueda de ROM, `openUrl`, `httpGet`; usa las capas de vídeo, audio e input de Android |
 | Capa Android (**plantilla de vídeo, audio e input**) | `SuperMarioAllStars-main/src/platform/android/` | SDL2 + GLES 3; `video_gles.cpp` dibuja el texto con FreeType fuera de Android |
 | Build Linux (lista de fuentes comunes) | `SuperMarioAllStars-main/CMakeLists.txt`, rama `UNIX AND NOT ANDROID` | Los ficheros de `src/app` que entran en un build no Windows |
-| **Capa Xbox 360** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5: hoy `video_vk.*` (vídeo), `audio_sdl3.*` (sonido), `input_sdl3.*` (mandos), `shaders/` y `screen_shaders.*`, y los títulos de prueba `hito2_main.cpp`, `video_main.cpp`, `play_main.cpp` |
+| **Capa Xbox 360** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5: hoy `video_vk.*` (vídeo), `audio_sdl3.*` (sonido), `input_sdl3.*` (mandos), `shaders/` y `screen_shaders.*`, y los títulos de prueba `hito2_main.cpp`, `video_main.cpp` y `play_main.cpp` (→ `SuperMarioAllStars.xex`, el que será el juego) |
 | **Build Xbox 360** | `SuperMarioAllStars-main/xenon/CMakeLists.txt` | Toolchain de xsdk; guiones de consola `hito2_*.txt`, `hito3_demo.txt`; comparación en `xenon/qemu/` |
 | xsdk | `xsdk-main/` | `CLAUDE.md`, `docs/GETTING_STARTED.md`, `docs/GUIDE.md`, `docs/PITFALLS.md`, `docs/PARITY.md`, `docs/HARDWARE.md` |
 | Toolchain CMake de xsdk | `xsdk-main/cmake/xsdk.cmake` | `xsdk_add_xex(<target>)`, `xsdk_add_shaders()` |
@@ -118,8 +118,8 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -
 wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B build-xsdk-check -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DSDL3_DIR=$PWD/build-xsdk && cmake --build build-xsdk-check'
 # 4. El port (SuperMarioAllStars-main/xenon/CMakeLists.txt) -> build-xenon/
 #    hoy: smas_hito2.xex + guion.txt (hitos 2 y 2b), smas_video.xex + guion_video.txt (hito 3, enlaza
-#    vulkan4xenon-main/build/libvulkan4xenon.a) y smas_jugar.xex (hito 4, además SDL3 de
-#    SDL-xenon-xenon/build-xsdk); después SuperMarioAllStars.xex
+#    vulkan4xenon-main/build/libvulkan4xenon.a) y SuperMarioAllStars.xex (hito 4, antes smas_jugar.xex: además
+#    SDL3 de SDL-xenon-xenon/build-xsdk; ID de título 534D4153, nombre "Super Mario All-Stars"), que será el juego
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
 # 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
 #    -> screen_shaders.c/.h, que se suben al repositorio
@@ -327,7 +327,9 @@ Por qué es viable:
 Condiciones y riesgos:
 
 - Necesita un perfil con sesión iniciada; sin perfil, solo cuentan los logros del juego.
-- Title ID propio que no choque con ningún juego comercial (propuesta provisional: `0x534D4153`, "SMAS"; confirmar).
+- **Title ID del port: `0x534D4153` ("SMAS"), nombre "Super Mario All-Stars"** (desde la tarea 0021, en
+  `SuperMarioAllStars.xex`; un solo sitio: `SMAS_TITLE_ID` y `SMAS_TITLE_NAME` en `xenon/CMakeLists.txt`). Cambiarlo
+  después deja huérfanos los logros y partidas ya hechos.
   Cambiarlo después deja huérfanos los logros ya desbloqueados.
 - 82 logros con 1000 G repartidos (o 0 G si el usuario lo prefiere). Las imágenes deben dibujarse de cero o salir de
   arte propio: no se puede incrustar arte extraído de la ROM en el `.xex` distribuido.

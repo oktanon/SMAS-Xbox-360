@@ -23,7 +23,7 @@ El sistema del juego (`src/game/achievements.cpp`, `src/app/achstore.cpp`) sigue
 
 ## Decisiones pendientes del usuario
 
-- Title ID definitivo (propuesta: `0x534D4153`).
+- ~~Title ID definitivo~~: `0x534D4153`, "Super Mario All-Stars" (tarea 0021, `SuperMarioAllStars.xex`).
 - Gamerscore: 1000 G repartidos o 0 G.
 - Aviso: no conectar a Xbox Live un perfil con estos logros.
 
