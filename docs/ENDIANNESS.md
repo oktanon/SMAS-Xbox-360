@@ -57,9 +57,9 @@ Reglas de comparación (bt3xbx §5.4):
 Desde la raíz del repositorio, en WSL (desde PowerShell: `wsl.exe -d Ubuntu --exec bash -c '...'`):
 
 ```
-SuperMarioAllStars-main/xenon/qemu/build.sh all            # build-qemu/x86/smastool y build-qemu/ppc/smastool
-SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run>   # guion.txt en las dos; sale 0 si todo coincide
-SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run> SuperMarioAllStars-main/xenon/qemu/guion_control.txt
+bash SuperMarioAllStars-main/xenon/qemu/build.sh all            # build-qemu/x86/smastool y build-qemu/ppc/smastool
+bash SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run>   # guion.txt en las dos; sale 0 si todo coincide
+bash SuperMarioAllStars-main/xenon/qemu/compare.sh runs/<run> SuperMarioAllStars-main/xenon/qemu/guion_control.txt
 ```
 
 - `smastool` tiene para esto `hashall NOMBRE` (FNV-1a por valor de WRAM, VRAM, CGRAM, OAM, ARAM, SRAM, imagen, CPU y

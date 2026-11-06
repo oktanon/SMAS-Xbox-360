@@ -15,13 +15,14 @@ de prueba, mensajes de commit o `run.md`. Nada de rutas de disco de Windows (`C:
 - en comandos, partir de `<raíz>` como carpeta actual; si una herramienta exige una ruta absoluta, construirla al
   ejecutar (`$PWD/...`), nunca escribirla.
 
-Antes de cada commit, esta búsqueda no debe encontrar nada fuera de esta sección §0 y de los `game:\` del título
-(desde `<raíz>`; cuando haya código de la capa Xbox, quitar la exclusión de `SuperMarioAllStars-main` y revisar
-también sus ficheros nuevos):
-`git grep -nE '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/' -- ':!SuperMarioAllStars-main'`
+Antes de cada commit, esta búsqueda (desde `<raíz>`) no debe encontrar nada fuera de esta sección §0 y de los
+`game:\` del título o de los logs de la consola:
+`git grep -nIE '[A-Za-z]:[\\/][A-Za-z]|/mnt/|/home/|/usr/|~/' -- . ':!SuperMarioAllStars-main/docs/re' ':!SuperMarioAllStars-main/android/gradlew'`
 
-Los documentos de las dependencias (`xsdk-main/`, `vulkan4xenon-main/`, `SDL-xenon-xenon/`) son de otros proyectos y
-no se tocan.
+Los scripts no llevan `#!` (es una ruta absoluta): se ejecutan con `bash <script>`. Las dos exclusiones son del port
+de PC original (rutas del autor en sus notas de ingeniería inversa y el `gradlew` de Gradle) y no se tocan, igual que
+los documentos de las dependencias (`xsdk-main/`, `vulkan4xenon-main/`, `SDL-xenon-xenon/`), que son de otros
+proyectos.
 
 ## 1. Objetivo
 

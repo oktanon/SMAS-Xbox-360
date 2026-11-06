@@ -25,5 +25,6 @@
 - **Comprobado además:** un state de x86 cargado en la build PowerPC se rechaza (`loadstate failed`) y deja la máquina
   como estaba. La búsqueda estática de §3.5 solo encuentra la serialización de states (en el orden del host, ya
   rechazada entre plataformas), `statefix.h` (copia un byte a un `bool`) y el WAV de smastool (corregido).
+- Los scripts no llevan `#!` (sería una ruta absoluta, AGENTS.md §0): se ejecutan con `bash <script>`.
 - **Probado:** qemu-ppc. Pendiente de consola (hito 2: GCC de xsdk, newlib, `std::exp` del DSP).
 - **Siguiente:** hito 2, el mismo guion dentro de un `.xex` en la consola.

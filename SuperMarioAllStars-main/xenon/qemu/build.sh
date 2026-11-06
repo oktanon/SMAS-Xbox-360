@@ -1,8 +1,7 @@
-#!/usr/bin/env bash
 # Compila smastool (el emulador sin ventana) dos veces, para comparar el orden de bytes (docs/ENDIANNESS.md §2):
 #   x86 : g++ nativo, little-endian (la referencia)
 #   ppc : powerpc-linux-gnu-g++ -static, big-endian, se ejecuta con qemu-ppc
-# Uso, desde la raíz del repositorio, en WSL:  SuperMarioAllStars-main/xenon/qemu/build.sh [x86|ppc|all]
+# Uso, desde la raíz del repositorio, en WSL:  bash SuperMarioAllStars-main/xenon/qemu/build.sh [x86|ppc|all]
 # Salida en build-qemu/<x86|ppc>/smastool, más build-qemu/<x86|ppc>/stamp.txt con el commit compilado.
 set -euo pipefail
 

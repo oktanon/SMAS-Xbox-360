@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
 # Ejecuta el guion con smastool x86 y con smastool PowerPC (qemu-ppc) y compara (docs/ENDIANNESS.md §2).
 # Uso, desde la raíz del repositorio, en WSL:
-#   SuperMarioAllStars-main/xenon/qemu/compare.sh <carpeta de salida> [guion]
+#   bash SuperMarioAllStars-main/xenon/qemu/compare.sh <carpeta de salida> [guion]
 # Antes: build.sh all. La ROM es "Super Mario All-Stars (USA).sfc" en la raíz.
 # Sale con 0 si todas las líneas HASHALL, ACH y WAITLOAD y los archivos que deja el guion (salvo los states)
 # coinciden, con 1 si no. Control negativo: guion_control.txt, que debe dar DISTINTOS.
