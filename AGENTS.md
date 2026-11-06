@@ -53,14 +53,17 @@ En WSL: `/mnt/c/Users/estan/OneDrive/Escritorio/SuperMarioAllStars-main` (abajo,
 | vulkan4xenon | `vulkan4xenon-main/` | `include/vulkan4xenon.h`, `docs/SUPPORT.md`, `tools/build_shaders.py` |
 | SDL-xenon | `SDL-xenon-xenon/` | `docs/README-xsdk.md` |
 | Xenia (fork para xsdk) | `XSDK Xenia/xsdk_xenia.exe` | `xenia_canary.exe` es el mismo binario (mismo MD5) |
-| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
+| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
+| Port de referencia (BT3, PS2 → Xbox 360) | `C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
 | Runs (pruebas) | `runs/` | Ver §9 |
 | Builds | `build-xenon/` (y `build-*` en las dependencias) | Ignorados por git |
 
 Toolchain (WSL, distro **Ubuntu 26.04**, no Debian como dicen los docs de xsdk):
 
 - GCC 15 / binutils / newlib para `powerpc-xsdk-elf` en `~/xsdk-gcc` (prefijo `~/xsdk-gcc/bin/powerpc-xsdk-elf-`).
-- `cmake`, `ninja`, `make`, `python3` en `/usr/bin`.
+- `cmake`, `ninja`, `make`, `python3`, `g++` y `qemu-ppc` (qemu-user 10.2) en `/usr/bin`.
+- Para la comparación big-endian falta `powerpc-linux-gnu-g++`: `sudo apt install g++-powerpc-linux-gnu` (lo instala
+  el usuario; requiere sudo).
 - En el home de WSL hay copias viejas (`~/Xbox-360-SDK`, `~/vulkan4xenon`): **no son las canónicas**. Se compila
   siempre contra las carpetas de `<raíz>`.
 - Llamar a WSL desde PowerShell: `wsl.exe -d Ubuntu --exec bash -c '...'` (Git Bash reescribe rutas absolutas).
@@ -136,11 +139,23 @@ Windows. El port de Xbox sigue exactamente ese modelo: **se reutiliza `src/core`
 
 Puntos de riesgo que hay que tratar explícitamente:
 
-- **Big-endian.** El Xenon es PowerPC big-endian; el port solo se ha probado en x86/ARM little-endian. No hay `union`s
-  ni casts de punteros en el núcleo, pero hay que auditar: empaquetado de píxeles (orden de bytes de BGRA/RGBA al subir
-  texturas), lectura de cabeceras de la ROM, `png.cpp`, save states (son `memcpy` de structs: **no serán compatibles con
-  los de PC**, aceptable pero documentarlo), `achievements.ini`, `smas_port.ini`, `.srm` (bytes crudos de SRAM: sí
-  compatibles). Añadir pruebas con `tools/smastool.cpp` comparando frames/hashes contra el build de PC.
+- **Big-endian. Detalle completo en `docs/ENDIANNESS.md` (leerlo antes de tocar el núcleo o la capa de vídeo/audio).**
+  Resumen, con lo aprendido de los ports de BT3 a Xbox 360 (`C:\Users\estan\OneDrive\Escritorio\Varios\Tenkaichi3Decomp-main\Tenkaichi3Decomp-main`):
+  - Se compila **nativo big-endian** con el GCC de xsdk, sin el pase LLVM de BT3: la memoria de la SNES son arrays de
+    bytes y el núcleo arma los valores byte a byte; no hay `union`s ni casts de punteros a enteros.
+  - **Verificación antes de la consola:** `smastool` compilado para x86 y para PowerPC big-endian
+    (`powerpc-linux-gnu-g++` bajo `qemu-ppc` en WSL), mismo guion, comparando hashes de WRAM/VRAM/CGRAM/OAM/ARAM y
+    del framebuffer. Toda diferencia es un error de bytes (o de float). Así no se gasta una run de consola por
+    intento. Xenia no sirve para esto.
+  - Puntos conocidos: píxeles `0x00RRGGBB` (comprobar canales con una textura de prueba en consola; arreglar con
+    swizzle, no en CPU); audio con `SDL_AUDIO_S16` nativo, nunca `S16LE`; save states con los bytes en el orden del
+    host: **los de PC no valen en Xbox** y hay que rechazarlos por el `magic` invertido (una suma de bytes no lo
+    detecta); `.srm`, `.ini` y PNG son portables; `-ffp-contract=off` (GCC PPC funde `a*b+c` en `fmadd`) y la tabla
+    del DSP hecha con `std::exp` puede diferir entre libm.
+  - Cambios en código común solo dentro de `#if`, con el original en el `#else`. `SMAS_BIG_ENDIAN` para correcciones
+    de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`).
+  - Un `bswap` solo compila en big-endian (`__BYTE_ORDER__`): uno que corre en cualquier host rompe los datos de la
+    consola. Las cargas con bytes invertidos (`lwbrx`) cuestan lo mismo que las normales.
 - **CPU.** El emulador corre en un núcleo PPE in-order a 3.2 GHz, mucho más lento por ciclo que un PC. Las vistas
   previas del launcher en modo "The Four Games" ejecutan **cuatro consolas SNES a la vez**: probable que no quepa en
   60 fps. Opciones a medir en consola: repartir previews en hilos hardware (xsdk tiene 6), bajar su tasa, o dejar por
@@ -222,10 +237,10 @@ Nunca se commitea: la ROM (`*.sfc`, `*.smc`), saves, states, builds, binarios de
 
 ## 9. Runs
 
-Cada ejecución de prueba (Xenia o consola) se guarda en su propia carpeta dentro de `runs/`:
+Cada ejecución de prueba (qemu, Xenia o consola) se guarda en su propia carpeta dentro de `runs/`:
 
 ```
-runs/AAAA-MM-DD_NNN_<xenia|consola>_<descripcion>/
+runs/AAAA-MM-DD_NNN_<qemu|xenia|consola>_<descripcion>/
     run.md          # obligatorio, corto
     *.log           # log del título, xenia.log, net_log
     *.png / *.jpg   # capturas o fotos (opcional)
@@ -237,6 +252,6 @@ commitean junto con la tarea a la que pertenecen (los logs sí; nada que conteng
 
 ## 10. Orden de trabajo
 
-El plan por hitos está en `docs/ROADMAP.md`. Resumen: compilar dependencias → núcleo headless en Xbox (endianness,
-comparar frames con PC) → vídeo con vulkan4xenon → input/audio con SDL3 → launcher y menús → guardados y opciones →
+El plan por hitos está en `docs/ROADMAP.md`. Resumen: compilar dependencias → núcleo big-endian comparado con x86 en
+qemu-ppc → núcleo headless en Xbox → vídeo con vulkan4xenon → input/audio con SDL3 → launcher y menús → guardados y opciones →
 rendimiento en consola → logros nativos. Un hito solo se cierra con una run en consola.

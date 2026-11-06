@@ -1,7 +1,7 @@
 # Run NNN — <descripción>
 
 - **Fecha:** AAAA-MM-DD
-- **Dónde:** Xenia | Consola (RGH)
+- **Dónde:** qemu-ppc | Xenia | Consola (RGH)
 - **Commit:** `<hash corto>` (tarea NNNN)
 - **Qué se probó:** …
 - **Resultado:** OK | Falla | Parcial — una o dos frases.
