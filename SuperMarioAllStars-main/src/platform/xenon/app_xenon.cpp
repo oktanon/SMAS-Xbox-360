@@ -183,13 +183,11 @@ void App::run() {
   const Uint64 freq = SDL_GetPerformanceFrequency();
   Uint64 last = SDL_GetPerformanceCounter();
   const double period = 1.0 / Snes::kFrameRate;
-  float intervals[48] = {};
-  int nIntervals = 0;
   bool uiOpen = false;
   int quitHeld = 0;
   // (the log's 10 s: passes, their work without the waits, the worst, the refreshes missed)
   uint64_t workUs = 0, worstUs = 0, statsAt = nowUs(), lastShown = 0;
-  uint32_t passes = 0, missed = 0, over = 0;
+  uint32_t passes = 0, missed = 0, over = 0, emulated = 0;
   while (running) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -215,14 +213,10 @@ void App::run() {
       continue;
     }
 
-    intervals[nIntervals++ % 48] = (float)dt;
-    double hz = 59.94;
-    if (nIntervals >= 48) {
-      float d[48];
-      std::copy(intervals, intervals + 48, d);
-      std::nth_element(d, d + 24, d + 48);
-      if (d[24] > 0.002f) hz = 1.0 / d[24];
-    }
+    // The console's one display mode: 59.94 Hz, a game frame a refresh. (Measured from the passes, as on Linux, slow
+    // passes moved the median off 60 Hz and the pacing between "a frame a refresh" and "the time owed", which ran
+    // two frames on some refreshes and none on others: judder, at 60 fps counted, run 026.)
+    const double hz = 59.94;
     if (pacing.mode != kPaceVsync || lockedRefreshes(hz) != pacing.perFrame) {
       pacing = Pacing();
       pacing.mode = kPaceVsync;
@@ -270,6 +264,7 @@ void App::run() {
     menu.keysHint = widenUtf8(std::string("\xE2\x86\x91\xE2\x86\x93 Select      \xE2\x86\x90\xE2\x86\x92 Change      ") +
                               ok + " Confirm      " + back + " Back");
 
+    const int emulatedBefore = fpsFrames;
     const uint64_t t0 = nowUs();
     // (the launcher: one frame a pass at most. Catching up three made a slow pass slower: 53 ms a pass with the four
     // cards, run 024; behind, the previews run slower instead)
@@ -279,7 +274,9 @@ void App::run() {
     video.present();
     const uint64_t shown = nowUs();
     const Video::Stats vs = video.takeStats();
-    const uint64_t work = (t1 - t0) + vs.workUs;
+    // (the work without waits: the GPU's frame two before, waited for at this frame's first drawing, is a wait)
+    const uint64_t work = (t1 - t0) - std::min<uint64_t>(vs.fenceUs, t1 - t0) + vs.workUs;
+    emulated += (uint32_t)(fpsFrames >= emulatedBefore ? fpsFrames - emulatedBefore : fpsFrames);  // (reset each second)
     workUs += work;
     worstUs = std::max(worstUs, work);
     if (work > 16683) over++;
@@ -289,13 +286,14 @@ void App::run() {
     if (shown - statsAt >= 10000000) {
       int dry = 0, low = 0;
       audio.takeStats(&dry, &low);
-      statsf("pasadas %s: %u en 10 s, trabajo %.2f ms de media, el peor %.2f ms, %u de más de 16,7 ms, %u refrescos "
-             "perdidos; audio vacío %d veces (mínimo %d frames)",
-             inLauncher ? "launcher" : menu.open() ? "menú" : "juego", (unsigned)passes,
-             passes ? workUs / 1000.0 / passes : 0.0, worstUs / 1000.0, (unsigned)over, (unsigned)missed, dry, low);
+      statsf("pasadas %s: %u en 10 s (%u frames emulados), trabajo %.2f ms de media, el peor %.2f ms, %u de más de "
+             "16,7 ms, %u refrescos perdidos; rewind %u snapshots; audio vacío %d veces (mínimo %d frames)",
+             inLauncher ? "launcher" : menu.open() ? "menú" : "juego", (unsigned)passes, (unsigned)emulated,
+             passes ? workUs / 1000.0 / passes : 0.0, worstUs / 1000.0, (unsigned)over, (unsigned)missed,
+             (unsigned)rewind.snapshots(), dry, low);
       statsAt = shown;
       workUs = worstUs = 0;
-      passes = missed = over = 0;
+      passes = missed = over = emulated = 0;
       if (g_stats.size() > 32768) flushStats();
     }
   }
@@ -305,6 +303,7 @@ int main() {
   std::setvbuf(stdout, nullptr, _IOLBF, 0);
   xsdk_splash_show(1500);
   Ppu::renderThreadStart = placeRenderThread;
+  Rewind::threadStart = [] { xsdk_thread_move(1); };  // (the rewind's differences: hardware thread 1, free)
   std::unique_ptr<App> app = std::make_unique<App>();
   g_app = app.get();
   int rc = 0;

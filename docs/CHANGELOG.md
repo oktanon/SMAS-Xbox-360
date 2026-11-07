@@ -60,3 +60,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0026 (2026-11-07) — Run 025: launcher de 53 a 21-25 ms, juego sin refrescos perdidos. Hotkeys reasignables desde
   Options, Back + RB / Back + LB para guardar/cargar state, A/B en vez de Ⓐ/Ⓑ ("?"), Jugar llega solo al título del
   juego; investigación de packs de gráficos (`docs/TEXTURE_PACKS.md`); run 026 pendiente.
+- 0027 (2026-11-07) — Run 026: con covers el launcher va a 3 ms; jugando en widescreen con rewind se perdían
+  refrescos. Side Borders "Blurred Game" en la Xbox, ritmo fijo a 59,94 Hz (tirones al cambiar de modo), diferencias
+  del rewind en el hilo hardware 1; run 027 pendiente.

@@ -70,13 +70,79 @@ bool Rewind::decode(const std::vector<uint8_t>& delta, const std::vector<uint8_t
   return true;
 }
 
+#ifdef SMAS_XENON
+void (*Rewind::threadStart)() = nullptr;
+
+Rewind::~Rewind() {
+  if (!worker_.joinable()) return;
+  {
+    std::lock_guard<std::mutex> g(lock_);
+    quit_ = true;
+  }
+  cv_.notify_all();
+  worker_.join();
+}
+
+// Till the thread has taken in what it was given.
+void Rewind::wait() {
+  std::unique_lock<std::mutex> g(lock_);
+  cv_.wait(g, [this] { return !hasPending_ && !busy_; });
+}
+
+void Rewind::push(const std::vector<uint8_t>& state) { push(std::vector<uint8_t>(state)); }
+
+// The snapshot handed over (waiting if the last one isn't taken in yet), its difference worked out on the thread.
+void Rewind::push(std::vector<uint8_t>&& state) {
+  if (!worker_.joinable()) {
+    worker_ = std::thread([this] {
+      if (threadStart) threadStart();
+      std::unique_lock<std::mutex> g(lock_);
+      for (;;) {
+        cv_.wait(g, [this] { return hasPending_ || quit_; });
+        if (quit_) return;
+        std::vector<uint8_t> s;
+        s.swap(pending_);
+        hasPending_ = false;
+        busy_ = true;
+        g.unlock();
+        pushNow(s);
+        g.lock();
+        busy_ = false;
+        cv_.notify_all();
+      }
+    });
+  }
+  std::unique_lock<std::mutex> g(lock_);
+  cv_.wait(g, [this] { return !hasPending_; });
+  pending_ = std::move(state);
+  hasPending_ = true;
+  g.unlock();
+  cv_.notify_all();
+}
+
+const std::vector<uint8_t>& Rewind::newest() {
+  wait();
+  return cur_;
+}
+#endif
+
 void Rewind::clear() {
+#ifdef SMAS_XENON
+  wait();
+#endif
   cur_.clear();
   deltas_.clear();
   bytes_ = 0;
+#ifdef SMAS_XENON
+  counted();
+#endif
 }
 
+#ifdef SMAS_XENON
+void Rewind::pushNow(const std::vector<uint8_t>& state) {
+#else
 void Rewind::push(const std::vector<uint8_t>& state) {
+#endif
   if (!cur_.empty()) {
     deltas_.push_back(encode(cur_, state));
     bytes_ += deltas_.back().size();
@@ -86,9 +152,15 @@ void Rewind::push(const std::vector<uint8_t>& state) {
     }
   }
   cur_ = state;
+#ifdef SMAS_XENON
+  counted();
+#endif
 }
 
 bool Rewind::stepBack(std::vector<uint8_t>* out) {
+#ifdef SMAS_XENON
+  wait();
+#endif
   if (deltas_.empty()) return false;
   std::vector<uint8_t> older;
   if (!decode(deltas_.back(), cur_, &older)) {
@@ -99,5 +171,8 @@ bool Rewind::stepBack(std::vector<uint8_t>* out) {
   deltas_.pop_back();
   cur_ = std::move(older);
   *out = cur_;
+#ifdef SMAS_XENON
+  counted();
+#endif
   return true;
 }

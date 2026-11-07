@@ -55,6 +55,7 @@ public:
   // For the log: time spent waiting (for the GPU and the refresh) and recording, since the last call.
   struct Stats {
     uint64_t waitUs = 0, workUs = 0;
+    uint64_t fenceUs = 0;  // (of waitUs: for the GPU to finish the frame two before, at the frame's first drawing)
     uint32_t frames = 0, quads = 0, copies = 0;
   };
   Stats takeStats();

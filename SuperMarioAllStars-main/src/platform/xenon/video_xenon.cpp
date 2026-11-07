@@ -477,6 +477,7 @@ void VideoDevice::beginFrame() {
     s.pending = false;
   }
   stats.waitUs += nowUs() - t0;
+  stats.fenceUs += nowUs() - t0;
   s.used = 0;
   batches.clear();
   copies.clear();
@@ -1249,6 +1250,53 @@ void XenonCanvas::drawText(const std::wstring& s, RectF r, float size, int weigh
 namespace {
 Tex* g_gameTex = nullptr;  // the game picture: kLineW x kFrameH words, as the PPU's frame buffer
 int g_gameW = 0, g_gameH = 0;
+const uint32_t* g_srcPx = nullptr;  // (the frame buffer last uploaded, for the side borders)
+int g_srcStride = 0;
+
+// Side Borders "Blurred Game" (VideoParams::pillarbox 1): video_gles.cpp's pass 1, a blurred, darkened copy of the
+// picture behind it over the whole screen, made the cheap way: the picture averaged into a small image on the CPU
+// (each cell 4 x 4 samples), blurred once more (1 2 1 each way), darkened (x 0.32) and vignetted as there, then drawn
+// stretched with linear filtering. (49 taps a pixel at 1280 x 720 is much of Xenos's fill for a backdrop.)
+constexpr int kBackW = 48, kBackH = 27;
+Tex* g_backTex = nullptr;
+
+void makeBackdrop(uint8_t* dst, uint32_t pitch, const uint32_t* px, int w, int h, int stride) {
+  float cell[kBackH][kBackW][3];
+  for (int cy = 0; cy < kBackH; cy++)
+    for (int cx = 0; cx < kBackW; cx++) {
+      float acc[3] = {0, 0, 0};
+      for (int sy = 0; sy < 4; sy++)
+        for (int sx = 0; sx < 4; sx++) {
+          const int x = std::min(w - 1, (cx * 4 + sx) * w / (kBackW * 4));
+          const int y = std::min(h - 1, (cy * 4 + sy) * h / (kBackH * 4));
+          const uint32_t v = px[(size_t)y * stride + x];  // (0x00RRGGBB)
+          acc[0] += (float)(v >> 16 & 0xff);
+          acc[1] += (float)(v >> 8 & 0xff);
+          acc[2] += (float)(v & 0xff);
+        }
+      for (int c = 0; c < 3; c++) cell[cy][cx][c] = acc[c] / 16.0f;
+    }
+  float tmp[kBackH][kBackW][3];
+  for (int y = 0; y < kBackH; y++)
+    for (int x = 0; x < kBackW; x++)
+      for (int c = 0; c < 3; c++)
+        tmp[y][x][c] = (cell[y][std::max(0, x - 1)][c] + 2 * cell[y][x][c] + cell[y][std::min(kBackW - 1, x + 1)][c]) / 4;
+  for (int y = 0; y < kBackH; y++) {
+    uint32_t* row = (uint32_t*)(dst + (size_t)y * pitch);
+    for (int x = 0; x < kBackW; x++) {
+      const float u = (x + 0.5f) / kBackW * 2.0f - 1.0f;
+      const float vign = 1.0f - 0.5f * std::fabs(u * u * u);
+      uint32_t out = 0xff000000u;
+      for (int c = 0; c < 3; c++) {
+        const float b =
+            (tmp[std::max(0, y - 1)][x][c] + 2 * tmp[y][x][c] + tmp[std::min(kBackH - 1, y + 1)][x][c]) / 4;
+        const uint32_t k = (uint32_t)std::min(255.0f, b * 0.32f * vign + 0.5f);
+        out |= k << (16 - 8 * c);
+      }
+      row[x] = out;  // (0xAARRGGBB: canvas.frag's picture)
+    }
+  }
+}
 }  // namespace
 
 Video::Video() = default;
@@ -1263,7 +1311,8 @@ bool Video::init() {
     return false;
   }
   g_gameTex = dev_->makeTex(kLineW, kFrameH, false);
-  if (!g_gameTex) return false;
+  g_backTex = dev_->makeTex(kBackW, kBackH, false);
+  if (!g_gameTex || !g_backTex) return false;
   static unsigned epochs = 0;
   canvas_ = std::make_unique<XenonCanvas>(dev_.get(), ++epochs);
   return true;
@@ -1273,7 +1322,9 @@ void Video::shutdown() {
   if (!dev_) return;
   canvas_.reset();
   if (g_gameTex) dev_->freeTex(g_gameTex);
-  g_gameTex = nullptr;
+  if (g_backTex) dev_->freeTex(g_backTex);
+  g_gameTex = g_backTex = nullptr;
+  g_srcPx = nullptr;
   dev_->shutdown();
   dev_.reset();
 }
@@ -1291,6 +1342,8 @@ void Video::upload(const uint32_t* px, int w, int h, int stride) {
     for (int y = 0; y < h; y++) std::memcpy(dst + (size_t)y * g_gameTex->pitch, px + (size_t)y * stride, (size_t)w * 4);
   g_gameW = w;
   g_gameH = h;
+  g_srcPx = px;
+  g_srcStride = stride;
 }
 
 void Video::clear() {
@@ -1301,6 +1354,14 @@ void Video::draw(const VideoParams& p) {
   if (!dev_ || !canvas_ || g_gameW <= 0) return;
   dev_->beginFrame();
   const RectF dst = rectF((float)p.dest.left, (float)p.dest.top, (float)p.dest.right, (float)p.dest.bottom);
+  // (the sides, where the picture doesn't reach: as video_gles.cpp's draw)
+  const bool fullCover = p.dest.left <= 0 && p.dest.top <= 0 && p.dest.right >= width() && p.dest.bottom >= height();
+  if (p.pillarbox == 1 && !fullCover && g_backTex && g_srcPx) {
+    if (uint8_t* back = dev_->stage(g_backTex)) {
+      makeBackdrop(back, g_backTex->pitch, g_srcPx, g_gameW, g_gameH, g_srcStride);
+      canvas_->drawTex(g_backTex, rectF(0, 0, (float)width(), (float)height()), 1.0f, 1.0f, p.fade, true);
+    }
+  }
   canvas_->drawTex(g_gameTex, dst, (float)g_gameW / kLineW, (float)g_gameH / kFrameH, p.fade, false);
 }
 
