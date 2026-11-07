@@ -49,3 +49,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0022 (2026-11-07) — Aurora seguía mostrando el nombre del archivo (run 022): el `.xex` lleva ahora un XDBF como el
   SPA de un juego (`XTHD`, `XACH`, `XSTC`, `XSTR`) con un envoltorio de `elf2xex.py` (xsdk sin cambios); Xenia lo lee
   entero; run 023 para Aurora.
+- 0023 (2026-11-07) — Run 023: Aurora sigue mostrando el nombre del archivo; la tarea queda en pausa (opciones
+  anotadas en la tarea) y se pasa al hito 5 (launcher).
