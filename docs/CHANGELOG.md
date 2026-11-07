@@ -46,3 +46,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   log; run 021 opcional.
 - 0021 (2026-11-06) — El juego con ID de título `534D4153` y nombre "Super Mario All-Stars" (`SuperMarioAllStars.xex`,
   antes `smas_jugar.xex`), comprobado al arrancar; Xenia lo muestra; run 022 para Aurora.
+- 0022 (2026-11-07) — Aurora seguía mostrando el nombre del archivo (run 022): el `.xex` lleva ahora un XDBF como el
+  SPA de un juego (`XTHD`, `XACH`, `XSTC`, `XSTR`) con un envoltorio de `elf2xex.py` (xsdk sin cambios); Xenia lo lee
+  entero; run 023 para Aurora.

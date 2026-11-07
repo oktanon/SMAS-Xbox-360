@@ -119,7 +119,8 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B bu
 # 4. El port (SuperMarioAllStars-main/xenon/CMakeLists.txt) -> build-xenon/
 #    hoy: smas_hito2.xex + guion.txt (hitos 2 y 2b), smas_video.xex + guion_video.txt (hito 3, enlaza
 #    vulkan4xenon-main/build/libvulkan4xenon.a) y SuperMarioAllStars.xex (hito 4, antes smas_jugar.xex: además
-#    SDL3 de SDL-xenon-xenon/build-xsdk; ID de título 534D4153, nombre "Super Mario All-Stars"), que será el juego
+#    SDL3 de SDL-xenon-xenon/build-xsdk; ID de título 534D4153, nombre "Super Mario All-Stars"; empaquetado con
+#    xenon/tools/elf2xex_spa.py, el elf2xex.py de xsdk con un XDBF como el SPA de un juego), que será el juego
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
 # 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
 #    -> screen_shaders.c/.h, que se suben al repositorio

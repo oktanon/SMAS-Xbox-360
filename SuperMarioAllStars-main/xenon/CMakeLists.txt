@@ -114,5 +114,16 @@ target_link_libraries(SuperMarioAllStars PRIVATE smascore SDL3::SDL3-static ${V4
 target_compile_definitions(SuperMarioAllStars PRIVATE SMAS_TITLE_ID_HEX="${SMAS_TITLE_ID}"
   SMAS_TITLE_NAME="${SMAS_TITLE_NAME}")
 set_target_properties(SuperMarioAllStars PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
-xsdk_add_xex(SuperMarioAllStars TITLE_ID 0x${SMAS_TITLE_ID} NAME "${SMAS_TITLE_NAME}" VERSION ${SMAS_VERSION})
+# Como xsdk_add_xex (xsdk-main/cmake/xsdk.cmake), con xenon/tools/elf2xex_spa.py: el elf2xex.py de xsdk tal cual, con
+# un XDBF como el SPA de un juego (XTHD, XACH, XSTC, XSTR): con solo el nombre, Aurora mostraba el del archivo (run 022).
+function(smas_add_xex target title_id title_name version)
+  set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${XSDK_ROOT}/build/libxsdk.a" "${XSDK_ROOT}/src/xsdk.ld")
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND sh -c "'${CMAKE_OBJDUMP}' -d '$<TARGET_FILE:${target}>' | python3 '${XSDK_ROOT}/tools/xenia_scan.py'"
+    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/elf2xex_spa.py" "${XSDK_ROOT}/tools/elf2xex.py"
+      --title-id ${title_id} --title-name "${title_name}" --version ${version}
+      "$<TARGET_FILE:${target}>" "$<TARGET_FILE_DIR:${target}>/${target}.xex"
+    VERBATIM)
+endfunction()
+smas_add_xex(SuperMarioAllStars ${SMAS_TITLE_ID} "${SMAS_TITLE_NAME}" ${SMAS_VERSION})
 
