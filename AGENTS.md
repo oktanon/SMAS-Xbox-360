@@ -74,7 +74,7 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | Capa Linux / Steam Deck (**plantilla del bucle de la app**) | `SuperMarioAllStars-main/src/platform/linux/app_linux.cpp` | `main`, `App::init/run/shutdown`, búsqueda de ROM, `openUrl`, `httpGet`; usa las capas de vídeo, audio e input de Android |
 | Capa Android (**plantilla de vídeo, audio e input**) | `SuperMarioAllStars-main/src/platform/android/` | SDL2 + GLES 3; `video_gles.cpp` dibuja el texto con FreeType fuera de Android |
 | Build Linux (lista de fuentes comunes) | `SuperMarioAllStars-main/CMakeLists.txt`, rama `UNIX AND NOT ANDROID` | Los ficheros de `src/app` que entran en un build no Windows |
-| **Capa Xbox 360** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5: hoy `video_vk.*` (vídeo), `audio_sdl3.*` (sonido), `input_sdl3.*` (mandos), `shaders/` y `screen_shaders.*`, y los títulos de prueba `hito2_main.cpp`, `video_main.cpp` y `play_main.cpp` (→ `SuperMarioAllStars.xex`, el que será el juego) |
+| **Capa Xbox 360** | `SuperMarioAllStars-main/src/platform/xenon/` | Ver §5: `app_xenon.cpp` (la App en la consola → `SuperMarioAllStars.xex`), `video_xenon.*` (vídeo y `Canvas`), `fonts_xenon.cpp`, `audio_sdl3.*` (sonido), `input_sdl3.*` (mandos), `shaders/`, `canvas_shaders.*` y `screen_shaders.*`; los títulos de prueba `hito2_main.cpp`, `video_main.cpp` + `video_vk.*` y `play_main.cpp` (→ `smas_jugar.xex`) |
 | **Build Xbox 360** | `SuperMarioAllStars-main/xenon/CMakeLists.txt` | Toolchain de xsdk; guiones de consola `hito2_*.txt`, `hito3_demo.txt`; comparación en `xenon/qemu/` |
 | xsdk | `xsdk-main/` | `CLAUDE.md`, `docs/GETTING_STARTED.md`, `docs/GUIDE.md`, `docs/PITFALLS.md`, `docs/PARITY.md`, `docs/HARDWARE.md` |
 | Toolchain CMake de xsdk | `xsdk-main/cmake/xsdk.cmake` | `xsdk_add_xex(<target>)`, `xsdk_add_shaders()` |
@@ -118,13 +118,15 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S. -Bbuild-xsdk -
 wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B build-xsdk-check -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/../xsdk-main/cmake/xsdk.cmake -DSDL3_DIR=$PWD/build-xsdk && cmake --build build-xsdk-check'
 # 4. El port (SuperMarioAllStars-main/xenon/CMakeLists.txt) -> build-xenon/
 #    hoy: smas_hito2.xex + guion.txt (hitos 2 y 2b), smas_video.xex + guion_video.txt (hito 3, enlaza
-#    vulkan4xenon-main/build/libvulkan4xenon.a) y SuperMarioAllStars.xex (hito 4, antes smas_jugar.xex: además
-#    SDL3 de SDL-xenon-xenon/build-xsdk; ID de título 534D4153, nombre "Super Mario All-Stars"; empaquetado con
-#    xenon/tools/elf2xex_spa.py, el elf2xex.py de xsdk con un XDBF como el SPA de un juego), que será el juego
+#    vulkan4xenon-main/build/libvulkan4xenon.a), smas_jugar.xex (hito 4: el cartucho sin la App, con SDL3 de
+#    SDL-xenon-xenon/build-xsdk) y SuperMarioAllStars.xex, el juego (hito 5: la App entera; ID de título 534D4153,
+#    nombre "Super Mario All-Stars"; empaquetado con xenon/tools/elf2xex_spa.py, el elf2xex.py de xsdk con un XDBF
+#    como el SPA de un juego). Solo el juego: cmake --build build-xenon --target SuperMarioAllStars
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
 # 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
-#    -> screen_shaders.c/.h, que se suben al repositorio
+#    -> screen_shaders.c/.h (hito 3) y canvas_shaders.c/.h (el juego), que se suben al repositorio
 wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/screen_shaders src/platform/xenon/shaders/screen.vert src/platform/xenon/shaders/screen.frag'
+wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/canvas_shaders src/platform/xenon/shaders/canvas.vert src/platform/xenon/shaders/canvas.frag'
 ```
 
 El núcleo se compila en Xbox con `-O3 -ffp-contract=off -fno-strict-aliasing` (la comparación en qemu, con `-O2`; los
@@ -148,8 +150,13 @@ Xenia:
 
 ```powershell
 # desde <raíz>
-& ".\XSDK Xenia\xsdk_xenia.exe" --exit_on_crash ".\build-xenon\SuperMarioAllStars.xex"
+& ".\XSDK Xenia\xsdk_xenia.exe" --exit_on_crash --break_on_unimplemented_instructions=false ".\build-xenon\xenia\<hito>\SuperMarioAllStars.xex"
 ```
+
+- `--break_on_unimplemented_instructions=false`: sin él, Xenia se cierra en la primera instrucción que no implementa;
+  la App la ejecuta cada frame (`rldic` en `App::menuInput`, que GCC emite con `-mpowerpc64`; ver `xenia_scan`). Con
+  él la salta: lo que pase por esas funciones (la navegación de los menús, entre otras) **no vale en Xenia**.
+- `xsdk_xenia.exe` lanza Xenia y termina: para cerrarlo, parar los procesos `*xenia*`.
 
 - Se queda abierto al terminar el título: cerrarlo tras unos segundos.
 - El log del título cae en la carpeta `cache` de Xenia con el nombre del `.xex`; el `DbgPrint` en `xenia.log` (solo si
@@ -218,14 +225,14 @@ capa de plataforma en `src/platform/xenon/`. Lo que cada plataforma aporta (ver 
 
 | Fichero | Hace | Base |
 |---|---|---|
-| `app_xenon.cpp` (a crear) | `main`, bucle de frames, pausa con la Guía (`xsdk_system_ui_open`), rutas `game:\`, funciones de plataforma de arriba | `platform/linux/app_linux.cpp` |
-| `video_vk.cpp/.h` (**hecho**, hito 3) | Swapchain 1280×720 FIFO de vulkan4xenon; el framebuffer de la PPU (704×240) a una textura `R8G8B8A8` por un staging alineado (copia en GPU); un quad 4:3 que se ensancha con los márgenes; `screen.frag` toma el color de `(g, b, a)` (los bytes `00 RR GG BB` en big-endian); lectura de píxeles del front buffer para pruebas; `present()` recibe el rectángulo, `fitLayout`/`wantExtFor` copian el modo "ajustar" de `App::computeLayout` (16:9 con píxeles 8:7 = 46 por lado). Falta: filtros, aspectos y color de las opciones (hito 6) y el `Canvas` | vulkan4xenon `tests/harness*.c`, `test_texture.c` |
-| `canvas_vk.cpp` (a crear) | Implementa `Canvas` (`src/app/canvas.h`) para launcher, menú y música: rectángulos, redondeados, gradientes, polígonos, formas guardadas, imágenes de vista previa, texto | `GlesCanvas` en `video_gles.cpp` |
-| texto | Como Linux: `LuckiestGuy-Regular.ttf` (títulos) y DejaVu Sans normal y negrita (UI), empaquetadas junto al `.xex`. Linux usa FreeType; en Xbox, FreeType portado a xsdk o `stb_truetype` (decidir en el hito 5) | `video_gles.cpp`, `loadFace` |
-| `input_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Input` de la app con SDL3 (`SDL_Gamepad`, hasta 4 mandos, mismos números de botones y ejes, ranuras fijas por mando); `rumble()` añadido (la app no vibra todavía); `stickToDpad()` (el stick como cruceta por sectores, run 019: usar en `App::readPlayer` bajo `SMAS_XENON` en el hito 5); el teclado no existe en la consola | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
+| `app_xenon.cpp` (**hecho**, hito 5; pendiente de consola) | `main`, bucle de frames y ritmo (el de Linux; FIFO a 59,94 Hz), pausa con la Guía (`xsdk_system_ui_open`), rutas `game:` (ROM junto al `.xex` o en `roms`), funciones de plataforma de arriba (sin selectores ni red), salir con Back + LB + RB 3 s, hilos de dibujo de la PPU en los hilos hardware 2 y 4, tiempos cada 10 s al log en memoria | `platform/linux/app_linux.cpp` |
+| `video_vk.cpp/.h` (**hecho**, hito 3) | Swapchain 1280×720 FIFO de vulkan4xenon; el framebuffer de la PPU (704×240) a una textura `R8G8B8A8` por un staging alineado (copia en GPU); un quad 4:3 que se ensancha con los márgenes; `screen.frag` toma el color de `(g, b, a)` (los bytes `00 RR GG BB` en big-endian); lectura de píxeles del front buffer para pruebas; `present()` recibe el rectángulo, `fitLayout`/`wantExtFor` copian el modo "ajustar" de `App::computeLayout` (16:9 con píxeles 8:7 = 46 por lado). Hoy solo lo usan `smas_video.xex` y `smas_jugar.xex`: el juego usa `video_xenon` | vulkan4xenon `tests/harness*.c`, `test_texture.c` |
+| `video_xenon.cpp/.h` (**hecho**, hito 5; pendiente de consola) | La clase `Video` de `video_gles.h` y su `Canvas` (`XenonCanvas`, método a método como `GlesCanvas`): un solo pipeline de quads por lotes (`canvas.vert/.frag`: sólido, glifos de un atlas `R8`, rectángulos redondeados por distancia, imágenes `0xAARRGGBB` leídas como `(g, b, a)` y alfa `r`), recortes con el scissor dinámico; lo del frame se graba y `present()` hace un command buffer: copias de texturas (staging por slot, filas de 256 bytes, 4 KB) y una pasada. La imagen del juego es una textura más (704×240), sin filtros ni color de las opciones todavía (hito 6); `capture()` aún no | `GlesCanvas` en `video_gles.cpp`, `video_vk.cpp` |
+| texto (**hecho**, hito 5) | Como Linux: `LuckiestGuy-Regular.ttf` (títulos) y DejaVu Sans normal y negrita (UI), dentro del `.xex` (`fonts_xenon.cpp`, `.incbin` de `third_party/fonts`), rasterizadas con `stb_truetype` (`third_party/stb`, dominio público) con las métricas de FreeType (ascenso y alto de línea redondeados arriba, avances en píxeles enteros) | `video_gles.cpp`, `loadFace` |
+| `input_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Input` de la app con SDL3 (`SDL_Gamepad`, hasta 4 mandos, mismos números de botones y ejes, ranuras fijas por mando); `rumble()` añadido (la app no vibra todavía); `stickToDpad()` (el stick como cruceta por sectores, run 019; `App::readPlayer` lo usa bajo `SMAS_XENON`); el teclado no existe en la consola | `platform/android/input_sdl.cpp` (SDL2 → SDL3) |
 | `audio_sdl3.cpp/.h` (**hecho**, hito 4) | La clase `Audio` de la app con SDL3: un `SDL_AudioStream` en la frecuencia del dispositivo, `SDL_AUDIO_S16` nativo, el mismo remuestreo Hermite y control de latencia que Android; su hilo, en el hilo hardware 5 (run 018) | `platform/android/audio_sdl.cpp` (SDL2 → SDL3) |
 | `ach_xam.cpp/.h` (a crear) | Espejo de logros nativos (fase de §7) | |
-| `xenon/CMakeLists.txt` (en marcha) | Hoy el núcleo (`smascore`) y los títulos de prueba; después las fuentes comunes de `src/app` + la capa xenon, `SDL3::SDL3-static` y `libvulkan4xenon.a` | rama Linux del `CMakeLists.txt` de upstream |
+| `xenon/CMakeLists.txt` | El núcleo (`smascore`), los títulos de prueba y `SuperMarioAllStars` (las fuentes de `src/app` que compila Linux + `touch.cpp` + la capa xenon, `SDL3::SDL3-static` y `libvulkan4xenon.a`) | rama Linux del `CMakeLists.txt` de upstream |
 
 Puntos de riesgo que hay que tratar explícitamente:
 

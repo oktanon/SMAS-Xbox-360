@@ -24,6 +24,12 @@
 #include "app/input.h"
 #include "app/monitors.h"
 #include "app/video.h"
+#elif defined(SMAS_XENON)
+// (the Xbox 360: the Linux build's App, its layers on SDL3 and vulkan4xenon, platform/xenon)
+#include "platform/android/touch.h"
+#include "platform/xenon/audio_sdl3.h"
+#include "platform/xenon/input_sdl3.h"
+#include "platform/xenon/video_xenon.h"
 #else
 #include "platform/android/audio_sdl.h"
 #include "platform/android/input_sdl.h"

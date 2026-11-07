@@ -1,7 +1,8 @@
 # Build del port a Xbox 360 con xsdk (AGENTS.md §3). Desde la raíz del repositorio, en WSL:
 #   cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake
 #   cmake --build build-xenon
-# Hoy: smas_hito2.xex (-O3), el emulador sin ventana con el guion de xenon/qemu más benchmarks (hitos 2 y 2b). El juego se añade aquí después.
+# SuperMarioAllStars.xex: el juego (hito 5, al final). Y las pruebas de los hitos: smas_hito2.xex (-O3, el emulador sin
+# ventana con el guion de xenon/qemu más benchmarks), smas_video.xex (hito 3), smas_jugar.xex (hito 4).
 cmake_minimum_required(VERSION 3.25)
 project(SMASXenon C CXX)
 
@@ -90,16 +91,11 @@ add_custom_command(OUTPUT ${GUION_VIDEO}
   VERBATIM)
 add_custom_target(guion_video ALL DEPENDS ${GUION_VIDEO})
 
-# Hito 4: SuperMarioAllStars.xex (antes smas_jugar.xex), el cartucho jugable con mando y sonido por SDL3 (SDL-xenon),
-# vídeo por VideoVk; el que se convertirá en el juego (hito 5). Con su ID de título y su nombre (AGENTS.md §7): el
-# dashboard y Aurora leen el nombre del recurso XDBF que xsdk_add_xex mete en el .xex (xsdk docs/GUIDE.md, "A title
-# ID keeps saves apart"). Un solo sitio para los dos: SMAS_TITLE_ID / SMAS_TITLE_NAME.
+# Hito 4: smas_jugar.xex, el cartucho jugable sin la App (mando y sonido por SDL3, vídeo por VideoVk), para medir el
+# juego solo (runs 017-022).
 set(SDL3_DIR ${GAME_DIR}/../SDL-xenon-xenon/build-xsdk CACHE PATH "SDL-xenon compilado (SDL3Config.cmake)")
 find_package(SDL3 REQUIRED CONFIG)
-set(SMAS_TITLE_ID 534D4153)  # "SMAS"
-set(SMAS_TITLE_NAME "Super Mario All-Stars")
-set(SMAS_VERSION 0.4.0.0)    # (hito 4)
-add_executable(SuperMarioAllStars
+add_executable(smas_jugar
   ${SRC}/platform/xenon/play_main.cpp
   ${SRC}/platform/xenon/video_vk.cpp
   ${SRC}/platform/xenon/screen_shaders.c
@@ -108,11 +104,50 @@ add_executable(SuperMarioAllStars
   ${SRC}/app/config.cpp
   ${SRC}/app/utf8.cpp
   ${SRC}/app/sys_posix.cpp)
-target_include_directories(SuperMarioAllStars PRIVATE ${V4X_DIR}/include ${V4X_DIR}/third_party/vulkan-headers/include
+target_include_directories(smas_jugar PRIVATE ${V4X_DIR}/include ${V4X_DIR}/third_party/vulkan-headers/include
   ${V4X_DIR}/tests)
+target_link_libraries(smas_jugar PRIVATE smascore SDL3::SDL3-static ${V4X_DIR}/build/libvulkan4xenon.a)
+set_target_properties(smas_jugar PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
+xsdk_add_xex(smas_jugar NAME "SMAS hito 4")
+
+# Hito 5: SuperMarioAllStars.xex, el juego: la App de upstream entera (src/app: launcher, menús, logros, música) como
+# la compila Linux (CMakeLists.txt de upstream, UNIX AND NOT ANDROID), con las capas de Xbox (src/platform/xenon:
+# app_xenon.cpp, video_xenon.cpp con su Canvas, audio_sdl3.cpp, input_sdl3.cpp) en lugar de las de SDL2 / OpenGL ES.
+# Con su ID de título y su nombre (AGENTS.md §7): un solo sitio para los dos, SMAS_TITLE_ID / SMAS_TITLE_NAME.
+set(SMAS_TITLE_ID 534D4153)  # "SMAS"
+set(SMAS_TITLE_NAME "Super Mario All-Stars")
+set(SMAS_VERSION 0.5.0.0)    # (hito 5)
+set(SMAS_FONTS ${GAME_DIR}/third_party/fonts)
+add_executable(SuperMarioAllStars
+  ${SRC}/app/app.cpp
+  ${SRC}/app/config.cpp
+  ${SRC}/app/menu.cpp
+  ${SRC}/app/launcher.cpp
+  ${SRC}/app/music.cpp
+  ${SRC}/app/achstore.cpp
+  ${SRC}/app/utf8.cpp
+  ${SRC}/app/sys_posix.cpp
+  ${SRC}/app/imageload.cpp
+  ${SRC}/app/msupack.cpp
+  ${SRC}/app/achexport.cpp
+  ${SRC}/app/updatecheck.cpp
+  ${SRC}/platform/android/touch.cpp
+  ${SRC}/platform/xenon/app_xenon.cpp
+  ${SRC}/platform/xenon/video_xenon.cpp
+  ${SRC}/platform/xenon/canvas_shaders.c
+  ${SRC}/platform/xenon/fonts_xenon.cpp
+  ${SRC}/platform/xenon/audio_sdl3.cpp
+  ${SRC}/platform/xenon/input_sdl3.cpp)
+target_include_directories(SuperMarioAllStars PRIVATE ${GAME_DIR}/third_party/stb ${V4X_DIR}/include
+  ${V4X_DIR}/third_party/vulkan-headers/include)
 target_link_libraries(SuperMarioAllStars PRIVATE smascore SDL3::SDL3-static ${V4X_DIR}/build/libvulkan4xenon.a)
+target_compile_options(SuperMarioAllStars PRIVATE -O2 -Wno-unused-parameter -Wno-sign-compare)
 target_compile_definitions(SuperMarioAllStars PRIVATE SMAS_TITLE_ID_HEX="${SMAS_TITLE_ID}"
   SMAS_TITLE_NAME="${SMAS_TITLE_NAME}")
+# (las fuentes van dentro del .xex: fonts_xenon.cpp las incluye con .incbin)
+set_source_files_properties(${SRC}/platform/xenon/fonts_xenon.cpp PROPERTIES
+  COMPILE_DEFINITIONS "SMAS_FONT_DIR=\"${SMAS_FONTS}\""
+  OBJECT_DEPENDS "${SMAS_FONTS}/LuckiestGuy-Regular.ttf;${SMAS_FONTS}/DejaVuSans.ttf;${SMAS_FONTS}/DejaVuSans-Bold.ttf")
 set_target_properties(SuperMarioAllStars PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
 # Como xsdk_add_xex (xsdk-main/cmake/xsdk.cmake), con xenon/tools/elf2xex_spa.py: el elf2xex.py de xsdk tal cual, con
 # un XDBF como el SPA de un juego (XTHD, XACH, XSTC, XSTR): con solo el nombre, Aurora mostraba el del archivo (run 022).

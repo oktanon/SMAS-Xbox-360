@@ -104,6 +104,9 @@ bool App::loadRom() {
   game = std::make_unique<SmasGame>(*snes);
   game->install();
   snes->reset(true);
+#ifdef SMAS_XENON
+  snes->ppu.setRenderThreads(2);  // (the game's console: lines drawn on hardware threads 2 and 4, run 012)
+#endif
   loadSram();
   return true;
 }
@@ -583,10 +586,20 @@ void App::readPlayer(int p, uint16_t* out, double dt) {
   }
   // Left stick always drives the D-pad
   if (const PadState* ps = input.pad(padIdx)) {
+#ifdef SMAS_XENON
+    // (by sectors, Input::stickToDpad: a diagonal near the horizontal isn't also down, run 019)
+    bool l, r, u, d;
+    Input::stickToDpad(ps->axes[0], ps->axes[1], dz, &l, &r, &u, &d);
+    act[kActLeft] |= l;
+    act[kActRight] |= r;
+    act[kActUp] |= u;
+    act[kActDown] |= d;
+#else
     act[kActLeft] |= ps->axes[0] < -dz;
     act[kActRight] |= ps->axes[0] > dz;
     act[kActUp] |= ps->axes[1] < -dz;
     act[kActDown] |= ps->axes[1] > dz;
+#endif
   }
   // Select and the menu.
   // * The Menu bindings (Esc; the pad's View/Select by default) open the menu.

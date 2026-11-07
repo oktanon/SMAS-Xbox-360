@@ -51,3 +51,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   entero; run 023 para Aurora.
 - 0023 (2026-11-07) — Run 023: Aurora sigue mostrando el nombre del archivo; la tarea queda en pausa (opciones
   anotadas en la tarea) y se pasa al hito 5 (launcher).
+- 0024 (2026-11-07) — Hito 5 en marcha: `SuperMarioAllStars.xex` es la App entera (launcher, menús, logros, música)
+  con `video_xenon` (Canvas con vulkan4xenon, texto con stb_truetype y las fuentes dentro del `.xex`) y `app_xenon`;
+  el launcher se dibuja en Xenia; run 024 pendiente de consola.
