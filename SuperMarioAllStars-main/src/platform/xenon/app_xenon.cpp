@@ -250,8 +250,21 @@ void App::run() {
     quitHeld = p0 && p0->buttons[6] && p0->buttons[4] && p0->buttons[5] ? quitHeld + 1 : 0;
     if (quitHeld >= 180) running = false;
 
+    // One pool of render threads at a time (idle ones spin): the game's console while playing, the chosen card's in
+    // the launcher (run 024).
+    if (snes) snes->ppu.setRenderThreads(inLauncher ? 0 : 2);
+    launcher.previewThreads(inLauncher);
+    // The keys' lines with the controller's buttons (Ⓐ Ⓑ: the menus' face buttons by position, as Menu Buttons sets)
+    const char* ok = cfg.confirmRight ? "\xE2\x92\xB7" : "\xE2\x92\xB6";
+    const char* back = cfg.confirmRight ? "\xE2\x92\xB6" : "\xE2\x92\xB7";
+    launcher.setHint(std::string("\xE2\x86\x90\xE2\x86\x92 Choose    ") + ok + " Play    " + back + " Quit");
+    menu.keysHint = widenUtf8(std::string("\xE2\x86\x91\xE2\x86\x93 Select      \xE2\x86\x90\xE2\x86\x92 Change      ") +
+                              ok + " Confirm      " + back + " Back");
+
     const uint64_t t0 = nowUs();
-    frame(dt, frames);
+    // (the launcher: one frame a pass at most. Catching up three made a slow pass slower: 53 ms a pass with the four
+    // cards, run 024; behind, the previews run slower instead)
+    frame(dt, inLauncher ? std::min(frames, 1) : frames);
     render();
     const uint64_t t1 = nowUs();
     video.present();

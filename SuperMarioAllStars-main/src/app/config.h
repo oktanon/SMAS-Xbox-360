@@ -70,7 +70,11 @@ struct Config {
   bool pacingLog = false;      // display.pacing_log: frame pacing to the log every 2 s (diagnosis)
   bool highFrameRate = false;  // in-between pictures on the refreshes between the game's frames (90 Hz+ displays)
   int lastGame = 0;            // the launcher's card chosen last
+#ifdef SMAS_XENON
+  bool launcherAllStars = false;  // (the Xbox 360: the four games' cards by default, run 024)
+#else
   bool launcherAllStars = true;   // the launcher shows one card: Super Mario All-Stars (its own game select)
+#endif
   bool launcherCovers = false;    // the cards show the player's covers (covers folder) in place of live previews
   bool launcherBackground = false;  // the launcher's background is the player's picture (covers/background.png)
   bool launcherCoverFill = false;  // covers fill their frames (trimmed); else shown whole (the default)

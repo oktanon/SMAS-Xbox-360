@@ -193,6 +193,19 @@ void Launcher::startPreview(int i) {
   if (i != kAllStars) p.game->requestTitle(cardGame(i), true);
 }
 
+#ifdef SMAS_XENON
+// The chosen card's console draws its lines on the render threads (hardware threads 2 and 4, as the game's), the
+// others on the emulation's thread: one pool of render threads at a time, as idle ones spin (Ppu::RenderPool).
+// `on` false: none (a game being played has them).
+void Launcher::previewThreads(bool on) {
+  const int N = (int)cards_.size();
+  const int chosen = on && N > 0 ? cards_[(sel_ < N ? sel_ : lastCard_) % N] : -1;
+  for (int i = 0; i <= kCards; i++)
+    if (prev_[i].snes && i != chosen) prev_[i].snes->ppu.setRenderThreads(0);
+  if (chosen >= 0 && prev_[chosen].snes) prev_[chosen].snes->ppu.setRenderThreads(2);
+}
+#endif
+
 void Launcher::stepPreview(Preview& p) {
   for (int k = 0; k < 2; k++) p.snes->input[k] = 0;
   p.snes->apu.dsp.musicGain = musicGain_;
@@ -260,7 +273,13 @@ void Launcher::runPreviews(int frames, bool sound, Audio& audio, double refreshH
       }
     }
   }
+#ifdef SMAS_XENON
+  // (the Xbox 360: a frame of a console takes milliseconds on its in-order core; the cards not chosen get a frame
+  // of one of them a refresh, as the budget is looked at before each, and run slower, run 024)
+  const auto budget = std::chrono::microseconds(refreshHz > 0 ? (int)(0.1e6 / refreshHz) : 1 << 30);
+#else
   const auto budget = std::chrono::microseconds(refreshHz > 0 ? (int)(0.35e6 / refreshHz) : 1 << 30);
+#endif
   const auto from = clock::now();
   for (int n = 0; n < nOthers; n++) {
     Preview& p = prev_[others[n]];
@@ -507,7 +526,9 @@ void Launcher::draw(Menu& menu, int w, int h) {
     }
     ty0 += th;
   }
-#ifndef __ANDROID__
+#if defined(SMAS_XENON)
+  const char* kEdition = "Xbox 360 Edition";
+#elif !defined(__ANDROID__)
   const char* kEdition = "PC Edition";
 #else
   const char* kEdition = "Android Edition";

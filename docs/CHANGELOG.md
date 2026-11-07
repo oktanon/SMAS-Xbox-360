@@ -54,3 +54,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0024 (2026-11-07) — Hito 5 en marcha: `SuperMarioAllStars.xex` es la App entera (launcher, menús, logros, música)
   con `video_xenon` (Canvas con vulkan4xenon, texto con stb_truetype y las fuentes dentro del `.xex`) y `app_xenon`;
   el launcher se dibuja en Xenia; run 024 pendiente de consola.
+- 0025 (2026-11-07) — Run 024: el launcher funciona pero con 4 tarjetas iba a 53 ms por pasada. Ahora arranca en los
+  4 juegos, la tarjeta elegida dibuja en los hilos de render y sin ponerse al día con varios frames, las otras con un
+  10 % del refresco; "Xbox 360 Edition", botones Ⓐ/Ⓑ en las ayudas, Hotkeys accesibles; run 025 pendiente.

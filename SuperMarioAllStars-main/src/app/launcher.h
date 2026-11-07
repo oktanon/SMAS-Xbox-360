@@ -53,6 +53,9 @@ public:
   ColorF accent() const;
   static ColorF gameAccent(GameId g);
   void stopSound() { soundCard_ = -1; }
+#ifdef SMAS_XENON
+  void previewThreads(bool on);  // (the Xbox 360: render threads for the chosen card's console, or none)
+#endif
   // The player's own pictures (Options > Launcher; none are shipped): covers
   // for the cards, in place of their live previews (a card without one keeps
   // its preview), and a background, from `dir` (artName(card) or

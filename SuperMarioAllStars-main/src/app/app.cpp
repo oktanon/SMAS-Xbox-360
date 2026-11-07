@@ -104,9 +104,6 @@ bool App::loadRom() {
   game = std::make_unique<SmasGame>(*snes);
   game->install();
   snes->reset(true);
-#ifdef SMAS_XENON
-  snes->ppu.setRenderThreads(2);  // (the game's console: lines drawn on hardware threads 2 and 4, run 012)
-#endif
   loadSram();
   return true;
 }
@@ -273,8 +270,12 @@ void App::launchGame(GameId g) {
 #endif
   if (!menuHintShown && !test.on) {
     menuHintShown = true;
+#ifdef SMAS_XENON
+    menu.notify(cfg.selectMode == 0 ? "Press Back for the menu" : "Hold Back for the menu", 4.0f, true);
+#else
     menu.notify(cfg.selectMode == 0 ? "Press Select or Esc for the menu" : "Hold Select or press Esc for the menu", 4.0f,
                 true);
+#endif
   }
 }
 
@@ -914,9 +915,17 @@ std::shared_ptr<MenuPage> App::pageMain() {
 }
 
 std::string App::bindingsText(int a) const {
+#ifdef SMAS_XENON
+  // (the Xbox 360: no keyboard; the controller's buttons by their Xbox names)
+  std::string j = bindingName(cfg.pad[0][a]);
+  if (j == "View/Select") j = "Back";
+  else if (j == "Menu/Start") j = "Start";
+  return j.empty() || j == "-" ? "unbound (Controls)" : j;
+#else
   std::string k = bindingName(cfg.keys[0][a]), j = bindingName(cfg.pad[0][a]);
   bool hk = !k.empty() && k != "-", hj = !j.empty() && j != "-";
   return hk && hj ? k + " / " + j : hk ? k : hj ? j : "unbound";
+#endif
 }
 
 std::shared_ptr<MenuPage> App::pageOptions() {
@@ -1063,11 +1072,22 @@ std::shared_ptr<MenuPage> App::pageOptions() {
     pg.items.push_back(MenuItem::header("Achievements"));
     pg.items.push_back(achievementsSwitch());
     pg.items.push_back(MenuItem::header("Hotkeys"));
+#ifdef SMAS_XENON
+    // (the Xbox 360: rows the cursor reaches, run 024: read-only rows at the end of a page only came into view
+    // with the last row that takes it; no fullscreen or screenshot keys on the console)
+    auto hot = [&](const char* what, int a) {
+      if (a == kActFullscreen || a == kActScreenshot) return;
+      MenuItem it = MenuItem::action(what, []() {}, "Change it in Controls > Player 1 Joypad.");
+      it.valueText = [this, a]() { return bindingsText(a); };
+      pg.items.push_back(it);
+    };
+#else
     auto hot = [&](const char* what, int a) {
       MenuItem it = MenuItem::info(what);
       it.valueText = [this, a]() { return bindingsText(a); };
       pg.items.push_back(it);
     };
+#endif
     hot("Menu", kActMenu);
     hot("Save state", kActSaveState);
     hot("Load state", kActLoadState);
