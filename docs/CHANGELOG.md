@@ -57,3 +57,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0025 (2026-11-07) — Run 024: el launcher funciona pero con 4 tarjetas iba a 53 ms por pasada. Ahora arranca en los
   4 juegos, la tarjeta elegida dibuja en los hilos de render y sin ponerse al día con varios frames, las otras con un
   10 % del refresco; "Xbox 360 Edition", botones Ⓐ/Ⓑ en las ayudas, Hotkeys accesibles; run 025 pendiente.
+- 0026 (2026-11-07) — Run 025: launcher de 53 a 21-25 ms, juego sin refrescos perdidos. Hotkeys reasignables desde
+  Options, Back + RB / Back + LB para guardar/cargar state, A/B en vez de Ⓐ/Ⓑ ("?"), Jugar llega solo al título del
+  juego; investigación de packs de gráficos (`docs/TEXTURE_PACKS.md`); run 026 pendiente.

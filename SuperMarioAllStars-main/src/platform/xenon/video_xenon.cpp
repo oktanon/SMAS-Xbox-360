@@ -1056,6 +1056,15 @@ void XenonCanvas::freeImage(int image) {
 
 // ---- text ----------------------------------------------------------------------
 namespace {
+// A code point's glyph, or '?' 's. Ⓐ and Ⓑ (the menus' face buttons) as A and B: DejaVu has no circled letters.
+template <class Map>
+auto findGlyph(Map& glyphs, wchar_t wc) {
+  auto it = glyphs.find((uint32_t)wc);
+  if (it == glyphs.end() && (wc == 0x24B6 || wc == 0x24B7)) it = glyphs.find(wc == 0x24B6 ? 'A' : 'B');
+  if (it == glyphs.end()) it = glyphs.find('?');
+  return it;
+}
+
 struct Face {
   stbtt_fontinfo info;
   bool ok = false, tried = false;
@@ -1201,8 +1210,7 @@ float XenonCanvas::measureText(const std::wstring& s, float size, int weight, bo
   if (!f.ok) return 0;
   float w = 0;
   for (wchar_t wc : s) {
-    auto it = f.glyphs.find((uint32_t)wc);
-    if (it == f.glyphs.end()) it = f.glyphs.find('?');
+    auto it = findGlyph(f.glyphs, wc);
     if (it != f.glyphs.end()) w += it->second.adv;
   }
   return w * scale;
@@ -1221,8 +1229,7 @@ void XenonCanvas::drawText(const std::wstring& s, RectF r, float size, int weigh
   const float base = std::floor(top + f.ascent * scale + 0.5f);
   const Rgba k = rgba(c);
   for (wchar_t wc : s) {
-    auto it = f.glyphs.find((uint32_t)wc);
-    if (it == f.glyphs.end()) it = f.glyphs.find('?');
+    auto it = findGlyph(f.glyphs, wc);
     if (it == f.glyphs.end()) continue;
     const Glyph& g = it->second;
     if (g.w > 0) {

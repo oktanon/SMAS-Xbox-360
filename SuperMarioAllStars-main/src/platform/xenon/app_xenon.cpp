@@ -124,6 +124,14 @@ bool App::init() {
   makeDir(saveDir);
   if (!cfg.load(configPath)) cfg.save(configPath);
   cfg.vsync = true;
+  // (the Save and Load State chords, Back + RB / LB: a settings file from before them had none, and the console
+  // has no Delete to clear one, so none means the default)
+  if (cfg.pad[0][kActSaveState].type == Binding::None && cfg.pad[0][kActLoadState].type == Binding::None) {
+    Config d;
+    d.setDefaults();
+    cfg.pad[0][kActSaveState] = d.pad[0][kActSaveState];
+    cfg.pad[0][kActLoadState] = d.pad[0][kActLoadState];
+  }
   if (!video.init()) {
     logf("video init failed");
     return false;
@@ -254,9 +262,10 @@ void App::run() {
     // the launcher (run 024).
     if (snes) snes->ppu.setRenderThreads(inLauncher ? 0 : 2);
     launcher.previewThreads(inLauncher);
-    // The keys' lines with the controller's buttons (Ⓐ Ⓑ: the menus' face buttons by position, as Menu Buttons sets)
-    const char* ok = cfg.confirmRight ? "\xE2\x92\xB7" : "\xE2\x92\xB6";
-    const char* back = cfg.confirmRight ? "\xE2\x92\xB6" : "\xE2\x92\xB7";
+    // The keys' lines with the controller's buttons (the menus' face buttons by position, as Menu Buttons sets; as
+    // letters: the fonts have no circled ones, run 025)
+    const char* ok = cfg.confirmRight ? "B" : "A";
+    const char* back = cfg.confirmRight ? "A" : "B";
     launcher.setHint(std::string("\xE2\x86\x90\xE2\x86\x92 Choose    ") + ok + " Play    " + back + " Quit");
     menu.keysHint = widenUtf8(std::string("\xE2\x86\x91\xE2\x86\x93 Select      \xE2\x86\x90\xE2\x86\x92 Change      ") +
                               ok + " Confirm      " + back + " Back");

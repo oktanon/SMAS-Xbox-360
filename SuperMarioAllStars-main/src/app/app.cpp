@@ -258,7 +258,13 @@ void App::launchGame(GameId g) {
     game->cancelWarps();
     snes->reset(false);
   } else {
+#ifdef SMAS_XENON
+    // (the Xbox 360: on through the file panel with its highlighted file, into the game's title, as the launcher's
+    // previews go; the PC stops at the panel for the player to pick the file, run 025)
+    game->requestTitle(g, true);
+#else
     game->requestTitle(g, false);
+#endif
   }
   rewind.clear();
   audio.flush();
@@ -615,10 +621,30 @@ void App::readPlayer(int p, uint16_t* out, double dt) {
     if (b->type != Binding::None && !isSelectBinding(*b) && input.active(*b, padIdx, dz)) menuBtn = true;
   bool menuPressed = menuBtn && !prevMenuBtn[p];
   bool selectOut = false;
+#ifdef SMAS_XENON
+  // (the Xbox 360: the Save and Load State hotkeys are chords, Back + their button, Back + RB and Back + LB by
+  // default; with Back held its buttons don't reach the game, run 025)
+  if (p == 0) {
+    act[kActSaveState] = select && input.active(cfg.pad[p][kActSaveState], padIdx, dz);
+    act[kActLoadState] = select && input.active(cfg.pad[p][kActLoadState], padIdx, dz);
+    if (select)
+      for (int a : {kActA, kActB, kActX, kActY, kActL, kActR, kActStart}) act[a] = false;
+  }
+#endif
   if (p != 0) {
     selectOut = select;  // player 2 has no menu button
   } else if (cfg.selectMode == 0) {
+#ifdef SMAS_XENON
+    // (Back opens the menu when let go, unless it made a chord or was pressed in the menu or the launcher)
+    if (select) {
+      if (menu.open() || inLauncher || act[kActSaveState] || act[kActLoadState]) selectConsumed[p] = true;
+    } else {
+      if (prevSelect[p] && !selectConsumed[p]) menuPressed = true;
+      selectConsumed[p] = false;
+    }
+#else
     if (select && !prevSelect[p]) menuPressed = true;
+#endif
     bool lsFree = true;
     for (int a = 0; a < kActCount; a++)
       if (cfg.pad[p][a].type == Binding::PadButton && cfg.pad[p][a].code == 8) lsFree = false;
@@ -783,8 +809,14 @@ void App::updateBind(double dt) {
   if (bindAction < 0) return;
   bindTimer -= dt;
   char buf[160];
+#ifdef SMAS_XENON
+  const bool chord = bindPad && (bindAction == kActSaveState || bindAction == kActLoadState);
+  snprintf(buf, sizeof buf, "Press a button for \"%s\"%s  (wait to cancel)  %d", actionName(bindAction),
+           chord ? " (used with Back held)" : "", (int)std::ceil(bindTimer));
+#else
   snprintf(buf, sizeof buf, "Press a %s for \"%s\"  (Esc to cancel, Delete to clear)  %d",
            bindPad ? "controller button" : "key", actionName(bindAction), (int)std::ceil(bindTimer));
+#endif
   menu.captureText = buf;
   bool cancel = bindTimer <= 0;
   Binding b;
@@ -793,8 +825,16 @@ void App::updateBind(double dt) {
     (bindPad ? cfg.pad : cfg.keys)[bindPlayer][bindAction] = Binding();
     cancel = true;
   } else if (input.capture(&b, bindPad, cfg.padIndex[bindPlayer], cfg.deadzone / 100.0f)) {
+#ifdef SMAS_XENON
+    // (a chord's button: Back itself, pressed first, isn't it)
+    if (!(chord && b.type == Binding::PadButton && b.code == 6)) {
+      (bindPad ? cfg.pad : cfg.keys)[bindPlayer][bindAction] = b;
+      cancel = true;
+    }
+#else
     (bindPad ? cfg.pad : cfg.keys)[bindPlayer][bindAction] = b;
     cancel = true;
+#endif
   }
   if (cancel) {
     bindAction = -1;
@@ -920,7 +960,8 @@ std::string App::bindingsText(int a) const {
   std::string j = bindingName(cfg.pad[0][a]);
   if (j == "View/Select") j = "Back";
   else if (j == "Menu/Start") j = "Start";
-  return j.empty() || j == "-" ? "unbound (Controls)" : j;
+  if (j.empty() || j == "-") return "unbound";
+  return a == kActSaveState || a == kActLoadState ? "Back + " + j : j;
 #else
   std::string k = bindingName(cfg.keys[0][a]), j = bindingName(cfg.pad[0][a]);
   bool hk = !k.empty() && k != "-", hj = !j.empty() && j != "-";
@@ -1077,7 +1118,10 @@ std::shared_ptr<MenuPage> App::pageOptions() {
     // with the last row that takes it; no fullscreen or screenshot keys on the console)
     auto hot = [&](const char* what, int a) {
       if (a == kActFullscreen || a == kActScreenshot) return;
-      MenuItem it = MenuItem::action(what, []() {}, "Change it in Controls > Player 1 Joypad.");
+      const bool chord = a == kActSaveState || a == kActLoadState;
+      MenuItem it = MenuItem::action(what, [this, a]() { startBind(0, true, a); },
+                                     chord ? "Press A, then the button to use with Back held."
+                                           : "Press A, then the controller button to use.");
       it.valueText = [this, a]() { return bindingsText(a); };
       pg.items.push_back(it);
     };

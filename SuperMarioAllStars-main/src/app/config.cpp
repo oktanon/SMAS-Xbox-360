@@ -155,6 +155,10 @@ void Config::setDefaults() {
   }
   pad[0][kActFastForward] = P(kPadBtnRT);
   pad[0][kActRewind] = P(kPadBtnLT);
+#ifdef SMAS_XENON
+  pad[0][kActSaveState] = P(kPadBtnRB);  // (with Back held: Back + RB, see App::readPlayer)
+  pad[0][kActLoadState] = P(kPadBtnLB);  // (Back + LB)
+#endif
   padIndex[0] = 0;
   padIndex[1] = 1;
 }
