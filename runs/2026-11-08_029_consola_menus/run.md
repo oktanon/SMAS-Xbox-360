@@ -14,5 +14,5 @@
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`; fotos de lo que se vea mal.
 - **Resultado:** OK en Xenia: el usuario verificó los cinco puntos (Level Select, Sound Select, Cheats, Credits,
   Options). Pendiente de consola.
-- **Logs:** `smas_port.log`, `SuperMarioAllStars.log`, `achievements.ini`.
+- **Logs:** `xenia/smas_port.log`, `xenia/SuperMarioAllStars.log`, `xenia/achievements.ini`.
 - **Siguiente:** los filtros del juego (lo que falta del hito 6).

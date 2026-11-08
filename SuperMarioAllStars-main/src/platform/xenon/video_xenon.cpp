@@ -33,6 +33,7 @@ constexpr uint32_t kWidth = 1280, kHeight = 720, kImages = 2, kSlots = 2;
 constexpr int kMaxQuads = 16384;                 // per draw (16-bit indices)
 constexpr size_t kVertexBytes = 8u << 20;        // per frame: about 52,000 quads
 constexpr uint32_t kMaxSets = 2048;              // descriptor sets before the pool is emptied
+constexpr int kGamePush = 28;                    // game.frag's push constants: 7 vec4, the first canvas.vert's
 
 uint64_t nowUs() {
   return (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
@@ -120,6 +121,9 @@ struct VideoDevice {
   VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
   VkPipelineLayout layout = VK_NULL_HANDLE;
   VkPipeline pipeline = VK_NULL_HANDLE;
+  // the game picture's (game.frag): its push constants are canvas.vert's and the filters' (Video::draw)
+  VkPipelineLayout gameLayout = VK_NULL_HANDLE;
+  VkPipeline gamePipeline = VK_NULL_HANDLE;
   VkSampler nearest = VK_NULL_HANDLE, linear = VK_NULL_HANDLE;
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   uint32_t setsUsed = 0;
@@ -145,6 +149,8 @@ struct VideoDevice {
     Tex *atlas, *image;
     bool smooth;
     VkRect2D scissor;
+    bool game;  // drawn by gamePipeline, with push
+    float push[kGamePush];
   };
   std::vector<Batch> batches;
   std::map<std::tuple<Tex*, Tex*, bool>, VkDescriptorSet> sets;
@@ -164,6 +170,7 @@ struct VideoDevice {
   void freeTex(Tex* t);
   uint8_t* stage(Tex* t);  // where this frame's picture of t goes (pitch bytes a row), its copy queued
   void addQuads(const OVert* v, size_t quads, Tex* atlas, Tex* image, bool smooth, const VkRect2D& scissor);
+  void addGame(const OVert v[4], Tex* t, const float push[kGamePush]);  // t linear at binding 0, point at 1
   VkDescriptorSet descriptorSet(Tex* atlas, Tex* image, bool smooth);
   void present();
   void shutdown();
@@ -341,11 +348,14 @@ bool VideoDevice::createPipeline() {
   li.pushConstantRangeCount = 1;
   li.pPushConstantRanges = &range;
   if (!ok("vkCreatePipelineLayout", vkCreatePipelineLayout(device, &li, nullptr, &layout))) return false;
+  VkPushConstantRange gameRange{VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, kGamePush * 4};
+  li.pPushConstantRanges = &gameRange;
+  if (!ok("vkCreatePipelineLayout", vkCreatePipelineLayout(device, &li, nullptr, &gameLayout))) return false;
 
-  VkShaderModule modules[2] = {};
-  const uint32_t* code[2] = {canvas_vert_spirv, canvas_frag_spirv};
-  const uint32_t bytes[2] = {CANVAS_VERT_SPIRV_BYTES, CANVAS_FRAG_SPIRV_BYTES};
-  for (int i = 0; i < 2; i++) {
+  VkShaderModule modules[3] = {};
+  const uint32_t* code[3] = {canvas_vert_spirv, canvas_frag_spirv, game_frag_spirv};
+  const uint32_t bytes[3] = {CANVAS_VERT_SPIRV_BYTES, CANVAS_FRAG_SPIRV_BYTES, GAME_FRAG_SPIRV_BYTES};
+  for (int i = 0; i < 3; i++) {
     VkShaderModuleCreateInfo mi{};
     mi.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     mi.codeSize = bytes[i];
@@ -424,10 +434,17 @@ bool VideoDevice::createPipeline() {
   gi.pDynamicState = &dy;
   gi.layout = layout;
   gi.renderPass = renderPass;
-  const bool made =
+  bool made =
       ok("vkCreateGraphicsPipelines", vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gi, nullptr, &pipeline));
-  vkDestroyShaderModule(device, modules[0], nullptr);
-  vkDestroyShaderModule(device, modules[1], nullptr);
+  // the game picture: opaque, as video_gles.cpp draws it without blending (its fade darkens towards black)
+  VkPipelineColorBlendAttachmentState opaque = over;
+  opaque.blendEnable = VK_FALSE;
+  blend.pAttachments = &opaque;
+  stages[1].module = modules[2];
+  gi.layout = gameLayout;
+  made = made && ok("vkCreateGraphicsPipelines (juego)",
+                    vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gi, nullptr, &gamePipeline));
+  for (VkShaderModule m : modules) vkDestroyShaderModule(device, m, nullptr);
   if (!made) return false;
 
   for (int i = 0; i < 2; i++) {
@@ -584,12 +601,21 @@ void VideoDevice::addQuads(const OVert* v, size_t quads, Tex* atlas, Tex* image,
       return;
     }
     std::memcpy(s.mapped + s.used, v, bytes);
-    batches.push_back({s.used, (uint32_t)n, atlas ? atlas : white8, image ? image : whiteRgba, smooth, scissor});
+    Batch b{s.used, (uint32_t)n, atlas ? atlas : white8, image ? image : whiteRgba, smooth, scissor, false, {}};
+    batches.push_back(b);
     s.used += bytes;
     stats.quads += (uint32_t)n;
     v += n * 4;
     quads -= n;
   }
+}
+
+void VideoDevice::addGame(const OVert v[4], Tex* t, const float push[kGamePush]) {
+  const size_t before = batches.size();
+  addQuads(v, 1, t, t, false, VkRect2D{{0, 0}, {kWidth, kHeight}});
+  if (batches.size() == before) return;  // (no room)
+  batches.back().game = true;
+  std::memcpy(batches.back().push, push, sizeof(float) * kGamePush);
 }
 
 VkDescriptorSet VideoDevice::descriptorSet(Tex* atlas, Tex* image, bool smooth) {
@@ -665,20 +691,36 @@ void VideoDevice::present() {
   rp.pClearValues = &clear;
   vkCmdBeginRenderPass(cb, &rp, VK_SUBPASS_CONTENTS_INLINE);
   if (!batches.empty()) {
-    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     const float screen[4] = {2.0f / kWidth, 2.0f / kHeight, 0, 0};
-    vkCmdPushConstants(cb, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof screen, screen);
     vkCmdBindIndexBuffer(cb, indices, 0, VK_INDEX_TYPE_UINT16);
     VkDescriptorSet bound = VK_NULL_HANDLE;
     VkRect2D scissor{{-1, -1}, {0, 0}};
+    int pipe = -1;  // 0 the canvas's, 1 the game's
     for (const Batch& b : batches) {
       // (a picture never copied has nothing to show)
       if (!b.atlas->ready && b.atlas->copyFrame != frameNo) continue;
       if (!b.image->ready && b.image->copyFrame != frameNo) continue;
       const VkDescriptorSet set = descriptorSet(b.atlas, b.image, b.smooth);
       if (!set) continue;
+      if (b.game) {
+        // (each game draw pushes its own parameters; the layouts differ, so the set is bound again)
+        if (pipe != 1) vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, gamePipeline);
+        pipe = 1;
+        float push[kGamePush];
+        std::memcpy(push, b.push, sizeof push);
+        std::memcpy(push, screen, sizeof screen);
+        vkCmdPushConstants(cb, gameLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof push,
+                           push);
+        bound = VK_NULL_HANDLE;
+      } else if (pipe != 0) {
+        vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        vkCmdPushConstants(cb, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof screen, screen);
+        pipe = 0;
+        bound = VK_NULL_HANDLE;
+      }
       if (set != bound) {
-        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &set, 0, nullptr);
+        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, b.game ? gameLayout : layout, 0, 1, &set, 0,
+                                nullptr);
         bound = set;
       }
       if (std::memcmp(&scissor, &b.scissor, sizeof scissor) != 0) {
@@ -741,6 +783,8 @@ void VideoDevice::shutdown() {
     if (linear) vkDestroySampler(device, linear, nullptr);
     if (pipeline) vkDestroyPipeline(device, pipeline, nullptr);
     if (layout) vkDestroyPipelineLayout(device, layout, nullptr);
+    if (gamePipeline) vkDestroyPipeline(device, gamePipeline, nullptr);
+    if (gameLayout) vkDestroyPipelineLayout(device, gameLayout, nullptr);
     if (setLayout) vkDestroyDescriptorSetLayout(device, setLayout, nullptr);
     for (uint32_t i = 0; i < imageCount; i++) {
       if (framebuffers[i]) vkDestroyFramebuffer(device, framebuffers[i], nullptr);
@@ -1255,8 +1299,9 @@ int g_srcStride = 0;
 
 // Side Borders "Blurred Game" (VideoParams::pillarbox 1): video_gles.cpp's pass 1, a blurred, darkened copy of the
 // picture behind it over the whole screen, made the cheap way: the picture averaged into a small image on the CPU
-// (each cell 4 x 4 samples), blurred once more (1 2 1 each way), darkened (x 0.32) and vignetted as there, then drawn
-// stretched with linear filtering. (49 taps a pixel at 1280 x 720 is much of Xenos's fill for a backdrop.)
+// (each cell 4 x 4 samples) and blurred once more (1 2 1 each way), then drawn stretched with linear filtering by
+// game.frag's pass 1, which colours, darkens (x 0.32) and vignettes it as there. (49 taps a pixel at 1280 x 720 is
+// much of Xenos's fill for a backdrop.)
 constexpr int kBackW = 48, kBackH = 27;
 Tex* g_backTex = nullptr;
 
@@ -1284,16 +1329,14 @@ void makeBackdrop(uint8_t* dst, uint32_t pitch, const uint32_t* px, int w, int h
   for (int y = 0; y < kBackH; y++) {
     uint32_t* row = (uint32_t*)(dst + (size_t)y * pitch);
     for (int x = 0; x < kBackW; x++) {
-      const float u = (x + 0.5f) / kBackW * 2.0f - 1.0f;
-      const float vign = 1.0f - 0.5f * std::fabs(u * u * u);
       uint32_t out = 0xff000000u;
       for (int c = 0; c < 3; c++) {
         const float b =
             (tmp[std::max(0, y - 1)][x][c] + 2 * tmp[y][x][c] + tmp[std::min(kBackH - 1, y + 1)][x][c]) / 4;
-        const uint32_t k = (uint32_t)std::min(255.0f, b * 0.32f * vign + 0.5f);
+        const uint32_t k = (uint32_t)std::min(255.0f, b + 0.5f);
         out |= k << (16 - 8 * c);
       }
-      row[x] = out;  // (0xAARRGGBB: canvas.frag's picture)
+      row[x] = out;  // (0xAARRGGBB: game.frag's picture)
     }
   }
 }
@@ -1353,16 +1396,37 @@ void Video::clear() {
 void Video::draw(const VideoParams& p) {
   if (!dev_ || !canvas_ || g_gameW <= 0) return;
   dev_->beginFrame();
-  const RectF dst = rectF((float)p.dest.left, (float)p.dest.top, (float)p.dest.right, (float)p.dest.bottom);
+  // game.frag's push constants, as video_gles.cpp's pass() sets its uniforms (the first vec4 present() fills)
+  auto pass = [&](Tex* t, float x0, float y0, float x1, float y1, float srcW, float srcH, float which) {
+    const float w = std::max(x1 - x0, 1.0f), h = std::max(y1 - y0, 1.0f);
+    const float push[kGamePush] = {
+        0, 0, 0, 0,
+        srcW, srcH, 1.0f / t->w, 1.0f / t->h,
+        w, h, 1.0f / w, 1.0f / h,
+        (float)p.filter, p.scanlines, p.curve, which,
+        p.brightness, p.contrast, p.saturation, std::max(p.gamma, 0.05f),
+        (float)p.colorProfile, (float)p.colorblind, (float)std::max(p.srcW, 1), (float)std::max(p.srcH, 1),
+        p.fade, (float)p.pillarbox, p.temperature, 0,
+    };
+    const uint8_t white[4] = {255, 255, 255, 255};
+    const OVert v[4] = {
+        {x0, y0, 0, 0, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
+        {x1, y0, 1, 0, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
+        {x0, y1, 0, 1, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
+        {x1, y1, 1, 1, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
+    };
+    dev_->addGame(v, t, push);
+  };
   // (the sides, where the picture doesn't reach: as video_gles.cpp's draw)
   const bool fullCover = p.dest.left <= 0 && p.dest.top <= 0 && p.dest.right >= width() && p.dest.bottom >= height();
   if (p.pillarbox == 1 && !fullCover && g_backTex && g_srcPx) {
     if (uint8_t* back = dev_->stage(g_backTex)) {
       makeBackdrop(back, g_backTex->pitch, g_srcPx, g_gameW, g_gameH, g_srcStride);
-      canvas_->drawTex(g_backTex, rectF(0, 0, (float)width(), (float)height()), 1.0f, 1.0f, p.fade, true);
+      pass(g_backTex, 0, 0, (float)width(), (float)height(), (float)kBackW, (float)kBackH, 1.0f);
     }
   }
-  canvas_->drawTex(g_gameTex, dst, (float)g_gameW / kLineW, (float)g_gameH / kFrameH, p.fade, false);
+  pass(g_gameTex, (float)p.dest.left, (float)p.dest.top, (float)p.dest.right, (float)p.dest.bottom, (float)g_gameW,
+       (float)g_gameH, 0.0f);
 }
 
 void Video::beginUi() {
