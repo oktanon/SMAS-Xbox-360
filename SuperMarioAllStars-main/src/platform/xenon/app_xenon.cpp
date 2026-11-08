@@ -183,7 +183,8 @@ void App::run() {
   const Uint64 freq = SDL_GetPerformanceFrequency();
   Uint64 last = SDL_GetPerformanceCounter();
   const double period = 1.0 / Snes::kFrameRate;
-  bool uiOpen = false;
+  bool uiOpen = false, prevRs = false;
+  int wideAspect = kAspectAuto;  // (the widescreen the right stick goes back to)
   int quitHeld = 0;
   // (the log's 10 s: passes, their work without the waits, the worst, the refreshes missed)
   uint64_t workUs = 0, worstUs = 0, statsAt = nowUs(), lastShown = 0;
@@ -224,33 +225,39 @@ void App::run() {
       logf("pacing: %.2f Hz display, %d refreshes per frame (0 = uneven)", hz, pacing.perFrame);
     }
     pacing.hz = hz;
+    // A game frame for each refresh gone by, counted in fractions: a pass of 18 ms is 1.08 refreshes, and every
+    // dozenth such pass runs two frames, so the game keeps its speed and its sound fed when passes run long (counted
+    // whole, each was one refresh: the game ran 8 % slow and the sound's queue emptied, run 027). The quarter's slack
+    // keeps a pass a hair short of a refresh from running none and the next two.
+    (void)period;
     int frames = 0;
-    int vb = std::max(1, (int)std::lround(dt * hz));
-    if (vb > 6) {  // stalled (loading, the Guide): resume without fast-forwarding
-      vb = 0;
-      pacing.vblanks = 0;
-      pacing.accum = 0;
+    if (dt * hz > 6) {  // stalled (loading, the Guide): resume without fast-forwarding
+      pacing.vbResidual = 0;
       frames = 1;
-    }
-    if (pacing.perFrame) {
-      pacing.vblanks += vb;
-      while (pacing.vblanks >= pacing.perFrame) {
-        pacing.vblanks -= pacing.perFrame;
-        frames++;
-      }
     } else {
-      pacing.accum += vb / hz;
-      while (pacing.accum >= period) {
-        pacing.accum -= period;
-        frames++;
-      }
+      pacing.vbResidual += dt * hz;
+      frames = std::clamp((int)std::floor(pacing.vbResidual + 0.25), 0, 3);
+      pacing.vbResidual = std::min(pacing.vbResidual - frames, 1.0);  // (past three: not owed later)
     }
-    frames = std::min(frames, 3);
 
     // Back + LB + RB, 3 s: out (Back + Start takes a screenshot in the dashboard, run 018)
     const PadState* p0 = input.pad(cfg.padIndex[0]);
     quitHeld = p0 && p0->buttons[6] && p0->buttons[4] && p0->buttons[5] ? quitHeld + 1 : 0;
     if (quitHeld >= 180) running = false;
+    // The right stick pressed, playing: 4:3 or the widescreen chosen in Options > Display > Aspect Ratio (Auto if
+    // none), as smas_jugar.xex had it (run 027: the way back to 4:3 wasn't found)
+    const bool rs = p0 && p0->buttons[9];
+    if (rs && !prevRs && !inLauncher && !menu.open()) {
+      if (cfg.aspect != kAspect4x3) {
+        wideAspect = cfg.aspect;
+        cfg.aspect = kAspect4x3;
+      } else {
+        cfg.aspect = wideAspect;
+      }
+      menu.notify(cfg.aspect == kAspect4x3 ? "4:3 (Original)" : "Widescreen", 1.5f);
+      cfg.save(configPath);
+    }
+    prevRs = rs;
 
     // One pool of render threads at a time (idle ones spin): the game's console while playing, the chosen card's in
     // the launcher (run 024).

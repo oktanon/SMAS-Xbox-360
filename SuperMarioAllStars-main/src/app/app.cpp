@@ -1404,7 +1404,7 @@ std::shared_ptr<MenuPage> App::pageDisplay() {
                                           if (cfg.displayMode == DisplayMode::Windowed) applyDisplayMode();
                                         },
                                         "x", "Window height as a multiple of the original 224 lines."));
-#elif !defined(__ANDROID__)
+#elif !defined(__ANDROID__) && !defined(SMAS_XENON)  // (the Xbox 360: no window)
     pg.items.push_back(MenuItem::choice(
         "Display Mode", {"Windowed", "Fullscreen"},
         [this]() { return cfg.displayMode == DisplayMode::Windowed ? 0 : 1; },

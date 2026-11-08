@@ -63,3 +63,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0027 (2026-11-07) — Run 026: con covers el launcher va a 3 ms; jugando en widescreen con rewind se perdían
   refrescos. Side Borders "Blurred Game" en la Xbox, ritmo fijo a 59,94 Hz (tirones al cambiar de modo), diferencias
   del rewind en el hilo hardware 1; run 027 pendiente.
+- 0028 (2026-11-08) — Run 027: con Pixel Shape en Square el widescreen dibuja 71 columnas por lado y las pasadas
+  subieron a 17-21 ms; el ritmo ahora cuenta refrescos en fracciones (el juego no se frena), el stick derecho cambia
+  entre 4:3 y widescreen, sin "Display Mode" en la Xbox. SMAS + SMW: analizado, sin implementar. Run 028 pendiente.
