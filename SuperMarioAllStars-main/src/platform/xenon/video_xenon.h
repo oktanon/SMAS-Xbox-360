@@ -5,9 +5,9 @@
 // What app.cpp asks for in a frame (upload, draw, the canvas's drawing) is recorded, and present() makes one command
 // buffer of it: the pictures' copies first, then one render pass.
 // Text: stb_truetype, from the fonts built into the .xex (Luckiest Guy for titles, DejaVu Sans and Sans Bold).
-// The game picture has a pipeline of its own (shaders/game.frag, video_gles.cpp's kGameFS): its filters (Nearest,
-// Sharp Bilinear, Bilinear, CRT, CRT with an aperture grille, LCD Grid), scanlines, curve and colour settings
-// (VideoParams), and Side Borders "Blurred Game" behind it.
+// The game picture has pipelines of its own, one for each variant of shaders/game.glsl (video_gles.cpp's kGameFS):
+// its filters (Nearest, Sharp Bilinear, Bilinear, CRT, CRT with an aperture grille, LCD Grid), scanlines, curve,
+// the colour settings (VideoParams) from a table worked out on the CPU, and Side Borders "Blurred Game" behind it.
 #pragma once
 #include <cstdint>
 #include <memory>

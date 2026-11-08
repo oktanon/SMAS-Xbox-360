@@ -11,5 +11,6 @@
   3. Options > Colour: algún perfil (Sepia, Pocket), brillo, contraste, temperatura.
   4. En 4:3 (stick derecho) con Side Borders en "Blurred Game": los bordes toman los colores del perfil.
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log` (abrir la Guía o salir antes); fotos de lo que se vea mal.
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado; covers por defecto desde la ROM si el usuario lo quiere.
+- **Resultado:** Falla (rendimiento). Con o sin filtros, el juego va peor; Mario desaparece al parpadear tras un golpe. El log: con el menú abierto y nada emulado, 250-280 pasadas cada 10 s (antes 600) con 1 ms de trabajo: la GPU tarda más de un refresco por frame, la imagen va a 30 fps y cada imagen trae 2 frames emulados (480-520 de 600 en 10 s: el juego más lento). El parpadeo de Mario es un frame sí y otro no: a 2 frames por imagen se muestra siempre el mismo, en el que no está. Arreglo: tarea 0031.
+- **Logs:** `smas_port.log`, `SuperMarioAllStars.log`.
+- **Siguiente:** tarea 0031 (variantes del shader, covers del selector) y run 031.

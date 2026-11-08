@@ -33,7 +33,26 @@ constexpr uint32_t kWidth = 1280, kHeight = 720, kImages = 2, kSlots = 2;
 constexpr int kMaxQuads = 16384;                 // per draw (16-bit indices)
 constexpr size_t kVertexBytes = 8u << 20;        // per frame: about 52,000 quads
 constexpr uint32_t kMaxSets = 2048;              // descriptor sets before the pool is emptied
-constexpr int kGamePush = 28;                    // game.frag's push constants: 7 vec4, the first canvas.vert's
+constexpr int kGamePush = 28;                    // game.glsl's push constants: 7 vec4, the first canvas.vert's
+constexpr int kGameFilters = 7;                  // game.glsl's FILTER: the six filters, and 6 the backdrop
+constexpr int kLutW = 1024, kLutH = 32;          // game.glsl's colour table: 32 tiles of 32 x 32
+
+// game.glsl's variants (shaders/game/), by [FILTER][COLOR][CURVE]; the backdrop has no curve.
+#define SMAS_GAME_VARIANT(f, c, k) {game_f##f##_c##c##_k##k##_frag_spirv, GAME_F##f##_C##c##_K##k##_FRAG_SPIRV_BYTES}
+struct ShaderCode {
+  const uint32_t* code;
+  uint32_t bytes;
+};
+const ShaderCode kGameShaders[kGameFilters][2][2] = {
+    {{SMAS_GAME_VARIANT(0, 0, 0), SMAS_GAME_VARIANT(0, 0, 1)}, {SMAS_GAME_VARIANT(0, 1, 0), SMAS_GAME_VARIANT(0, 1, 1)}},
+    {{SMAS_GAME_VARIANT(1, 0, 0), SMAS_GAME_VARIANT(1, 0, 1)}, {SMAS_GAME_VARIANT(1, 1, 0), SMAS_GAME_VARIANT(1, 1, 1)}},
+    {{SMAS_GAME_VARIANT(2, 0, 0), SMAS_GAME_VARIANT(2, 0, 1)}, {SMAS_GAME_VARIANT(2, 1, 0), SMAS_GAME_VARIANT(2, 1, 1)}},
+    {{SMAS_GAME_VARIANT(3, 0, 0), SMAS_GAME_VARIANT(3, 0, 1)}, {SMAS_GAME_VARIANT(3, 1, 0), SMAS_GAME_VARIANT(3, 1, 1)}},
+    {{SMAS_GAME_VARIANT(4, 0, 0), SMAS_GAME_VARIANT(4, 0, 1)}, {SMAS_GAME_VARIANT(4, 1, 0), SMAS_GAME_VARIANT(4, 1, 1)}},
+    {{SMAS_GAME_VARIANT(5, 0, 0), SMAS_GAME_VARIANT(5, 0, 1)}, {SMAS_GAME_VARIANT(5, 1, 0), SMAS_GAME_VARIANT(5, 1, 1)}},
+    {{SMAS_GAME_VARIANT(6, 0, 0), {nullptr, 0}}, {SMAS_GAME_VARIANT(6, 1, 0), {nullptr, 0}}},
+};
+#undef SMAS_GAME_VARIANT
 
 uint64_t nowUs() {
   return (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
@@ -121,9 +140,9 @@ struct VideoDevice {
   VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
   VkPipelineLayout layout = VK_NULL_HANDLE;
   VkPipeline pipeline = VK_NULL_HANDLE;
-  // the game picture's (game.frag): its push constants are canvas.vert's and the filters' (Video::draw)
+  // the game picture's (game.glsl), one for each variant: its push constants are canvas.vert's and the filters'
   VkPipelineLayout gameLayout = VK_NULL_HANDLE;
-  VkPipeline gamePipeline = VK_NULL_HANDLE;
+  VkPipeline gamePipes[kGameFilters][2][2] = {};
   VkSampler nearest = VK_NULL_HANDLE, linear = VK_NULL_HANDLE;
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   uint32_t setsUsed = 0;
@@ -149,7 +168,7 @@ struct VideoDevice {
     Tex *atlas, *image;
     bool smooth;
     VkRect2D scissor;
-    bool game;  // drawn by gamePipeline, with push
+    VkPipeline game;  // (a game picture's variant, with push; else the canvas's)
     float push[kGamePush];
   };
   std::vector<Batch> batches;
@@ -170,7 +189,8 @@ struct VideoDevice {
   void freeTex(Tex* t);
   uint8_t* stage(Tex* t);  // where this frame's picture of t goes (pitch bytes a row), its copy queued
   void addQuads(const OVert* v, size_t quads, Tex* atlas, Tex* image, bool smooth, const VkRect2D& scissor);
-  void addGame(const OVert v[4], Tex* t, const float push[kGamePush]);  // t linear at binding 0, point at 1
+  // the game picture: t at binding 0 and the colour table at 1, both linear
+  void addGame(const OVert v[4], Tex* t, Tex* lut, VkPipeline pipe, const float push[kGamePush]);
   VkDescriptorSet descriptorSet(Tex* atlas, Tex* image, bool smooth);
   void present();
   void shutdown();
@@ -352,10 +372,10 @@ bool VideoDevice::createPipeline() {
   li.pPushConstantRanges = &gameRange;
   if (!ok("vkCreatePipelineLayout", vkCreatePipelineLayout(device, &li, nullptr, &gameLayout))) return false;
 
-  VkShaderModule modules[3] = {};
-  const uint32_t* code[3] = {canvas_vert_spirv, canvas_frag_spirv, game_frag_spirv};
-  const uint32_t bytes[3] = {CANVAS_VERT_SPIRV_BYTES, CANVAS_FRAG_SPIRV_BYTES, GAME_FRAG_SPIRV_BYTES};
-  for (int i = 0; i < 3; i++) {
+  VkShaderModule modules[2] = {};
+  const uint32_t* code[2] = {canvas_vert_spirv, canvas_frag_spirv};
+  const uint32_t bytes[2] = {CANVAS_VERT_SPIRV_BYTES, CANVAS_FRAG_SPIRV_BYTES};
+  for (int i = 0; i < 2; i++) {
     VkShaderModuleCreateInfo mi{};
     mi.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     mi.codeSize = bytes[i];
@@ -436,15 +456,30 @@ bool VideoDevice::createPipeline() {
   gi.renderPass = renderPass;
   bool made =
       ok("vkCreateGraphicsPipelines", vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gi, nullptr, &pipeline));
+  vkDestroyShaderModule(device, modules[1], nullptr);
   // the game picture: opaque, as video_gles.cpp draws it without blending (its fade darkens towards black)
   VkPipelineColorBlendAttachmentState opaque = over;
   opaque.blendEnable = VK_FALSE;
   blend.pAttachments = &opaque;
-  stages[1].module = modules[2];
   gi.layout = gameLayout;
-  made = made && ok("vkCreateGraphicsPipelines (juego)",
-                    vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gi, nullptr, &gamePipeline));
-  for (VkShaderModule m : modules) vkDestroyShaderModule(device, m, nullptr);
+  for (int f = 0; f < kGameFilters && made; f++)
+    for (int c = 0; c < 2 && made; c++)
+      for (int k = 0; k < 2 && made; k++) {
+        const ShaderCode& sc = kGameShaders[f][c][k];
+        if (!sc.code) continue;
+        VkShaderModuleCreateInfo mi{};
+        mi.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        mi.codeSize = sc.bytes;
+        mi.pCode = sc.code;
+        VkShaderModule m = VK_NULL_HANDLE;
+        made = ok("vkCreateShaderModule (juego)", vkCreateShaderModule(device, &mi, nullptr, &m));
+        if (!made) break;
+        stages[1].module = m;
+        made = ok("vkCreateGraphicsPipelines (juego)",
+                  vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &gi, nullptr, &gamePipes[f][c][k]));
+        vkDestroyShaderModule(device, m, nullptr);
+      }
+  vkDestroyShaderModule(device, modules[0], nullptr);
   if (!made) return false;
 
   for (int i = 0; i < 2; i++) {
@@ -601,7 +636,8 @@ void VideoDevice::addQuads(const OVert* v, size_t quads, Tex* atlas, Tex* image,
       return;
     }
     std::memcpy(s.mapped + s.used, v, bytes);
-    Batch b{s.used, (uint32_t)n, atlas ? atlas : white8, image ? image : whiteRgba, smooth, scissor, false, {}};
+    Batch b{s.used, (uint32_t)n, atlas ? atlas : white8, image ? image : whiteRgba, smooth, scissor, VK_NULL_HANDLE,
+            {}};
     batches.push_back(b);
     s.used += bytes;
     stats.quads += (uint32_t)n;
@@ -610,11 +646,12 @@ void VideoDevice::addQuads(const OVert* v, size_t quads, Tex* atlas, Tex* image,
   }
 }
 
-void VideoDevice::addGame(const OVert v[4], Tex* t, const float push[kGamePush]) {
+void VideoDevice::addGame(const OVert v[4], Tex* t, Tex* lut, VkPipeline pipe, const float push[kGamePush]) {
+  if (!pipe) return;
   const size_t before = batches.size();
-  addQuads(v, 1, t, t, false, VkRect2D{{0, 0}, {kWidth, kHeight}});
+  addQuads(v, 1, t, lut, true, VkRect2D{{0, 0}, {kWidth, kHeight}});
   if (batches.size() == before) return;  // (no room)
-  batches.back().game = true;
+  batches.back().game = pipe;
   std::memcpy(batches.back().push, push, sizeof(float) * kGamePush);
 }
 
@@ -695,7 +732,7 @@ void VideoDevice::present() {
     vkCmdBindIndexBuffer(cb, indices, 0, VK_INDEX_TYPE_UINT16);
     VkDescriptorSet bound = VK_NULL_HANDLE;
     VkRect2D scissor{{-1, -1}, {0, 0}};
-    int pipe = -1;  // 0 the canvas's, 1 the game's
+    VkPipeline pipe = VK_NULL_HANDLE;  // the one bound
     for (const Batch& b : batches) {
       // (a picture never copied has nothing to show)
       if (!b.atlas->ready && b.atlas->copyFrame != frameNo) continue;
@@ -704,18 +741,18 @@ void VideoDevice::present() {
       if (!set) continue;
       if (b.game) {
         // (each game draw pushes its own parameters; the layouts differ, so the set is bound again)
-        if (pipe != 1) vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, gamePipeline);
-        pipe = 1;
+        if (pipe != b.game) vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, b.game);
+        pipe = b.game;
         float push[kGamePush];
         std::memcpy(push, b.push, sizeof push);
         std::memcpy(push, screen, sizeof screen);
         vkCmdPushConstants(cb, gameLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof push,
                            push);
         bound = VK_NULL_HANDLE;
-      } else if (pipe != 0) {
+      } else if (pipe != pipeline) {
         vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         vkCmdPushConstants(cb, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof screen, screen);
-        pipe = 0;
+        pipe = pipeline;
         bound = VK_NULL_HANDLE;
       }
       if (set != bound) {
@@ -783,7 +820,10 @@ void VideoDevice::shutdown() {
     if (linear) vkDestroySampler(device, linear, nullptr);
     if (pipeline) vkDestroyPipeline(device, pipeline, nullptr);
     if (layout) vkDestroyPipelineLayout(device, layout, nullptr);
-    if (gamePipeline) vkDestroyPipeline(device, gamePipeline, nullptr);
+    for (auto& byColor : gamePipes)
+      for (auto& byCurve : byColor)
+        for (VkPipeline& gp : byCurve)
+          if (gp) vkDestroyPipeline(device, gp, nullptr), gp = VK_NULL_HANDLE;
     if (gameLayout) vkDestroyPipelineLayout(device, gameLayout, nullptr);
     if (setLayout) vkDestroyDescriptorSetLayout(device, setLayout, nullptr);
     for (uint32_t i = 0; i < imageCount; i++) {
@@ -1305,6 +1345,92 @@ int g_srcStride = 0;
 constexpr int kBackW = 48, kBackH = 27;
 Tex* g_backTex = nullptr;
 
+// game.glsl's colour table (COLOR): video_gles.cpp's applyColor for 32 x 32 x 32 colours, made when the settings
+// change. Each entry 0xAARRGGBB, at x = blue * 32 + red, y = green.
+Tex* g_lutTex = nullptr;
+float g_lutKey[8] = {-1};
+
+struct V3 {
+  float r, g, b;
+};
+float luma(V3 c) { return c.r * 0.299f + c.g * 0.587f + c.b * 0.114f; }
+float dot3(V3 c, float x, float y, float z) { return c.r * x + c.g * y + c.b * z; }
+V3 mixv(V3 a, V3 b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t}; }
+V3 grey(float l) { return {l, l, l}; }
+V3 powv(V3 c, float e) {
+  return {std::pow(std::max(c.r, 0.0f), e), std::pow(std::max(c.g, 0.0f), e), std::pow(std::max(c.b, 0.0f), e)};
+}
+float clamp01(float v) { return std::min(1.0f, std::max(0.0f, v)); }
+V3 clampv(V3 c) { return {clamp01(c.r), clamp01(c.g), clamp01(c.b)}; }
+V3 affine(V3 c, float k, float add) { return {c.r * k + add, c.g * k + add, c.b * k + add}; }
+
+V3 applyColor(V3 c, const VideoParams& p) {
+  c = powv(c, 1.0f / std::max(p.gamma, 0.05f));
+  c = affine(c, p.contrast, 0.5f - 0.5f * p.contrast);
+  c = affine(c, p.brightness, 0.0f);
+  c = clampv(mixv(grey(luma(c)), c, p.saturation));
+  const float l = luma(c);
+  switch (p.colorProfile) {
+    case 1: c = affine(mixv(grey(l), c, 1.3f), 1.08f, 0.5f - 0.54f); break;
+    case 2:
+      c = powv(c, 1.15f);
+      c = {dot3(c, 1.02f, 0.02f, -0.04f), c.g, dot3(c, -0.02f, 0.03f, 0.95f)};
+      break;
+    case 3: c = affine(mixv(grey(l), c, 0.72f), 0.9f, 0.52f - 0.45f); break;
+    case 4: c = grey(l); break;
+    case 5:
+      c = {dot3(c, 0.393f, 0.769f, 0.189f), dot3(c, 0.349f, 0.686f, 0.168f), dot3(c, 0.272f, 0.534f, 0.131f)};
+      break;
+    case 6: {
+      const float q = std::floor(clamp01(l) * 3.999f);
+      c = q < 1 ? V3{0.06f, 0.22f, 0.06f} : q < 2 ? V3{0.19f, 0.38f, 0.19f} : q < 3 ? V3{0.55f, 0.67f, 0.06f}
+                                                                                 : V3{0.61f, 0.74f, 0.06f};
+      break;
+    }
+    case 7: c = {std::pow(clamp01(l), 0.8f), 0, 0}; break;
+    case 8: c = {c.r, c.g * 0.86f, c.b * 0.62f}; break;
+    case 9:
+      c = affine(powv(c, 1.18f), 1.04f, 0.0f);
+      c = mixv(grey(l * 1.02f), c, 0.92f);
+      break;
+    default: break;
+  }
+  const float t = p.temperature;
+  if (t > 0) c = {c.r, c.g * (1 - 0.1f * t), c.b * (1 - 0.26f * t)};
+  else if (t < 0) c = {c.r * (1 + 0.18f * t), c.g * (1 + 0.08f * t), c.b};
+  if (p.colorblind > 0) {
+    const V3 lms = {dot3(c, 17.8824f, 43.5161f, 4.11935f), dot3(c, 3.45565f, 27.1554f, 3.86714f),
+                    dot3(c, 0.0299566f, 0.184309f, 1.46709f)};
+    V3 s = lms;
+    if (p.colorblind == 1) s.r = 2.02344f * lms.g - 2.52581f * lms.b;
+    else if (p.colorblind == 2) s.g = 0.494207f * lms.r + 1.24827f * lms.b;
+    else s.b = -0.395913f * lms.r + 0.801109f * lms.g;
+    const V3 sim = {dot3(s, 0.0809444479f, -0.130504409f, 0.116721066f),
+                    dot3(s, -0.0102485335f, 0.0540193266f, -0.113614708f),
+                    dot3(s, -0.000365296938f, -0.00412161469f, 0.693511405f)};
+    const V3 err = {c.r - sim.r, c.g - sim.g, c.b - sim.b};
+    c = clampv({c.r, c.g + err.r * 0.7f + err.g, c.b + err.r * 0.7f + err.b});
+  }
+  return clampv(c);
+}
+
+bool colorDefault(const VideoParams& p) {
+  return p.brightness == 1 && p.contrast == 1 && p.saturation == 1 && p.gamma == 1 && p.colorProfile == 0 &&
+         p.temperature == 0 && p.colorblind == 0;
+}
+
+void makeLut(uint8_t* dst, uint32_t pitch, const VideoParams& p) {
+  for (int g = 0; g < 32; g++) {
+    uint32_t* row = (uint32_t*)(dst + (size_t)g * pitch);
+    for (int b = 0; b < 32; b++)
+      for (int r = 0; r < 32; r++) {
+        const V3 c = applyColor({r / 31.0f, g / 31.0f, b / 31.0f}, p);
+        auto byte = [](float v) { return (uint32_t)std::lround(clamp01(v) * 255.0f); };
+        row[b * 32 + r] = 0xff000000u | byte(c.r) << 16 | byte(c.g) << 8 | byte(c.b);
+      }
+  }
+}
+
 void makeBackdrop(uint8_t* dst, uint32_t pitch, const uint32_t* px, int w, int h, int stride) {
   float cell[kBackH][kBackW][3];
   for (int cy = 0; cy < kBackH; cy++)
@@ -1355,7 +1481,9 @@ bool Video::init() {
   }
   g_gameTex = dev_->makeTex(kLineW, kFrameH, false);
   g_backTex = dev_->makeTex(kBackW, kBackH, false);
-  if (!g_gameTex || !g_backTex) return false;
+  g_lutTex = dev_->makeTex(kLutW, kLutH, false);
+  g_lutKey[0] = -1;
+  if (!g_gameTex || !g_backTex || !g_lutTex) return false;
   static unsigned epochs = 0;
   canvas_ = std::make_unique<XenonCanvas>(dev_.get(), ++epochs);
   return true;
@@ -1366,7 +1494,8 @@ void Video::shutdown() {
   canvas_.reset();
   if (g_gameTex) dev_->freeTex(g_gameTex);
   if (g_backTex) dev_->freeTex(g_backTex);
-  g_gameTex = g_backTex = nullptr;
+  if (g_lutTex) dev_->freeTex(g_lutTex);
+  g_gameTex = g_backTex = g_lutTex = nullptr;
   g_srcPx = nullptr;
   dev_->shutdown();
   dev_.reset();
@@ -1396,7 +1525,20 @@ void Video::clear() {
 void Video::draw(const VideoParams& p) {
   if (!dev_ || !canvas_ || g_gameW <= 0) return;
   dev_->beginFrame();
-  // game.frag's push constants, as video_gles.cpp's pass() sets its uniforms (the first vec4 present() fills)
+  // the colour table, when the settings differ from the defaults and from the table's
+  const bool color = !colorDefault(p) && g_lutTex;
+  if (color) {
+    const float key[8] = {p.brightness, p.contrast,  p.saturation,         p.gamma,
+                          p.temperature, (float)p.colorProfile, (float)p.colorblind, 0};
+    if (std::memcmp(key, g_lutKey, sizeof key) != 0) {
+      if (uint8_t* lut = dev_->stage(g_lutTex)) {
+        makeLut(lut, g_lutTex->pitch, p);
+        std::memcpy(g_lutKey, key, sizeof key);
+      }
+    }
+  }
+  const int filter = std::clamp(p.filter, 0, kGameFilters - 2);
+  // game.glsl's push constants, as video_gles.cpp's pass() sets its uniforms (the first vec4 present() fills)
   auto pass = [&](Tex* t, float x0, float y0, float x1, float y1, float srcW, float srcH, float which) {
     const float w = std::max(x1 - x0, 1.0f), h = std::max(y1 - y0, 1.0f);
     const float push[kGamePush] = {
@@ -1415,7 +1557,9 @@ void Video::draw(const VideoParams& p) {
         {x0, y1, 0, 1, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
         {x1, y1, 1, 1, {white[0], white[1], white[2], white[3]}, {0, 0, 0, 0}, 4.0f},
     };
-    dev_->addGame(v, t, push);
+    const int f = which > 0.5f ? kGameFilters - 1 : filter;
+    const int k = which < 0.5f && p.curve > 0.0f ? 1 : 0;
+    dev_->addGame(v, t, color ? g_lutTex : nullptr, dev_->gamePipes[f][color ? 1 : 0][k], push);
   };
   // (the sides, where the picture doesn't reach: as video_gles.cpp's draw)
   const bool fullCover = p.dest.left <= 0 && p.dest.top <= 0 && p.dest.right >= width() && p.dest.bottom >= height();

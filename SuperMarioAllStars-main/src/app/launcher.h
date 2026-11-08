@@ -13,6 +13,9 @@
 
 class Audio;
 class Snes;
+#ifdef SMAS_XENON
+#include "app/select_covers.h"  // (whole: Launcher's inline constructor destroys its members)
+#endif
 
 class Launcher {
 public:
@@ -64,7 +67,16 @@ public:
   void setArt(const std::wstring& dir, bool covers, bool background, bool reload = false);
   void setCoverFill(bool fill) { coverFill_ = fill; }  // covers fill their (square) frames, trimmed; else whole
   static const char* artName(int card);  // (smb1, lostlevels, smb2, smb3, allstars)
+#ifdef SMAS_XENON
+  // The Xbox 360: a card without the player's cover has the box art of the cartridge's own game select, taken from
+  // the ROM the first time and kept in `dir` (app/select_covers.h; `dirNarrow`, the same for core/png.h).
+  bool hasCover(int card) const {
+    return card >= 0 && card <= kCards && ((useCovers_ && cover_[card].w > 0) || def_[card].w > 0);
+  }
+  void setDefaultCovers(const std::wstring& dir, const std::string& dirNarrow);
+#else
   bool hasCover(int card) const { return useCovers_ && card >= 0 && card <= kCards && cover_[card].w > 0; }
+#endif
 
 private:
   struct Preview {
@@ -113,6 +125,16 @@ private:
     int image = 0;
   };
   Art cover_[kCards + 1], bgArt_;
+#ifdef SMAS_XENON
+  Art def_[kCards + 1];  // (the select's box art; the All-Stars card's: its title)
+  std::unique_ptr<SelectCovers> maker_;
+  std::wstring defDir_;
+  std::string defDirN_;
+  Art& coverArt(int card) { return useCovers_ && cover_[card].w > 0 ? cover_[card] : def_[card]; }
+  void setDefault(int card, const uint32_t* px, int w, int h);
+  void stopPreview(int card);
+  void runCoverMaker();
+#endif
   std::wstring artDir_;
   bool useCovers_ = false, useBg_ = false, coverFill_ = false;
   void readArt(Art& a, const char* name);

@@ -220,6 +220,11 @@ void App::romReady() {
   if (!test.on && test.runSeconds <= 0)
     launcher.setRom(&romData, narrow(romPath.substr(romPath.find_last_of(L"\\/") + 1)), romExact, snes->sram,
                     sizeof(snes->sram));
+#ifdef SMAS_XENON
+  // (the select's box art for the cards, taken from the ROM the first time: app/select_covers.h)
+  if (!test.on && test.runSeconds <= 0)
+    launcher.setDefaultCovers(pathJoin(saveDir, L"covers"), narrow(pathJoin(saveDir, L"covers")));
+#endif
   if (!romExact) logf("ROM is not the USA dump (CRC differs): running it anyway");
 }
 

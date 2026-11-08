@@ -187,7 +187,7 @@ void App::run() {
   int wideAspect = kAspectAuto;  // (the widescreen the right stick goes back to)
   int quitHeld = 0;
   // (the log's 10 s: passes, their work without the waits, the worst, the refreshes missed)
-  uint64_t workUs = 0, worstUs = 0, statsAt = nowUs(), lastShown = 0;
+  uint64_t workUs = 0, worstUs = 0, gpuUs = 0, statsAt = nowUs(), lastShown = 0;
   uint32_t passes = 0, missed = 0, over = 0, emulated = 0;
   while (running) {
     SDL_Event e;
@@ -285,6 +285,7 @@ void App::run() {
     const uint64_t work = (t1 - t0) - std::min<uint64_t>(vs.fenceUs, t1 - t0) + vs.workUs;
     emulated += (uint32_t)(fpsFrames >= emulatedBefore ? fpsFrames - emulatedBefore : fpsFrames);  // (reset each second)
     workUs += work;
+    gpuUs += vs.fenceUs;  // (waiting for the GPU: high when it, not the CPU, holds the frames back)
     worstUs = std::max(worstUs, work);
     if (work > 16683) over++;
     if (lastShown && shown - lastShown > 25000) missed += (uint32_t)((shown - lastShown) / 16683) - 1;
@@ -294,12 +295,14 @@ void App::run() {
       int dry = 0, low = 0;
       audio.takeStats(&dry, &low);
       statsf("pasadas %s: %u en 10 s (%u frames emulados), trabajo %.2f ms de media, el peor %.2f ms, %u de más de "
-             "16,7 ms, %u refrescos perdidos; rewind %u snapshots; audio vacío %d veces (mínimo %d frames)",
+             "16,7 ms, %u refrescos perdidos, espera a la GPU %.2f ms de media; rewind %u snapshots; audio vacío %d veces "
+             "(mínimo %d frames)",
              inLauncher ? "launcher" : menu.open() ? "menú" : "juego", (unsigned)passes, (unsigned)emulated,
              passes ? workUs / 1000.0 / passes : 0.0, worstUs / 1000.0, (unsigned)over, (unsigned)missed,
+             passes ? gpuUs / 1000.0 / passes : 0.0,
              (unsigned)rewind.snapshots(), dry, low);
       statsAt = shown;
-      workUs = worstUs = 0;
+      workUs = worstUs = gpuUs = 0;
       passes = missed = over = emulated = 0;
       if (g_stats.size() > 32768) flushStats();
     }

@@ -71,3 +71,7 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0030 (2026-11-08) — Hito 6: filtros del juego (Nearest, Sharp Bilinear, Bilinear, CRT, CRT aperture, LCD Grid),
   scanlines, curvatura y colores en un shader propio (game.frag) con su pipeline; los bordes difuminados toman los
   colores. Bien en Xenia; run 029 verificada en Xenia; run 030 (consola) pendiente.
+- 0031 (2026-11-08) — Run 030 (falla): el shader único de 0030 llevaba la GPU a 30 fps (y Mario desaparecía al
+  parpadear). Ahora 26 variantes mínimas de game.glsl con un pipeline cada una, y los colores por una tabla 32³ hecha
+  en la CPU. Covers por defecto: las cajas del selector de juegos, recortadas de la ROM la primera vez y guardadas en
+  saves\covers. Bien en Xenia; run 031 pendiente.

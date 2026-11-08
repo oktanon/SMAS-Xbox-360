@@ -8,6 +8,11 @@
 #include "app/audio.h"
 #include "app/logo_data.h"
 #include "core/snes.h"
+#ifdef SMAS_XENON
+#include "app/select_covers.h"
+#include "app/sys.h"
+#include "core/png.h"
+#endif
 
 namespace {
 const char* kButtonNames[Launcher::kButtons] = {"Options", "Achievements", "Music Player", "Credits", "Quit"};
@@ -39,6 +44,66 @@ constexpr float kLine = 1.33f;  // Segoe UI line height per pixel of font size
 }  // namespace
 
 Launcher::~Launcher() { releaseGpu(); }
+
+#ifdef SMAS_XENON
+// A box from the select, 4 times its size, pixel for pixel: drawn smooth on a card, it stays sharp.
+void Launcher::setDefault(int card, const uint32_t* px, int w, int h) {
+  Art& a = def_[card];
+  if (a.image && canvas_ && canvas_->epoch() == epoch_) canvas_->freeImage(a.image);
+  a = Art{};
+  a.w = w * 4;
+  a.h = h * 4;
+  a.px.resize((size_t)a.w * a.h);
+  for (int y = 0; y < a.h; y++)
+    for (int x = 0; x < a.w; x++) a.px[(size_t)y * a.w + x] = 0xff000000u | px[(size_t)(y / 4) * w + x / 4];
+  stopPreview(card);
+}
+
+// (a card that has a cover now: its preview stopped, its sound with it)
+void Launcher::stopPreview(int i) {
+  prev_[i].game.reset();
+  prev_[i].snes.reset();
+  prev_[i].ready = false;
+  prev_[i].bootFrames = 0;
+  prev_[i].shown = 0;
+  if (soundCard_ == i) soundCard_ = -1;
+}
+
+// The pictures kept from before; the console that takes them for the ones missing (and the ROM there).
+void Launcher::setDefaultCovers(const std::wstring& dir, const std::string& dirNarrow) {
+  defDir_ = dir;
+  defDirN_ = dirNarrow;
+  maker_.reset();
+  bool missing = false;
+  for (int i = 0; i <= kCards; i++) {
+    std::vector<uint32_t> px;
+    int w = 0, h = 0;
+    const char* name = artName(i);
+    if (loadImageFile(dir + L"/" + std::wstring(name, name + strlen(name)) + L".png", 1024, px, &w, &h))
+      setDefault(i, px.data(), w, h);
+    else
+      missing = true;
+  }
+  if (missing && rom_) maker_ = std::make_unique<SelectCovers>(*rom_);
+}
+
+// A few milliseconds of the console a refresh (Ppu's line buffers are shared: on this thread, as the previews);
+// each picture it takes kept, and on its card at once.
+void Launcher::runCoverMaker() {
+  if (!maker_) return;
+  const bool done = maker_->step(3000);
+  const unsigned fresh = maker_->takeNew();
+  for (int i = 0; i <= kCards; i++) {
+    if (!(fresh >> i & 1)) continue;
+    const SelectCovers::Pic& p = maker_->pics[i];
+    if (p.w <= 0) continue;
+    makeDir(defDir_);
+    writePng(defDirN_ + "/" + artName(i) + ".png", p.px.data(), p.w, p.h, p.w);
+    setDefault(i, p.px.data(), p.w, p.h);
+  }
+  if (done) maker_.reset();
+}
+#endif
 
 GameId Launcher::cardGame(int i) { return kCardInfo[std::clamp(i, 0, (int)kCards)].game; }
 
@@ -88,11 +153,18 @@ void Launcher::releaseGpu() {
     for (Art& a : cover_)
       if (a.image) canvas_->freeImage(a.image);
     if (bgArt_.image) canvas_->freeImage(bgArt_.image);
+#ifdef SMAS_XENON
+    for (Art& a : def_)
+      if (a.image) canvas_->freeImage(a.image);
+#endif
   }
   floor_ = star_ = logo_ = 0;
   for (Preview& p : prev_) p.image = 0;
   for (Art& a : cover_) a.image = 0;
   bgArt_.image = 0;
+#ifdef SMAS_XENON
+  for (Art& a : def_) a.image = 0;
+#endif
   canvas_ = nullptr;
 }
 
@@ -154,6 +226,9 @@ void Launcher::useCanvas(Canvas* cv) {
     for (Preview& p : prev_) p.image = 0;
     for (Art& a : cover_) a.image = 0;
     bgArt_.image = 0;
+#ifdef SMAS_XENON
+    for (Art& a : def_) a.image = 0;
+#endif
   }
   canvas_ = cv;
   epoch_ = cv ? cv->epoch() : 0;
@@ -221,6 +296,9 @@ void Launcher::runPreviews(int frames, bool sound, Audio& audio, double refreshH
   // Starting: through the game select out of sight, the chosen card's first,
   // a few milliseconds of it per refresh.
   using clock = std::chrono::steady_clock;
+#ifdef SMAS_XENON
+  runCoverMaker();
+#endif
   auto start = clock::now();
   const int N = (int)cards_.size();
   for (int k = 0; k < N; k++) {
@@ -643,7 +721,11 @@ void Launcher::draw(Menu& menu, int w, int h) {
       // The player's cover, filling its frame (what's beyond it trimmed, a
       // tall cover's mostly from the bottom: box art's logo is at the top),
       // or whole (the dark backdrop either side); dimmed when not chosen.
+#ifdef SMAS_XENON
+      Art& a = coverArt(cards_[i]);
+#else
       Art& a = cover_[cards_[i]];
+#endif
       if (int img = artImage(cv, a)) {
         const float aw = pr.right - pr.left, ah = pr.bottom - pr.top;
         const float s = coverFill_ ? std::max(aw / a.w, ah / a.h) : std::min(aw / a.w, ah / a.h);

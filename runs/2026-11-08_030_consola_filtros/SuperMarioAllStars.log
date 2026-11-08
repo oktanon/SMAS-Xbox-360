@@ -1,0 +1,13 @@
+log: game:\SuperMarioAllStars.log
+log: named after \Device\Harddisk0\Partition1\SuperMarioAllStars.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 721 after 12904 us
+open: NtCreateFile(game:\smas_port.ini) failed: 0xC0000034
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 720 after 16057 us
+video: pantalla Xbox 360 video output, 1280x720 a 60000 mHz
+open: NtCreateFile(game:\rompath.txt) failed: 0xC0000034
+open: NtCreateFile(game:\saves\smas.srm) failed: 0xC0000034
+open: NtCreateFile(game:\achievements.ini) failed: 0xC0000034
+exit: status 0

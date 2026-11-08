@@ -126,7 +126,7 @@ wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B buil
 # 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
 #    -> screen_shaders.c/.h (hito 3) y canvas_shaders.c/.h (el juego), que se suben al repositorio
 wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/screen_shaders src/platform/xenon/shaders/screen.vert src/platform/xenon/shaders/screen.frag'
-wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/canvas_shaders src/platform/xenon/shaders/canvas.vert src/platform/xenon/shaders/canvas.frag src/platform/xenon/shaders/game.frag'
+wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulkan4xenon-main/tools/build_shaders.py --xost ../xsdk-main/xenos-toolchain --glslang "$(command -v glslang)" --output src/platform/xenon/canvas_shaders src/platform/xenon/shaders/canvas.vert src/platform/xenon/shaders/canvas.frag src/platform/xenon/shaders/game/*.frag'
 ```
 
 El núcleo se compila en Xbox con `-O3 -ffp-contract=off -fno-strict-aliasing` (la comparación en qemu, con `-O2`; los

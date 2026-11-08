@@ -123,6 +123,7 @@ add_executable(SuperMarioAllStars
   ${SRC}/app/config.cpp
   ${SRC}/app/menu.cpp
   ${SRC}/app/launcher.cpp
+  ${SRC}/app/select_covers.cpp
   ${SRC}/app/music.cpp
   ${SRC}/app/achstore.cpp
   ${SRC}/app/utf8.cpp
