@@ -1,0 +1,11 @@
+log: game:\SuperMarioAllStars.log
+log: named after \Device\Harddisk0\Partition1\SuperMarioAllStars.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 720 after 6192 us
+mkdir: NtCreateFile(game:\saves) failed: 0xC0000035
+display: 1280x720 shown 1:1 to the 1280x720 output
+display: the line counter reached 720 after 5668 us
+video: pantalla Xbox 360 video output, 1280x720 a 60000 mHz
+mkdir: NtCreateFile(game:\msu) failed: 0xC0000035
+exit: status 0

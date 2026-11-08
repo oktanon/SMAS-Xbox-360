@@ -158,6 +158,9 @@ void App::reloadForMsu() {
 // (and Options a "Get Version" button) that opens its page.
 void App::checkForUpdate(bool manual) {
   if (test.on || test.runSeconds > 0) return;
+#ifdef SMAS_XENON
+  return;  // (the Xbox 360: no network; Options shows no Updates section)
+#endif
 #ifdef _WIN32
   if (at.on) {  // (the recording mode: no network, only what an earlier check found)
     applyUpdateTag(cfg.checkUpdates ? cfg.updateLatest : std::string());
@@ -927,9 +930,11 @@ std::shared_ptr<MenuPage> App::pageMain() {
                                          "Who made this port, and where to find them."));
 
     pg.items.push_back(MenuItem::header("System"));
+#ifndef SMAS_XENON  // (the Xbox 360: no screenshots yet, Video::capture)
     pg.items.push_back(MenuItem::action("Take Screenshot", [this]() { screenshot(); },
                                         "Saves the game picture (without the menu) to the screenshots folder (" +
                                             bindingsText(kActScreenshot) + " in game)."));
+#endif
     pg.items.push_back(MenuItem::action("Reset Game", [this]() {
       menu.confirm("Reset the game?", [this]() {
         menu.closeAll();
@@ -1004,6 +1009,9 @@ std::shared_ptr<MenuPage> App::pageOptions() {
     // The player's own covers and background (none come with the game).
 #ifdef __ANDROID__
     const std::string where = "Choose each picture below (PNG or JPG).";
+#elif defined(SMAS_XENON)
+    const std::string where = "Put PNG or JPG pictures in a covers folder beside the .xex: smb1, lostlevels, smb2, "
+                              "smb3 and allstars (the single card), and background.";
 #else
     const std::string where = "Put PNG or JPG pictures in the covers folder (Open Covers Folder below): smb1, "
                               "lostlevels, smb2, smb3 and allstars (the single card), and background.";
@@ -1039,6 +1047,12 @@ std::shared_ptr<MenuPage> App::pageOptions() {
                                           "A picture from your phone for this card (turn Game Covers on to see it)."));
     pg.items.push_back(MenuItem::action("Choose Background", [this]() { pickArt(-1); },
                                         "A picture from your phone for the launcher (turn Custom Background on)."));
+#elif defined(SMAS_XENON)
+    pg.items.push_back(MenuItem::action("Create Covers Folder", [this]() {
+      makeDir(pathJoin(exeDir, L"covers"));
+      menu.notify("A covers folder is ready beside the .xex - copy your pictures there over FTP", 4.0f);
+    }, "Makes the covers folder beside the .xex. After adding pictures, switch Game Covers (or Custom Background) "
+       "off and on again to read them."));
 #else
     pg.items.push_back(MenuItem::action("Open Covers Folder", [this]() {
       const std::wstring dir = pathJoin(exeDir, L"covers");
@@ -1048,6 +1062,7 @@ std::shared_ptr<MenuPage> App::pageOptions() {
     }, "Where your covers and background go. After adding pictures, switch Game Covers (or Custom Background) "
        "off and on again to read them."));
 #endif
+#ifndef SMAS_XENON  // (the Xbox 360: no network)
     pg.items.push_back(MenuItem::header("Updates"));
     pg.items.push_back(MenuItem::toggle(
         "Check for Updates", [this]() { return cfg.checkUpdates ? 1 : 0; },
@@ -1072,6 +1087,7 @@ std::shared_ptr<MenuPage> App::pageOptions() {
         menu.refresh();
       }, std::string("Looks up the latest release on GitHub now. This is version ") + kAppVersion + "."));
     }
+#endif
     pg.items.push_back(MenuItem::header("Gameplay"));
     pg.items.push_back(MenuItem::toggle(
         "NES Brick Bounce", [this]() { return cfg.nesBrickBounce ? 1 : 0; },
@@ -1335,10 +1351,33 @@ void App::achWelcome() {
 std::shared_ptr<MenuPage> App::pageCredits() {
   auto p = std::make_shared<MenuPage>();
   p->title = "Credits";
+#ifdef SMAS_XENON
+  p->subtitle = "Super Mario All-Stars PC Port, on the Xbox 360";
+#else
   p->subtitle = "Super Mario All-Stars PC Port";
+#endif
   p->rebuild = [this](MenuPage& pg) {
     pg.items.clear();
+#ifdef SMAS_XENON
+    // (the Xbox 360: who ported it there, and what with; the PC port's author first, below)
+    auto credit = [&](const char* what, const char* who, const char* help) {
+      MenuItem it = MenuItem::action(what, []() {}, help);
+      std::string shown = who;
+      it.valueText = [shown]() { return shown; };
+      pg.items.push_back(it);
+    };
+    pg.items.push_back(MenuItem::separator("Xbox 360 port"));
+    credit("Ported by", "estan", "The port of the PC port to the Xbox 360.");
+    pg.items.push_back(MenuItem::separator("Built with"));
+    credit("xsdk", "Xbox 360 homebrew SDK", "The toolchain and system library.");
+    credit("vulkan4xenon", "Vulkan on Xenos", "The graphics.");
+    credit("SDL-xenon", "SDL 3", "Controllers and sound.");
+    credit("stb_truetype", "Sean Barrett", "Text (public domain).");
+    credit("DejaVu Sans", "Bitstream Vera licence", "The menus' font. Bitstream Vera is a trademark of Bitstream, Inc.");
+    pg.items.push_back(MenuItem::separator("PC port by Darhkfox"));
+#else
     pg.items.push_back(MenuItem::separator("Find me over at"));
+#endif
     struct Link {
       const char* site;
       const char* shown;
@@ -1352,10 +1391,14 @@ std::shared_ptr<MenuPage> App::pageCredits() {
         {"Patreon", "patreon.com/c/TeamRedTail", "https://www.patreon.com/c/TeamRedTail"},
     };
     for (const Link& l : kLinks) {
+#ifdef SMAS_XENON
+      MenuItem it = MenuItem::action(l.site, []() {}, "Visit it on a phone or a computer.");  // (no browser)
+#else
       MenuItem it = MenuItem::action(l.site, [this, l]() {
         openUrl(l.url);
         menu.notify(std::string("Opened ") + l.site + " in your browser");
       }, "Opens it in your web browser.");
+#endif
       std::string shown = l.shown;
       it.valueText = [shown]() { return shown; };
       pg.items.push_back(it);
@@ -1660,7 +1703,12 @@ std::shared_ptr<MenuPage> App::pageAudio() {
                                           applyConfig();
                                         },
                                         "%"));
-#ifndef __ANDROID__
+#if defined(SMAS_XENON)
+    pg.items.push_back(MenuItem::action("Create MSU-1 Folder", [this]() {
+      makeDir(msuDir);
+      menu.notify("The msu folder beside the .xex is ready: one folder per pack", 4.0f);
+    }, "Where music packs go: an msu folder beside the .xex, one folder per pack."));
+#elif !defined(__ANDROID__)
     pg.items.push_back(MenuItem::action("Open MSU-1 Folder", [this]() {
       makeDir(msuDir);
       openFolder(msuDir);

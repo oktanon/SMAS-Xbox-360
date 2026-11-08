@@ -66,3 +66,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0028 (2026-11-08) — Run 027: con Pixel Shape en Square el widescreen dibuja 71 columnas por lado y las pasadas
   subieron a 17-21 ms; el ritmo ahora cuenta refrescos en fracciones (el juego no se frena), el stick derecho cambia
   entre 4:3 y widescreen, sin "Display Mode" en la Xbox. SMAS + SMW: analizado, sin implementar. Run 028 pendiente.
+- 0029 (2026-11-08) — Hito 6: Credits con el port a Xbox 360 y las herramientas; fuera Updates y Take Screenshot;
+  carpetas de covers y MSU-1 creadas desde Options. Run 028 bien en Xenia; run 029 (Level Select, Sound Select).
