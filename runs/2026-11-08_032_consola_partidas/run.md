@@ -14,5 +14,8 @@
   4. Borrar un archivo con X (en uno que no importe): pide confirmación y queda "New Game".
   5. Abrir el menú de pausa en el juego unos 20 s quieto (para la medida de la GPU).
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`; fotos de la pantalla de partidas.
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado.
+- **Resultado:** OK. El usuario: los archivos y los states funcionan (fotos de las dos pestañas). El menú de pausa
+  ya va a 559 pasadas en 10 s (antes 300), GPU 10 ms por frame. Pide: Save & Quit del juego al launcher, la pantalla
+  con el estilo de los menús, y una carga más rápida o una pantalla de carga con el juego y el mundo.
+- **Logs:** `smas_port.log`, `SuperMarioAllStars.log` (los `mkdir ... 0xC0000035` son carpetas que ya existían).
+- **Siguiente:** tarea 0033, run 033.

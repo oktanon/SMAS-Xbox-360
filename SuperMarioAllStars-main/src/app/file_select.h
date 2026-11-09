@@ -47,9 +47,9 @@ public:
   Action update(const MenuInput& in, bool erase, float dt);
   int chosen() const { return tab_ == 0 ? file_ : slot_; }  // (the file, 0-3; the slot, 1-9)
   int tab() const { return tab_; }                          // (0 the files, 1 the states)
-  // `drawCover`: the card's cover in a rectangle (false: none). `hint`: the buttons' line.
-  void draw(Menu& menu, int w, int h, const std::function<bool(RectF)>& drawCover, ColorF accent,
-            const std::string& hint);
+  // In the menus' style and colour (Menu::skin, its accent). `drawCover`: the card's cover in a rectangle (false:
+  // none). `hint`: the buttons' line.
+  void draw(Menu& menu, int w, int h, const std::function<bool(RectF)>& drawCover, const std::string& hint);
   void releaseGpu();  // (the canvas's pictures dropped: made again)
 
 private:

@@ -135,6 +135,23 @@ public:
   void star(float cx, float cy, float r, ColorF fill, ColorF edge, float edgeW) { drawStar(cx, cy, r, fill, edge, edgeW); }
   ColorF accent() const { return accent_; }
   static std::wstring widen(const std::string& s);
+#ifdef SMAS_XENON
+  // The style's look for screens of their own (the file select, the loading card), as its pages have it.
+  struct Skin {
+    ColorF text, sub, dim, keys, rowSel;  // (row text, a line under it, what's off, the keys' line, a chosen row's)
+    ColorF tab, edge;                     // (a chosen tab's text and underline; outlines: Storybook's ink)
+    bool story = false, retro = false, themed = false;
+  };
+  Skin skin() const;
+  // The wash over what's behind (wash), the panel and its title in the style's display face (Themed Dark: over the
+  // game's pattern); returns the room under the title, inside the padding.
+  RectF drawFrame(int w, int h, RectF panel, const std::wstring& title, float a, bool wash = true);
+  // A row or a tile: the style's selection (Storybook's yellow, outlined; Retro's gold frame; a tinted box) or a
+  // quiet box.
+  void drawBox(RectF r, bool sel, float a, float radius);
+  // A rule across, the style's (between the list and the keys).
+  void drawRule(float x0, float x1, float y, float a);
+#endif
 
 private:
   Canvas* cv_ = nullptr;
@@ -176,4 +193,7 @@ private:
   std::vector<RowHit> rowHits_;
   RectF closeHit_{};
   float rowH_ = 1;
+#ifdef SMAS_XENON
+  float skinH_ = 720;  // (the screen's height at the last drawFrame)
+#endif
 };

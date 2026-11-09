@@ -187,9 +187,17 @@ private:
     bool startFile = false;
 #ifdef SMAS_XENON
     int file = -1, fileT = -1;  // (the file to pick; when its row was reached)
+    bool fromReset = false;     // (the console reset by this launch: its carousel may be kept, see driveLaunch)
 #endif
     int lastHofs = -1, still = 0, panelFrames = 0, pressT = -1000;
   } warp_;
+#ifdef SMAS_XENON
+  // The console at the All-Stars title as the first launch after a reset pressed Start on it (the press that
+  // opened the game select): the next launches start from there instead of the power-on, the Nintendo logo and the
+  // title's wait (some 480 frames, 8 s on the Xbox 360). Not the game select itself: the cartridge reads the files'
+  // progress from the battery save on the way to it. pressSnap_: the title at the last press, until one is taken.
+  std::vector<uint8_t> titleSnap_, pressSnap_;
+#endif
   bool loading_ = false;
   int loadFrames_ = 0, loadIdle_ = 0;
   void updateLoading();

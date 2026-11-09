@@ -79,3 +79,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   Hito 7: pantalla de partidas entre la tarjeta y el juego, con los 4 archivos del cartucho (mundo leído de la
   batería, borrar con X) y los states de ese juego (foto y fecha). States por juego en saves\states\<juego>; cargar
   uno no deshace el progreso de la batería. Pendiente de consola (run 032).
+- 0033 (2026-11-09) — Run 032 OK (archivos y states; menú de pausa ya a 56 fps). Save & Quit del juego vuelve al
+  launcher. Pantalla de partidas con el estilo de los menús. Arranques desde la foto del título (~415 frames en vez
+  de ~770) sin dibujar, con una pantalla de carga con el juego y el mundo. Pendiente de consola (run 033).

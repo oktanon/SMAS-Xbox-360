@@ -931,6 +931,114 @@ void Menu::draw(int w, int h, float anim) {
   text(keys, rectF(tx, ky, panel.right - pad, ky + lhSmall), fit(keys, sizeSmall, false, inner), false, rgb(L.keys, a));
 }
 
+#ifdef SMAS_XENON
+// (the file select's and the loading card's look: draw()'s panel, title and selection, for screens of their own)
+Menu::Skin Menu::skin() const {
+  const Look& L = kLooks[std::clamp(style, 0, kStyleCount - 1)];
+  Skin k;
+  k.story = style == kStorybook;
+  k.retro = style == kRetro;
+  k.themed = style == kThemedDark;
+  k.text = rgb(L.text);
+  k.sub = rgb(L.sub);
+  k.dim = rgb(L.dim);
+  k.keys = rgb(L.keys);
+  k.rowSel = rgb(L.rowSel);
+  k.tab = k.story ? rgb(kInk) : k.retro ? rgb(kRetroGold) : accent_;
+  k.edge = k.story ? rgb(kInk) : k.retro ? rgb(kRetroGold) : mix(accent_, rgb(kPanel), 0.35f);
+  return k;
+}
+
+RectF Menu::drawFrame(int w, int h, RectF panel, const std::wstring& title, float a, bool wash) {
+  if (!cv_) return panel;
+  scale_ = std::max(h / 1080.0f, 0.55f);
+  skinH_ = (float)h;
+  const float s = scale_, W = (float)w, H = (float)h;
+  const Look& L = kLooks[std::clamp(style, 0, kStyleCount - 1)];
+  const bool story = style == kStorybook, retro = style == kRetro, themed = style == kThemedDark;
+  const float sizeTitle = (story ? 56 : retro ? 44 : themed ? 54 : 48) * s, lhTitle = sizeTitle * kLine;
+  const float ink = std::max(2.0f, H / 300.0f);
+  if (wash) {
+    if (story) cv_->fillRect(rectF(0, 0, W, H), colorF(0.10f, 0.22f, 0.50f, 0.55f * a));
+    else cv_->fillRect(rectF(0, 0, W, H), colorF(0.02f, 0.027f, 0.047f, (retro ? 0.8f : 0.6f) * a));
+  }
+  const float rad = retro ? 0.0f : story ? H * 0.03f : H * 0.018f, pad = H * 0.035f;
+  if (story) {
+    roundRect(rectF(panel.left + ink * 2.5f, panel.top + ink * 3.5f, panel.right + ink * 2.5f, panel.bottom + ink * 3.5f),
+              rad, rgb(kInk, 0.75f * a));
+    roundRect(panel, rad, rgb(L.panel, L.panelAlpha * a));
+    outlineRound(panel, rad, ink * 1.6f, rgb(kInk, a));
+  } else if (retro) {
+    cv_->fillRect(panel, rgb(L.panel, L.panelAlpha * a));
+  } else {
+    roundRect(rectF(panel.left + rad * 0.3f, panel.top + rad * 0.5f, panel.right + rad * 0.3f, panel.bottom + rad * 0.5f),
+              rad, rgb(0, 0.5f * a));
+    roundRect(panel, rad, rgb(L.panel, L.panelAlpha * a));
+    outlineRound(panel, rad, std::max(1.5f, H / 540.0f), withA(mix(accent_, rgb(kPanel), 0.35f), a));
+  }
+  const float tx = panel.left + pad, room = panel.right - panel.left - pad * 2;
+  float y = panel.top + pad * 0.8f, bottom = panel.bottom - pad;
+  if (retro) {
+    const float bb = std::max(6.0f, H * 0.022f);
+    drawBricks(rectF(panel.left, panel.top, panel.right, panel.top + bb * 2), rgb(kBrick), rgb(0x000000), bb, a);
+    drawBricks(rectF(panel.left, panel.bottom - bb * 2, panel.right, panel.bottom), rgb(kBrick), rgb(0x000000), bb, a);
+    y += bb * 1.6f;
+    bottom -= bb * 1.6f;
+  }
+  float headBottom = y + lhTitle;
+  if (themed) {
+    const float m = pad * 0.3f;
+    const RectF band = rectF(panel.left + m, panel.top + m, panel.right - m, panel.top + m + lhTitle + pad * 0.6f);
+    drawHeaderArt(band, a);
+    cv_->strokeRect(band, std::max(1.0f, H / 720.0f), withA(mix(accent_, rgb(kPanel), 0.35f), a));
+    headBottom = std::max(headBottom, band.bottom);
+  }
+  if (!title.empty()) {
+    if (style == kClassic) {
+      const float ts = sizeTitle * std::min(1.0f, room / std::max(1.0f, measure(title, sizeTitle, true)));
+      text(title, rectF(tx, y, panel.right - pad, y + lhTitle), ts, true, withA(accent_, a));
+    } else {
+      const float ts = sizeTitle * std::min(1.0f, room / std::max(1.0f, displayMeasure(title, sizeTitle)));
+      const RectF tr = rectF(tx, y, panel.right - pad, y + lhTitle);
+      if (story) displayText(title, tr, ts, withA(accent_, a), rgb(kInk, a), ink * 1.2f);
+      else if (themed) displayText(title, tr, ts, rgb(0xFFFFFF, a), rgb(0x0B0D12, 0.85f * a), ink);
+      else displayText(title, tr, ts, rgb(kRetroGold, a), rgb(0, 0), 0.0f);
+    }
+  }
+  y = headBottom + pad * 0.35f;
+  if (story) cv_->fillRect(rectF(tx, y, panel.right - pad, y + std::max(2.0f, H / 400.0f)), rgb(kInk, 0.25f * a));
+  else if (!retro && !themed)
+    cv_->fillRect(rectF(tx, y, panel.right - pad, y + std::max(1.0f, H / 720.0f)), withA(accent_, 0.35f * a));
+  y += pad * 0.6f;
+  return rectF(tx, y, panel.right - pad, bottom);
+}
+
+void Menu::drawBox(RectF r, bool sel, float a, float radius) {
+  if (!cv_) return;
+  const float line = std::max(2.0f, skinH_ / 300.0f);
+  if (style == kStorybook) {
+    roundRect(r, radius, sel ? rgb(0xFFD400, a) : rgb(0xF1E2C0, a));
+    outlineRound(r, radius, sel ? line : line * 0.6f, rgb(kInk, (sel ? 1.0f : 0.45f) * a));
+  } else if (style == kRetro) {
+    cv_->fillRect(r, rgb(sel ? 0x1C1C1C : 0x0C0C0C, a));
+    cv_->strokeRect(r, sel ? line * 1.2f : line * 0.6f, rgb(sel ? kRetroGold : 0x3C3C3C, a));
+  } else {
+    const float pulse = 0.22f + 0.06f * std::sin(time_ * 4.0f);
+    roundRect(r, radius, sel ? withA(accent_, pulse * a) : colorF(1, 1, 1, 0.05f * a));
+    if (sel) outlineRound(r, radius, std::max(1.5f, line * 0.8f), withA(accent_, a));
+    else outlineRound(r, radius, 1.0f, colorF(1, 1, 1, 0.08f * a));
+  }
+}
+
+void Menu::drawRule(float x0, float x1, float y, float a) {
+  if (!cv_) return;
+  const float H = skinH_;
+  if (style == kStorybook) cv_->fillRect(rectF(x0, y, x1, y + std::max(2.0f, H / 400.0f)), rgb(kInk, 0.25f * a));
+  else if (style == kRetro) cv_->fillRect(rectF(x0, y, x1, y + std::max(2.0f, H / 360.0f)), rgb(0x3C3C3C, a));
+  else cv_->fillRect(rectF(x0, y, x1, y + std::max(1.0f, H / 720.0f)), colorF(1, 1, 1, 0.19f * a));
+}
+#endif
+
 // A tap: the close button backs out; a row is chosen and used (a slider
 // moves the way of the half tapped).
 void Menu::tap(float x, float y) {

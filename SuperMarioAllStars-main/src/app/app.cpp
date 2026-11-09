@@ -278,6 +278,11 @@ void App::launchGame(GameId g) {
     // (the Xbox 360: on through the file panel with its highlighted file, into the game's title, as the launcher's
     // previews go; the PC stops at the panel for the player to pick the file, run 025)
     game->requestTitle(g, true, file);
+    SaveFileInfo info;
+    if (file >= 0 && readSaveFile(g, file, snes->sram, &info))
+      setLoadCard(g, info.used ? info.where : "New Game", std::string("File ") + (char)('A' + file));
+    else
+      setLoadCard(g, "", "");
 #else
     game->requestTitle(g, false);
 #endif
@@ -545,6 +550,7 @@ bool App::loadStateFile(const std::wstring& path, int slot) {
     snes->sramDirty = true;
   }
   game->onStateLoaded();
+  gameSeen = false;  // (a state of the All-Stars menu: played there, not taken for a Save & Quit, see frame)
   rewind.clear();
   AchievementTracker& t = game->achievements();
   if (!cfg.achievements) t.counts = false;
@@ -633,6 +639,52 @@ void App::playState(GameId g, int slot) {
   }
   applyConfig();
   if (!test.on && test.runSeconds <= 0) cfg.save(configPath);
+}
+
+// A launch's card (render, while the game is driven to out of sight): the game's card, and where it starts.
+void App::setLoadCard(GameId g, const std::string& where, const std::string& sub) {
+  loadCard = -1;
+  for (int i = 0; i < Launcher::kCards; i++)
+    if (Launcher::cardGame(i) == g) loadCard = i;
+  loadWhere = where;
+  loadSub = sub;
+  loadTime = 0;
+  gameSeen = false;
+  menuPasses = 0;
+}
+
+// The card: a panel in the menus' style (Menu::skin) with the game's cover and name, where it starts, and three
+// stars hopping in turn while it loads.
+void App::drawLoadingCard(int w, int h) {
+  Canvas* cv = video.canvas();
+  if (!cv || loadCard < 0) return;
+  const float W = (float)w, H = (float)h, a = std::min(1.0f, loadTime * 5.0f);
+  const Menu::Skin k = menu.skin();
+  const ColorF accent = colorF(menu.accent().r, menu.accent().g, menu.accent().b, 1.0f);
+  const float base = std::min(H, W * 0.75f), fSmall = std::round(base / 36), fBig = std::round(base / 20);
+  const float pw = std::min(W * 0.62f, H * 1.15f), ph = H * 0.46f;
+  const RectF panel = rectF((W - pw) * 0.5f, (H - ph) * 0.5f, (W + pw) * 0.5f, (H + ph) * 0.5f);
+  const RectF in = menu.drawFrame(w, h, panel, Menu::widen(Launcher::cardTitle(loadCard)), a, false);
+  const float pad = H * 0.035f;
+  const auto withA = [](ColorF c, float al) { return colorF(c.r, c.g, c.b, c.a * al); };
+  const RectF coverR = rectF(in.left, in.top, in.left + (in.bottom - in.top) * 0.78f, in.bottom);
+  if (!launcher.drawCover(loadCard, coverR)) menu.drawBox(coverR, false, a, k.retro ? 0.0f : H * 0.012f);
+  const float x0 = coverR.right + pad, x1 = in.right;
+  const float mid = (in.top + in.bottom) * 0.5f;
+  const std::string where = loadWhere.empty() ? std::string("Starting") : loadWhere;
+  menu.text(Menu::widen(where), rectF(x0, in.top, x1, mid), fBig, true, withA(k.story ? k.text : k.rowSel, a), kAlignLeading,
+            kParaFar);
+  if (!loadSub.empty())
+    menu.text(Menu::widen(loadSub), rectF(x0, mid + fSmall * 0.2f, x1, mid + fSmall * 1.6f), fSmall, false, withA(k.sub, a));
+  // the stars, hopping one after the other, and the word
+  const float sr = fSmall * 0.45f, sy = in.bottom - sr * 2.2f;
+  for (int i = 0; i < 3; i++) {
+    const float ph2 = loadTime * 6.0f - i * 0.9f;
+    const float hop = std::max(0.0f, std::sin(ph2)) * sr * 1.1f;
+    menu.star(x0 + sr + i * sr * 2.8f, sy - hop, sr, withA(hop > 0 ? colorF(1.0f, 0.83f, 0.0f, 1.0f) : accent, a),
+              withA(colorF(0.23f, 0.11f, 0.05f, 1.0f), a), std::max(1.0f, H / 700.0f));
+  }
+  menu.text(L"Loading", rectF(x0 + sr * 9.0f, sy - fSmall, x1, sy + fSmall), fSmall, false, withA(k.keys, a));
 }
 #else
 void App::loadState(int slot) {
@@ -2100,6 +2152,13 @@ std::shared_ptr<MenuPage> App::pageLevelSelect() {
             }
             if (game->requestLevel(defs2[gi].game, w, l, &err, ch)) {
               playing = defs2[gi].game;  // (Reset Game, Return to Launcher: this one now)
+#ifdef SMAS_XENON
+              {
+                const std::string& lv = defs2[gi].levels[w][l];
+                if (lv.find('-') != std::string::npos) setLoadCard(playing, "World " + lv, "Level Select");
+                else setLoadCard(playing, defs2[gi].worlds[w], lv);
+              }
+#endif
               rewind.clear();
               achNewRun(false);  // (a level select run never counts)
               menu.closeAll();
@@ -2171,7 +2230,12 @@ void App::frame(double dt, int gameFrames) {
       // falls behind (a Galaxy A12: 30 fps, the sound stuttering) runs two a
       // pass, and drawing is most of a frame's work. The game keeps its speed
       // and its sound; the picture changes less often. Fast forward too.)
+#ifdef SMAS_XENON
+      // (a launch's frames, out of sight, not drawn either: its last one neither, see loadEnded)
+      snes->ppu.skipRender = loading || i < runs - 1;
+#else
       snes->ppu.skipRender = !loading && i < runs - 1;
+#endif
       game->beforeFrame();
       snes->runFrame();
       game->afterFrame();
@@ -2190,8 +2254,29 @@ void App::frame(double dt, int gameFrames) {
         rewind.push(snes->saveState());
     }
     snes->ppu.skipRender = false;
+#ifdef SMAS_XENON
+    loadEnded = loading && !game->levelLoading();
+#endif
     achFrame();
   }
+#ifdef SMAS_XENON
+  if (game->levelLoading()) loadTime += (float)dt;
+  // Save & Quit (or the soft reset) in a game the launcher started: its code saves the battery, then goes back to
+  // the All-Stars game select. The launcher instead, once the menu has been back a moment (20 passes: the
+  // cartridge's own writes done with).
+  if (playing != GameId::Menu && !game->levelLoading()) {
+    const GameId cur = game->current();
+    if (cur == playing) {
+      gameSeen = true;
+      menuPasses = 0;
+    } else if (cur == GameId::Menu && gameSeen && ++menuPasses >= 20) {
+      gameSeen = false;
+      logf("left for the All-Stars menu: back to the launcher");
+      returnToLauncher();
+      return;
+    }
+  }
+#endif
   sramTimer += dt;
   if (sramTimer > 5.0 && snes->sramDirty) {
     sramTimer = 0;
@@ -2222,7 +2307,6 @@ void App::render() {
     if (files.isOpen()) {
       const std::string ok = cfg.confirmRight ? "B" : "A", back = cfg.confirmRight ? "A" : "B";
       files.draw(menu, video.width(), video.height(), [this](RectF r) { return launcher.drawCover(files.card(), r); },
-                 launcher.accent(),
                  files.tab() == 0 ? ok + " Play      X Erase      " + back + " Back" : ok + " Load      " + back + " Back");
     }
 #endif
@@ -2278,7 +2362,11 @@ void App::render() {
   vp.pillarbox = cfg.pillarbox;
   vp.frame = snes->frameCount();
   bool loading = game->levelLoading();
+#ifdef SMAS_XENON
+  if (loading || loadEnded) vp.fade = 0;
+#else
   if (loading) vp.fade = 0;
+#endif
   video.draw(vp);
   video.beginUi();
   // The menu's accent: the running game's colour (and its heading's art).
@@ -2304,11 +2392,17 @@ void App::render() {
 #ifndef _WIN32
   touch.draw(video.canvas(), cfg.touchOpacity / 100.0f);
 #endif
+#ifdef SMAS_XENON
+  const bool card = loading && loadCard >= 0;
+  if (card) drawLoadingCard(video.width(), video.height());
+#else
+  const bool card = false;
+#endif
   if (menu.open()) menu.draw(video.width(), video.height(), menuAnim);
   char fpsText[32] = "";
   if (cfg.showFps) snprintf(fpsText, sizeof fpsText, "%.1f FPS", fps);
   menu.drawOsd(video.width(), video.height(), fpsText,
-               rewinding ? "<< Rewind" : fastForward ? ">> Fast Forward" : loading ? "Loading..." : "");
+               rewinding ? "<< Rewind" : fastForward ? ">> Fast Forward" : loading && !card ? "Loading..." : "");
   if (blackFrame && uiCtx) uiCtx->fillRect(all, colorF(0, 0, 0, 1));
   video.endUi();
 }

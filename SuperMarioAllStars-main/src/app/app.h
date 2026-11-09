@@ -220,6 +220,18 @@ struct App {
   std::wstring statePathFor(GameId g, int slot) const;  // (each game's states in a folder of its own)
   bool loadStateFile(const std::wstring& path, int slot);
   bool prevAux = false;
+  // The card over a launch, while the game is driven to out of sight (drawLoadingCard): the game's card, where it
+  // starts (the file's world, the level select's level) and the line under it.
+  int loadCard = -1;
+  std::string loadWhere, loadSub;
+  float loadTime = 0;
+  bool loadEnded = false;  // (the pass the launch ended in: its last frame not drawn, so black once more)
+  void setLoadCard(GameId g, const std::string& where, const std::string& sub);
+  void drawLoadingCard(int w, int h);
+  // Save & Quit in a game the launcher started: the cartridge goes back to its game select, the launcher instead
+  // (frame). gameSeen: that game has been running since the launch; menuPasses: how long the menu has been back.
+  bool gameSeen = false;
+  int menuPasses = 0;
 #else
   void launchGame(GameId g);
 #endif

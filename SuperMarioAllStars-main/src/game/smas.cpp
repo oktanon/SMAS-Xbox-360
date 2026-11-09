@@ -829,14 +829,51 @@ void SmasGame::driveLaunch() {
   };
   switch (warp_.stage) {
     case 0:
+#ifdef SMAS_XENON
+      if (warp_.titleOnly && !titleSnap_.empty()) {
+        // (the title kept from an earlier launch, see titleSnap_: with the battery save as it is now and the
+        // achievements' run as launchGame began it; this launch goes on from there, Start pressed as it was then)
+        const Warp keep = warp_;
+        const int keepFrames = loadFrames_;
+        const std::vector<uint8_t> sram(snes_.sram, snes_.sram + sizeof(snes_.sram));
+        const std::vector<uint8_t> run = ach_.save();
+        if (snes_.loadState(titleSnap_)) {
+          std::memcpy(snes_.sram, sram.data(), sram.size());
+          onStateLoaded();
+          ach_.load(run.data(), run.size());
+          warp_ = keep;
+          warp_.sawMenu = true;
+          loading_ = true;
+          loadFrames_ = keepFrames;
+          next(1);
+          warp_.timer = 21;
+          break;
+        }
+        titleSnap_.clear();
+      }
+      snes_.reset(false);
+      warp_.fromReset = true;
+#else
       if (game_ != GameId::Menu) snes_.reset(false);
+#endif
       next(1);
       break;
     case 1:  // wait for the title or the carousel to settle
       if (carousel) {
+#ifdef SMAS_XENON
+        // (the first time after a reset: the title as Start was pressed on it, kept, see titleSnap_)
+        if (titleSnap_.empty() && !pressSnap_.empty()) titleSnap_.swap(pressSnap_);
+        pressSnap_.clear();
+#endif
         if (t > 30) next(2);
       } else if (title) {
         if (t > 20) {
+#ifdef SMAS_XENON
+          // (until the press that is taken: then the cartridge fills its table of the files' progress at $0080-$00CF
+          // from the battery, $00A0-$00A3 ending "04 00 00 70", and the title stays a moment, pressed again)
+          const bool tableRead = snes_.wram[0xA0] == 0x04 && snes_.wram[0xA3] == 0x70;
+          if (t == 21 && warp_.fromReset && titleSnap_.empty() && !tableRead) pressSnap_ = snes_.saveState();
+#endif
           warpInput_ = kPadStart;
           if (t > 24) next(1);
         }
