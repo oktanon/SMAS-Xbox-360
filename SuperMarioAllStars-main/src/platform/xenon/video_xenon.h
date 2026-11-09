@@ -57,6 +57,8 @@ public:
   struct Stats {
     uint64_t waitUs = 0, workUs = 0;
     uint64_t fenceUs = 0;  // (of waitUs: for the GPU to finish the frame two before, at the frame's first drawing)
+    uint64_t gpuUs = 0;    // (one frame in 30, from its submission to the GPU's end of it: its time on the GPU)
+    uint32_t gpuSamples = 0;
     uint32_t frames = 0, quads = 0, copies = 0;
   };
   Stats takeStats();

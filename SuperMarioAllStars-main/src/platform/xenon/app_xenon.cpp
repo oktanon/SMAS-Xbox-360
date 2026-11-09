@@ -166,6 +166,7 @@ void App::shutdown() {
   cfg.save(configPath);
   music.shutdown();
   launcher.releaseGpu();
+  files.releaseGpu();
   menu.setCanvas(nullptr);
   audio.shutdown();
   input.shutdown();
@@ -189,6 +190,8 @@ void App::run() {
   // (the log's 10 s: passes, their work without the waits, the worst, the refreshes missed)
   uint64_t workUs = 0, worstUs = 0, gpuUs = 0, statsAt = nowUs(), lastShown = 0;
   uint32_t passes = 0, missed = 0, over = 0, emulated = 0;
+  uint64_t frameGpuUs = 0, vsyncUs = 0, frameGpuWorst = 0;  // (Video::Stats' GPU samples; waits for the refresh)
+  uint32_t gpuSamples = 0;
   while (running) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
@@ -286,6 +289,10 @@ void App::run() {
     emulated += (uint32_t)(fpsFrames >= emulatedBefore ? fpsFrames - emulatedBefore : fpsFrames);  // (reset each second)
     workUs += work;
     gpuUs += vs.fenceUs;  // (waiting for the GPU: high when it, not the CPU, holds the frames back)
+    vsyncUs += vs.waitUs - std::min(vs.waitUs, vs.fenceUs);
+    frameGpuUs += vs.gpuUs;
+    gpuSamples += vs.gpuSamples;
+    if (vs.gpuSamples) frameGpuWorst = std::max(frameGpuWorst, vs.gpuUs / vs.gpuSamples);
     worstUs = std::max(worstUs, work);
     if (work > 16683) over++;
     if (lastShown && shown - lastShown > 25000) missed += (uint32_t)((shown - lastShown) / 16683) - 1;
@@ -301,6 +308,11 @@ void App::run() {
              passes ? workUs / 1000.0 / passes : 0.0, worstUs / 1000.0, (unsigned)over, (unsigned)missed,
              passes ? gpuUs / 1000.0 / passes : 0.0,
              (unsigned)rewind.snapshots(), dry, low);
+      statsf("  GPU %.2f ms por frame (%u muestras, la peor %.2f ms), espera al refresco %.2f ms de media",
+             gpuSamples ? frameGpuUs / 1000.0 / gpuSamples : 0.0, (unsigned)gpuSamples, frameGpuWorst / 1000.0,
+             passes ? vsyncUs / 1000.0 / passes : 0.0);
+      frameGpuUs = vsyncUs = frameGpuWorst = 0;
+      gpuSamples = 0;
       statsAt = shown;
       workUs = worstUs = gpuUs = 0;
       passes = missed = over = emulated = 0;

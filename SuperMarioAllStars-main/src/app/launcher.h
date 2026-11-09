@@ -74,6 +74,9 @@ public:
     return card >= 0 && card <= kCards && ((useCovers_ && cover_[card].w > 0) || def_[card].w > 0);
   }
   void setDefaultCovers(const std::wstring& dir, const std::string& dirNarrow);
+  // (the file select's: the card's cover, whole, centred in `r`; false without one)
+  bool drawCover(int card, RectF r);
+  static const char* cardTitle(int card);
 #else
   bool hasCover(int card) const { return useCovers_ && card >= 0 && card <= kCards && cover_[card].w > 0; }
 #endif

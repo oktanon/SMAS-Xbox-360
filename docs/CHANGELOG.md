@@ -75,3 +75,7 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   parpadear). Ahora 26 variantes mínimas de game.glsl con un pipeline cada una, y los colores por una tabla 32³ hecha
   en la CPU. Covers por defecto: las cajas del selector de juegos, recortadas de la ROM la primera vez y guardadas en
   saves\covers. Bien en Xenia; run 031 pendiente.
+- 0032 (2026-11-08) — Run 031: el juego a 60 y Mario bien, pero el menú de pausa a 30 fps (log con la GPU ahora).
+  Hito 7: pantalla de partidas entre la tarjeta y el juego, con los 4 archivos del cartucho (mundo leído de la
+  batería, borrar con X) y los states de ese juego (foto y fecha). States por juego en saves\states\<juego>; cargar
+  uno no deshace el progreso de la batería. Pendiente de consola (run 032).

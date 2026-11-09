@@ -729,12 +729,24 @@ bool SmasGame::requestLevel(GameId g, int world, int level, std::string* err, in
 // first, whatever is running), as far as its file panel, where the player
 // picks the save file; or (startFile, the launcher's previews) on through it
 // with the highlighted file, into the game's title.
+#ifdef SMAS_XENON
+// (the Xbox 360's file select: `file`, the save file the panel's cursor is moved to before Start, see driveLaunch)
+bool SmasGame::requestTitle(GameId g, bool startFile, int file) {
+  if (carouselIndex(g) < 0) return false;
+  cancelWarps();
+  warp_.game = g;
+  warp_.titleOnly = true;
+  warp_.startFile = startFile;
+  warp_.file = file;
+  warp_.fileT = -1;
+#else
 bool SmasGame::requestTitle(GameId g, bool startFile) {
   if (carouselIndex(g) < 0) return false;
   cancelWarps();
   warp_.game = g;
   warp_.titleOnly = true;
   warp_.startFile = startFile;
+#endif
   warp_.forceReset = true;
   warp_.pending = true;
   loading_ = true;
@@ -861,7 +873,20 @@ void SmasGame::driveLaunch() {
           if (!warp_.startFile && since > 120) {
             warp_.pending = false;
             warpOverride_ = false;
-          } else if (warp_.startFile && since >= 130 && (since - 130) % 150 == 0) {
+          }
+#ifdef SMAS_XENON
+          // (a file chosen: the panel's cursor, $00D1 (0-3, file A-D), moved down to it a press at a time, then
+          // Start as below, from the frame it got there)
+          else if (warp_.startFile && warp_.file >= 0 && since >= 130) {
+            if (warp_.fileT < 0) {
+              if ((snes_.wram[0x00D1] & 3) == warp_.file) warp_.fileT = since + 10;
+              else if ((since - 130) % 12 == 0) warpInput_ = kPadDown;
+            } else if (since >= warp_.fileT && (since - warp_.fileT) % 150 == 0) {
+              warpInput_ = kPadStart;
+            }
+          }
+#endif
+          else if (warp_.startFile && since >= 130 && (since - 130) % 150 == 0) {
             warpInput_ = kPadStart;
           }
         }

@@ -656,7 +656,13 @@ static void execLine(const std::string& line) {
     int gm = 1, sf = 0;
     ss >> gm >> sf;
     GameId ids[] = {GameId::SMB1, GameId::SMB1, GameId::SMBLL, GameId::SMB2, GameId::SMB3};
+#ifdef SMAS_XENON
+    int file = -1;  // (launch GAME 1 FILE: that save file, 0-3)
+    ss >> file;
+    g_game->requestTitle(ids[std::clamp(gm, 1, 4)], sf != 0, file);
+#else
     g_game->requestTitle(ids[std::clamp(gm, 1, 4)], sf != 0);
+#endif
   } else if (cmd == "loading") {
     printf("loading=%d game=%s f%u\n", (int)g_game->levelLoading(), g_game->describe().c_str(),
            (unsigned)g_snes->frameCount());

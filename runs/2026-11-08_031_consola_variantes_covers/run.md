@@ -11,5 +11,7 @@
      grande: ¿parpadea bien?
   3. Probar los demás filtros (sobre todo CRT y CRT aperture) y algún perfil de color: ¿alguno da lag?
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`; fotos de lo que se vea mal.
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado.
+- **Resultado:** Parcial. Juego a 60 estables (599 pasadas / 580 frames cada 10 s); el usuario da por bien lo del
+  hito. El menú de pausa abierto va a 30 fps justos (300 pasadas, 1 ms de trabajo; 600 en la
+  run 027): falta medir la GPU (tarea 0032).
+- **Siguiente:** run 032 (hito 7, con la GPU en el log).

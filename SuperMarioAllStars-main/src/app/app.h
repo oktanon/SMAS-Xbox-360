@@ -14,6 +14,9 @@
 #include "app/canvas.h"
 #include "app/config.h"
 #include "app/launcher.h"
+#ifdef SMAS_XENON
+#include "app/file_select.h"
+#endif
 #include "app/menu.h"
 #include "app/music.h"
 #include "core/rewind.h"
@@ -207,7 +210,19 @@ struct App {
   bool findRom(std::wstring* out);
   void romReady();                    // a ROM was loaded: the console, music and previews
   void pollRom(double dt);            // looks for the ROM again while it is missing
+#ifdef SMAS_XENON
+  // (the file select between a card and its game: app/file_select.h)
+  void launchGame(GameId g, int file = -1);
+  FileSelect files;
+  void openFiles(int card);
+  bool updateFiles(const MenuInput& mi, float dt);  // (true: a game was started)
+  void playState(GameId g, int slot);
+  std::wstring statePathFor(GameId g, int slot) const;  // (each game's states in a folder of its own)
+  bool loadStateFile(const std::wstring& path, int slot);
+  bool prevAux = false;
+#else
   void launchGame(GameId g);
+#endif
   void returnToLauncher();
   void applyMsu(std::vector<uint8_t>& rom);  // (loadRom: the chosen pack's patch and chip)
   void reloadForMsu();

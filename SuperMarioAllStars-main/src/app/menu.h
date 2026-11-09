@@ -12,6 +12,9 @@ struct MenuInput {
   bool up = false, down = false, left = false, right = false;
   bool confirm = false, back = false;
   bool tabLeft = false, tabRight = false;
+#ifdef SMAS_XENON
+  bool aux = false;  // (the pad's X, pressed: the file select's Erase)
+#endif
   bool anyPressed() const { return up || down || left || right || confirm || back || tabLeft || tabRight; }
 };
 

@@ -12,6 +12,10 @@
 #include "app/achexport.h"
 #include "app/msupack.h"
 #include "app/sys.h"
+#ifdef SMAS_XENON
+#include "app/imageload.h"
+#include "core/png.h"
+#endif
 #include "app/vkeys.h"
 #include "core/fileio.h"
 #include "core/png.h"
@@ -240,7 +244,11 @@ void App::pollRom(double dt) {
 // A card chosen (or Reset Game): the console is reset and driven through the
 // All-Stars menu to the game's save files, out of sight (see
 // SmasGame::requestTitle), as a new run for achievements.
+#ifdef SMAS_XENON
+void App::launchGame(GameId g, int file) {
+#else
 void App::launchGame(GameId g) {
+#endif
   pendingSave = -1;  // (a save waiting for a co-op turn's end: not into another game)
   if (!snes) {
 #ifdef _WIN32
@@ -269,7 +277,7 @@ void App::launchGame(GameId g) {
 #ifdef SMAS_XENON
     // (the Xbox 360: on through the file panel with its highlighted file, into the game's title, as the launcher's
     // previews go; the PC stops at the panel for the player to pick the file, run 025)
-    game->requestTitle(g, true);
+    game->requestTitle(g, true, file);
 #else
     game->requestTitle(g, false);
 #endif
@@ -320,11 +328,31 @@ void App::frameLauncher(double dt, int gameFrames) {
       menuAnim = 0;
       menu.push(p);
     };
+#ifdef SMAS_XENON
+    Launcher::Action act = Launcher::kNone;
+    if (files.isOpen()) {
+      if (updateFiles(mi, (float)dt)) return;
+    } else {
+      act = launcher.update(mi, (float)dt);
+    }
+#else
     Launcher::Action act = launcher.update(mi, (float)dt);
+#endif
     if (act == Launcher::kNone) act = launcherTap;  // (a tap, or a click)
     launcherTap = Launcher::kNone;
     switch (act) {
+#ifdef SMAS_XENON
+      case Launcher::kPlay:
+        // (a game's card: its files first; the All-Stars card, as at power-on)
+        if (snes && launcher.card() < Launcher::kCards) {
+          openFiles(launcher.card());
+          break;
+        }
+        launchGame(Launcher::cardGame(launcher.card()));
+        return;
+#else
       case Launcher::kPlay: launchGame(Launcher::cardGame(launcher.card())); return;
+#endif
       case Launcher::kOptions: push(pageOptions()); break;
       case Launcher::kAchievements: push(pageAchievements()); break;
       case Launcher::kMusic:
@@ -394,7 +422,23 @@ void App::saveSram() {
   }
 }
 
+#ifdef SMAS_XENON
+// The Xbox 360: each game's states in a folder of its own (saves/states/smb1 ...; allstars: the cartridge's menus),
+// a picture beside each (stateN.png, for the file select).
+std::wstring App::statePathFor(GameId g, int slot) const {
+  const int card = g == GameId::SMB1    ? 0
+                   : g == GameId::SMBLL ? 1
+                   : g == GameId::SMB2  ? 2
+                   : g == GameId::SMB3  ? 3
+                                        : Launcher::kAllStars;
+  const char* n = Launcher::artName(card);
+  return pathJoin(pathJoin(pathJoin(saveDir, L"states"), std::wstring(n, n + std::strlen(n))),
+                  L"state" + std::to_wstring(slot) + L".sst");
+}
+std::wstring App::statePath(int slot) const { return statePathFor(game ? game->current() : playing, slot); }
+#else
 std::wstring App::statePath(int slot) const { return pathJoin(saveDir, L"state" + std::to_wstring(slot) + L".sst"); }
+#endif
 
 // A rewind snapshot back in the machine. Battery saves are kept as they are
 // now: rewinding never takes back progress the game has saved.
@@ -449,10 +493,148 @@ void App::saveState(int slot) {
   }
   pendingSave = -1;
   auto st = snes->saveState();
+#ifdef SMAS_XENON
+  const std::wstring path = statePath(slot);
+  makeDir(pathJoin(saveDir, L"states"));
+  makeDir(pathDir(path));
+  if (writeAll(path, st.data(), st.size())) {
+    // its picture: the game's 256 pixels, at half size
+    const int fh = snes->ppu.frameHeight(), tw = 128, th = fh / 2;
+    std::vector<uint32_t> px((size_t)tw * th);
+    for (int y = 0; y < th; y++)
+      for (int x = 0; x < tw; x++) {
+        const uint32_t* s = snes->ppu.frame + (size_t)(y * 2) * kLineW + kMaxExt + x * 2;
+        uint32_t r = 0, gg = 0, b = 0;
+        for (const uint32_t c : {s[0], s[1], s[kLineW], s[kLineW + 1]}) {
+          r += (c >> 16) & 255;
+          gg += (c >> 8) & 255;
+          b += c & 255;
+        }
+        px[(size_t)y * tw + x] = 0xff000000u | (r / 4) << 16 | (gg / 4) << 8 | (b / 4);
+      }
+    writePng(narrow(path.substr(0, path.size() - 4) + L".png"), px.data(), tw, th, tw);
+    menu.notify("State " + std::to_string(slot) + " saved");
+  } else {
+    menu.notify("Could not save state " + std::to_string(slot) + " (is the disk full?)");
+  }
+#else
   if (writeAll(statePath(slot), st.data(), st.size())) menu.notify("State " + std::to_string(slot) + " saved");
   else menu.notify("Could not save state " + std::to_string(slot) + " (is the disk full?)");
+#endif
 }
 
+#ifdef SMAS_XENON
+void App::loadState(int slot) { loadStateFile(statePath(slot), slot); }
+
+// (the Xbox 360: the battery's four files kept as they are now, as a rewind keeps the battery save: a state never
+// takes back progress saved since, in this game or another; the rest of it, which file is being played, the state's)
+bool App::loadStateFile(const std::wstring& path, int slot) {
+  pendingSave = -1;
+  std::vector<uint8_t> d;
+  if (!readAll(path, d)) {
+    menu.notify("State " + std::to_string(slot) + " is empty");
+    return false;
+  }
+  std::vector<uint8_t> keep(snes->sram + 0x10, snes->sram + 0x490);
+  if (!snes->loadState(d)) {
+    menu.notify("State " + std::to_string(slot) + " is not compatible");
+    return false;
+  }
+  if (std::memcmp(snes->sram + 0x10, keep.data(), keep.size()) != 0) {
+    std::memcpy(snes->sram + 0x10, keep.data(), keep.size());
+    snes->sramDirty = true;
+  }
+  game->onStateLoaded();
+  rewind.clear();
+  AchievementTracker& t = game->achievements();
+  if (!cfg.achievements) t.counts = false;
+  menu.notify("State " + std::to_string(slot) + " loaded");
+  if (cfg.achievements && !t.counts)
+    menu.notify("This state was saved while achievements weren't counting: they count again after "
+                "Reset Game", 5.0f);
+  audio.flush();
+  return true;
+}
+
+// The file select (app/file_select.h): a game's four files and its states.
+void App::openFiles(int card) {
+  const GameId g = Launcher::cardGame(card);
+  std::vector<FileSelect::State> states(FileSelect::kSlots + 1);
+  for (int s = 1; s <= FileSelect::kSlots; s++) {
+    const std::wstring p = statePathFor(g, s);
+    int day = 0, month = 0, hour = 0, minute = 0;
+    if (!fileModified(p, &day, &month, &hour, &minute)) continue;
+    FileSelect::State& st = states[s];
+    st.used = true;
+    char when[32];
+    std::snprintf(when, sizeof when, "%02d/%02d %02d:%02d", day, month, hour, minute);
+    st.when = when;
+    if (!loadImageFile(p.substr(0, p.size() - 4) + L".png", 256, st.px, &st.w, &st.h)) st.w = st.h = 0;
+  }
+  launcher.stopSound();
+  files.open(g, card, Launcher::cardTitle(card), snes->sram, std::move(states));
+}
+
+bool App::updateFiles(const MenuInput& mi, float dt) {
+  const GameId g = files.game();
+  switch (files.update(mi, mi.aux, dt)) {
+    case FileSelect::kBack: files.close(); break;
+    case FileSelect::kPlayFile: {
+      const int f = files.chosen();
+      files.close();
+      launchGame(g, f);
+      return true;
+    }
+    case FileSelect::kLoadState: {
+      const int s = files.chosen();
+      files.close();
+      playState(g, s);
+      return true;
+    }
+    case FileSelect::kEraseFile: {
+      const int f = files.chosen();
+      menuAnim = 0;
+      menu.confirm(std::string("Erase File ") + (char)('A' + f) + "?",
+                   [this, g, f]() {
+                     if (!snes) return;
+                     eraseSaveFile(g, f, snes->sram, romData);
+                     snes->sramDirty = true;
+                     saveSram();
+                     files.refreshFiles(snes->sram);
+                   },
+                   std::string("Its progress in ") + Launcher::cardTitle(files.card()) + " will be lost.");
+      break;
+    }
+    default: break;
+  }
+  return false;
+}
+
+// A state from the file select: the game started as launchGame starts it, then the state in.
+void App::playState(GameId g, int slot) {
+  if (!snes) return;
+  pendingSave = -1;
+  reloadForMsu();
+  if (!snes) return;
+  playing = g;
+  for (int i = 0; i < Launcher::kCards; i++)
+    if (Launcher::cardGame(i) == g) cfg.lastGame = i;
+  launcher.selectGame(g);
+  launcher.stopSound();
+  inLauncher = false;
+  menu.closeAll();
+  if (rewinding) endRewind();
+  game->cancelWarps();
+  audio.flush();
+  achNewRun(cfg.achievements);
+  if (!loadStateFile(statePathFor(g, slot), slot)) {
+    returnToLauncher();
+    return;
+  }
+  applyConfig();
+  if (!test.on && test.runSeconds <= 0) cfg.save(configPath);
+}
+#else
 void App::loadState(int slot) {
   pendingSave = -1;  // (the timeline it was asked in is gone)
   std::vector<uint8_t> d;
@@ -475,6 +657,7 @@ void App::loadState(int slot) {
     menu.notify("State " + std::to_string(slot) + " is not compatible");
   }
 }
+#endif
 
 void App::screenshot() {
   makeDir(shotDir);
@@ -773,6 +956,13 @@ MenuInput App::menuInput() {
   m.tabLeft = nav[6] && !prevMenuNav[6];
   m.tabRight = nav[7] && !prevMenuNav[7];
   for (int i = 0; i < 8; i++) prevMenuNav[i] = nav[i];
+#ifdef SMAS_XENON
+  bool aux = false;
+  for (int i = 0; i < input.padCount(); i++)
+    if (const PadState* p = input.pad(i)) aux |= p->buttons[2];
+  m.aux = aux && !prevAux;
+  prevAux = aux;
+#endif
   return m;
 }
 
@@ -2028,6 +2218,14 @@ void App::render() {
     }
     launcher.setPixelAspect(cfg.pixelAspectCrt ? 8.0 / 7.0 : 1.0);
     launcher.draw(menu, video.width(), video.height());
+#ifdef SMAS_XENON
+    if (files.isOpen()) {
+      const std::string ok = cfg.confirmRight ? "B" : "A", back = cfg.confirmRight ? "A" : "B";
+      files.draw(menu, video.width(), video.height(), [this](RectF r) { return launcher.drawCover(files.card(), r); },
+                 launcher.accent(),
+                 files.tab() == 0 ? ok + " Play      X Erase      " + back + " Back" : ok + " Load      " + back + " Back");
+    }
+#endif
     if (menu.open()) menu.draw(video.width(), video.height(), menuAnim);
     char fpsText[32] = "";
     if (cfg.showFps) snprintf(fpsText, sizeof fpsText, "%.1f FPS", fps);

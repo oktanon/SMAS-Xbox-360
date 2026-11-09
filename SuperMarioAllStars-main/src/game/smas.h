@@ -86,7 +86,12 @@ public:
   // character: SMB2's ($008F: 0 Mario, 1 Peach, 2 Toad, 3 Luigi; -1 the select's highlighted one)
   bool requestLevel(GameId g, int world, int level, std::string* err, int character = -1);
   // Start a game from the launcher (see smas.cpp); levelLoading() meanwhile.
+#ifdef SMAS_XENON
+  // `file`: the save file to start (0-3, files A-D; -1 the panel's highlighted one), with startFile.
+  bool requestTitle(GameId g, bool startFile, int file = -1);
+#else
   bool requestTitle(GameId g, bool startFile);
+#endif
 
   // From a level select until the chosen level is being played (or the warp
   // has ended without it): the app runs the game out of sight at full speed
@@ -180,6 +185,9 @@ private:
     bool sawMenu = false;
     bool titleOnly = false;  // (see requestTitle)
     bool startFile = false;
+#ifdef SMAS_XENON
+    int file = -1, fileT = -1;  // (the file to pick; when its row was reached)
+#endif
     int lastHofs = -1, still = 0, panelFrames = 0, pressT = -1000;
   } warp_;
   bool loading_ = false;

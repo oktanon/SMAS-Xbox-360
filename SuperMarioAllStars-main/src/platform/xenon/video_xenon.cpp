@@ -160,6 +160,7 @@ struct VideoDevice {
   Slot slots[kSlots];
   int slot = 0;
   uint64_t frameNo = 0;
+  uint64_t submitAt = 0;  // (the frame's submission, for Stats::gpuUs)
   bool inFrame = false;
   std::vector<Tex*> copies;  // this frame's
   struct Batch {
@@ -775,6 +776,7 @@ void VideoDevice::present() {
     submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit.commandBufferCount = 1;
     submit.pCommandBuffers = &cb;
+    submitAt = nowUs();
     if (ok("vkQueueSubmit", vkQueueSubmit(queue, 1, &submit, s.fence))) {
       s.pending = true;
       VkPresentInfoKHR pr{};
@@ -789,6 +791,12 @@ void VideoDevice::present() {
   stats.waitUs += t1 - t0;
   stats.workUs += t2 - t1;
   stats.frames++;
+  // (one frame in 30: waited for here, from its submission to the GPU's end of it, for the log: the GPU's time)
+  if (s.pending && frameNo % 30 == 0) {
+    vkWaitForFences(device, 1, &s.fence, VK_TRUE, kTimeoutNs);
+    stats.gpuUs += nowUs() - submitAt;
+    stats.gpuSamples++;
+  }
   if (dropped) {
     std::printf("video: %u quads sin sitio en el frame\n", (unsigned)dropped);
     dropped = 0;

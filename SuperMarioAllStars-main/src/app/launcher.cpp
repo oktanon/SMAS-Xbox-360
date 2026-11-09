@@ -915,3 +915,20 @@ Launcher::Action Launcher::tap(float x, float y) {
     }
   return kNone;
 }
+
+#ifdef SMAS_XENON
+bool Launcher::drawCover(int card, RectF r) {
+  if (!canvas_ || card < 0 || card > kCards) return false;
+  Art& a = coverArt(card);
+  const int img = artImage(canvas_, a);
+  if (!img || a.w <= 0 || a.h <= 0) return false;
+  const float aw = r.right - r.left, ah = r.bottom - r.top, s = std::min(aw / a.w, ah / a.h);
+  const float dw = a.w * s, dh = a.h * s;
+  canvas_->drawImage(img, rectF(r.left + (aw - dw) * 0.5f, r.top + (ah - dh) * 0.5f, r.left + (aw + dw) * 0.5f,
+                                r.top + (ah + dh) * 0.5f),
+                     1.0f, true);
+  return true;
+}
+
+const char* Launcher::cardTitle(int card) { return kCardInfo[std::clamp(card, 0, (int)kCards)].title; }
+#endif
