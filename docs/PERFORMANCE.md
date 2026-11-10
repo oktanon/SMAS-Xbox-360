@@ -127,7 +127,8 @@ estado que en el original (nada de dibujo diferido: ver abajo por qué).
   (`composePixels`) en tantos tramos como hilos, y `composeTail` en el de la emulación.
 - **Por qué los ganchos se quedan en el hilo de la emulación:** `fetchWideTile` lee el estado de cada motor (cámara,
   columnas, copias) y la WRAM a través de funciones que no se han auditado para hilos; ninguno escribe en el `Ppu`
-  (comprobado), pero así no hace falta que sean seguros entre hilos.
+  (comprobado), pero así no hace falta que sean seguros entre hilos. **Cambiado en la tarea 0038 (§7):** auditados,
+  solo leen, y ya van en cualquier hilo.
 - **Reparto de tareas:** una palabra atómica con la ronda (24 bits) y el índice de la siguiente tarea (8 bits); un hilo
   toma una tarea con un compare-and-swap que solo vale en la ronda que vio. Dos conjuntos de tareas alternan por ronda.
   Los auxiliares esperan dando vueltas (con `yield` tras ~65 000 vueltas sin trabajo).
@@ -217,3 +218,14 @@ en 4:3, 0,4 ms en 16:9). La GPU, ~3 ms por frame (run 033): no frena.
   vez, con el mismo resultado: 0,38 ms en x86.
 - Lo siguiente, si 16:9 no llega: los 2,5 ms de más de 16:9 (§4) y el co-op.
 
+
+## 7. Los ganchos del widescreen en cualquier hilo (tarea 0038, run 037)
+
+- En 16:9 los márgenes de cada fondo y los fondos que un gancho pide enteros iban solo en el hilo de la emulación
+  (§3.3): 14-15 ms de emulación frente a 10,5-12 en 4:3 (run 035).
+- Auditados los `fetchWideTile` de los cuatro juegos y lo que llaman: solo leen, y durante el dibujo de una línea la
+  emulación está parada. Ahora los márgenes y esos fondos son tareas del reparto, las primeras de la lista; los
+  cortes son los inicios de tramo del original, así que cada píxel sale de la misma llamada. `Ppu::hookTasks`
+  (smastool `hooktasks 0|1`) vuelve a lo de antes.
+- El snapshot del rewind sin dos copias de más (la PPU directa al state, la APU con su tamaño reservado).
+- Iguales frame a frame (`HILOS=2 compare_ppu.sh`, 9020 frames). La consola dirá cuánto se gana (run 037).

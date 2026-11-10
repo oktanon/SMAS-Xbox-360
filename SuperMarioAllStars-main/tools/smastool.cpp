@@ -267,6 +267,16 @@ static void execLine(const std::string& line) {
 #else
     printf("render threads: needs SMAS_PPU_FAST\n");
 #endif
+  } else if (cmd == "hooktasks") {
+    // hooktasks 0|1: the games' tile hooks on any render thread (1, the default) or only on this one (task 0038)
+    int n = 1;
+    ss >> n;
+#ifdef SMAS_PPU_FAST
+    s.ppu.hookTasks = n != 0;
+    printf("hook tasks: %d\n", s.ppu.hookTasks ? 1 : 0);
+#else
+    printf("hook tasks: needs SMAS_PPU_FAST\n");
+#endif
   } else if (cmd == "render") {
     // render on|off: the PPU draws its lines or not (ppu.skipRender, as the app's skipped frames): bench with it off
     // gives the CPU and APU's share (xenon port, docs/PERFORMANCE.md)

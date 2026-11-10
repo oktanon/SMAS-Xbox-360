@@ -743,6 +743,10 @@ struct ApuFlatHdr {
 
 std::vector<uint8_t> Apu::saveState() const {
   std::vector<uint8_t> out;
+#ifdef SMAS_XENON
+  // (task 0038: its size up front; grown a piece at a time, the 64 KB of ARAM were copied over again)
+  out.reserve(sizeof(ApuFlatHdr) + sizeof(r) + sizeof(timers_) + sizeof(ram) + Dsp::stateSize());
+#endif
   auto put = [&](const void* p, size_t n) {
     const uint8_t* b = (const uint8_t*)p;
     out.insert(out.end(), b, b + n);

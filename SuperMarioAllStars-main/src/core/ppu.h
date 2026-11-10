@@ -57,7 +57,10 @@ public:
 #ifdef SMAS_PPU_FAST
   // xenon port (docs/PERFORMANCE.md §3.3): each visible line's layers and its composition drawn by `n` more threads
   // as well as the emulation's (0, the default: all on the emulation's thread). The emulation still waits for each
-  // line, so the picture is the same; the games' tile hooks are only called on the emulation's thread.
+  // line, so the picture is the same. The games' tile hooks (fetchWideTile) only read the games' and the machine's
+  // state, which nothing changes while a line is drawn (task 0038): with hookTasks on (the default), the margins
+  // and the layers a hook asks for whole are tasks as well, drawn on any thread; off, on the emulation's thread.
+  bool hookTasks = true;
   ~Ppu();
   Ppu(const Ppu&) = delete;
   Ppu& operator=(const Ppu&) = delete;

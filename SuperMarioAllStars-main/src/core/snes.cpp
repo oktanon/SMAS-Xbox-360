@@ -785,11 +785,20 @@ std::vector<uint8_t> Snes::saveState() const {
   w.v(joyStrobe_);
   w.v(openBus_);
   w.raw(dma_, sizeof(dma_));
+#ifdef SMAS_XENON
+  // (task 0038: the PPU's state straight into the state, not through a vector of its own copied in)
+  uint32_t n = (uint32_t)ppu.stateSize();
+  w.v(n);
+  const size_t at = out.size();
+  out.resize(at + n);
+  ppu.saveState(out.data() + at);
+#else
   std::vector<uint8_t> p(ppu.stateSize());
   ppu.saveState(p.data());
   uint32_t n = (uint32_t)p.size();
   w.v(n);
   w.raw(p.data(), p.size());
+#endif
   std::vector<uint8_t> a = apu.saveState();
   n = (uint32_t)a.size();
   w.v(n);

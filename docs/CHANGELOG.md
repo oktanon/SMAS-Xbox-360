@@ -89,3 +89,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0036 (2026-11-10) — Run 035: snapshot del rewind a 1,3 ms; SMB1 y Lost Levels casi a 60 en 16:9. Fallo: un archivo
   de SMB1 elegido entra en otro (no se reproduce en x86). El log dice qué archivo recibió el cartucho. Run 036.
 - 0037 (2026-11-10) — El fallo de los archivos de SMB1 queda pospuesto y anotado en el hito 10; run 036 sin correr.
+- 0038 (2026-11-10) — Hito 8: los márgenes del widescreen y los fondos que piden los ganchos, en los hilos de dibujo
+  (los ganchos solo leen; 9020 frames iguales); el snapshot del rewind sin dos copias. Run 037.

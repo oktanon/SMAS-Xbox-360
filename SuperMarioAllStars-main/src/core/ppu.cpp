@@ -1588,7 +1588,7 @@ void Ppu::composeTail(uint32_t* fb, int eL, int eR) {
 // the last round never takes a task of the next one. Two sets of tasks alternate by round.
 
 struct Ppu::RenderPool {
-  enum Kind : uint8_t { kBg, kMode7, kObj, kCompose };
+  enum Kind : uint8_t { kBg, kBgMargin, kMode7, kObj, kCompose };
   struct Task {
     Kind kind;
     uint8_t layer;
@@ -1618,6 +1618,7 @@ struct Ppu::RenderPool {
   void run(const Round& r, const Task& t) {
     switch (t.kind) {
       case kBg: ppu->renderBgStretch(t.layer, r.row, t.a, t.b, false); break;
+      case kBgMargin: ppu->renderBgStretch(t.layer, r.row, t.a, t.b, true); break;
       case kMode7: ppu->renderMode7(t.layer, r.row, t.a, t.b); break;
       case kObj: ppu->renderObj(r.row, t.a, t.b); break;
       case kCompose: ppu->composePixels(r.fb, t.a, t.b); break;
@@ -1695,14 +1696,19 @@ void Ppu::setRenderThreads(int n) {
 
 void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int eR, uint8_t used) {
   RenderPool& pool = *pool_;
-  // Layers: the 4:3 parts, Mode 7 and the sprites to the render threads; what calls the games' tile hooks here.
+  // Layers: the 4:3 parts, Mode 7 and the sprites to the render threads. With hookTasks (task 0038) the margins and
+  // the layers a hook asks for whole too, cut where the original fetches anyway (a stretch's start: the margins and
+  // the 4:3 part are stretches of their own); the hooks only read state nothing changes during the line, so who
+  // calls them, and in what order, doesn't change a pixel. Without it, those stay on this thread.
   bool drawn[4] = {};
   int mine[4], nMine = 0;  // (whole layers this thread draws the original way, or that a hook asks for whole)
   bool margins[4] = {};
   {
     RenderPool::Round& r = pool.next();
-    int count = 0;
+    RenderPool::Task hooked[12], plain[4];  // (the hooks' stretches first: the slowest per pixel)
+    int nHooked = 0, nPlain = 0, count = 0;
     r.row = row;
+    const int a = std::max(x0, 0), b = std::min(x1, 256);
     for (int l = 0; l < 4; l++) {
       Px* o = layer_[l] + kMaxExt;
       bool present = mode_ == 7 ? (l == 0 || (l == 1 && (setini_ & 0x40))) : kBpp[mode_][l] != 0;
@@ -1712,20 +1718,30 @@ void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int 
       }
       drawn[l] = true;
       if (mode_ == 7) {
-        r.tasks[count++] = {RenderPool::kMode7, (uint8_t)l, (int16_t)x0, (int16_t)x1};
-      } else if (bgDrawnGeneric(l) || (wideFetchAll[l] && hooks)) {
+        plain[nPlain++] = {RenderPool::kMode7, (uint8_t)l, (int16_t)x0, (int16_t)x1};
+      } else if (bgDrawnGeneric(l) || (wideFetchAll[l] && hooks && !hookTasks)) {
         mine[nMine++] = l;
       } else {
-        const int a = std::max(x0, 0), b = std::min(x1, 256);
-        if (a < b) r.tasks[count++] = {RenderPool::kBg, (uint8_t)l, (int16_t)a, (int16_t)b};
-        margins[l] = true;
+        if (a < b) {
+          const RenderPool::Task t = {RenderPool::kBg, (uint8_t)l, (int16_t)a, (int16_t)b};
+          if (wideFetchAll[l] && hooks) hooked[nHooked++] = t;
+          else plain[nPlain++] = t;
+        }
+        if (!hookTasks) {
+          margins[l] = true;
+        } else {
+          if (x0 < std::min(x1, 0)) hooked[nHooked++] = {RenderPool::kBgMargin, (uint8_t)l, (int16_t)x0, (int16_t)std::min(x1, 0)};
+          if (std::max(x0, 256) < x1) hooked[nHooked++] = {RenderPool::kBgMargin, (uint8_t)l, (int16_t)std::max(x0, 256), (int16_t)x1};
+        }
       }
     }
+    for (int i = 0; i < nHooked; i++) r.tasks[count++] = hooked[i];
     if (used & 0x10) r.tasks[count++] = {RenderPool::kObj, 4, (int16_t)x0, (int16_t)x1};
+    for (int i = 0; i < nPlain; i++) r.tasks[count++] = plain[i];
     r.count.store(count, std::memory_order_relaxed);
     pool.start();
   }
-  // this thread: the margins and the whole layers, BG1 to BG4 as the original (the hooks' calls in its order)
+  // this thread: what stays on it, BG1 to BG4 as the original (the hooks' calls in its order)
   for (int l = 0, m = 0; l < 4; l++) {
     if (m < nMine && mine[m] == l) {
       renderBg(l, row, x0, x1);
