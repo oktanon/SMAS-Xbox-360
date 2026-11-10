@@ -278,6 +278,7 @@ void App::launchGame(GameId g) {
     // (the Xbox 360: on through the file panel with its highlighted file, into the game's title, as the launcher's
     // previews go; the PC stops at the panel for the player to pick the file, run 025)
     game->requestTitle(g, true, file);
+    launchFile = file;
     SaveFileInfo info;
     if (file >= 0 && readSaveFile(g, file, snes->sram, &info))
       setLoadCard(g, info.used ? info.where : "New Game", std::string("File ") + (char)('A' + file));
@@ -2279,6 +2280,14 @@ void App::frame(double dt, int gameFrames) {
     snes->ppu.skipRender = false;
 #ifdef SMAS_XENON
     loadEnded = loading && !game->levelLoading();
+    if (loadEnded && launchFile >= 0) {
+      // (run 035: a file chosen, another one played, not seen in x86: what the cartridge was given)
+      const int got = game->startedFile();
+      logf("launch: %s, file %c chosen, the panel's cursor on %c at Start, now in %s; co-op %s",
+           SmasGame::gameName(playing), 'A' + launchFile, got >= 0 ? 'A' + got : '-', SmasGame::gameName(game->current()),
+           cfg.coop ? "on" : "off");
+      launchFile = -1;
+    }
 #endif
     achFrame();
   }

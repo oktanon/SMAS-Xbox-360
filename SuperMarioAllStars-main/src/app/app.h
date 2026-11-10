@@ -225,7 +225,8 @@ struct App {
   int loadCard = -1;
   std::string loadWhere, loadSub;
   float loadTime = 0;
-  bool loadEnded = false;  // (the pass the launch ended in: its last frame not drawn, so black once more)
+  bool loadEnded = false;
+  int launchFile = -1;  // (the file a launch was asked for, until it ends: for the log)  // (the pass the launch ended in: its last frame not drawn, so black once more)
   void setLoadCard(GameId g, const std::string& where, const std::string& sub);
   void drawLoadingCard(int w, int h);
   // Save & Quit in a game the launcher started: the cartridge goes back to its game select, the launcher instead

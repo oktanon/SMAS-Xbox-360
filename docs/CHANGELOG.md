@@ -86,3 +86,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   log de la consola dice el juego, el aspecto y cuánto tarda la emulación, el rewind y la interfaz.
 - 0035 (2026-11-10) — Run 034: 16:9 a 14 ms de emulación más 3 ms del snapshot del rewind, que se pasa de 16,7.
   El CRC de los states 8 bytes a la vez (mismo resultado): `saveState` de 1,6 a 0,38 ms en x86. Run 035.
+- 0036 (2026-11-10) — Run 035: snapshot del rewind a 1,3 ms; SMB1 y Lost Levels casi a 60 en 16:9. Fallo: un archivo
+  de SMB1 elegido entra en otro (no se reproduce en x86). El log dice qué archivo recibió el cartucho. Run 036.

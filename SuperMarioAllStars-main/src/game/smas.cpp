@@ -739,6 +739,7 @@ bool SmasGame::requestTitle(GameId g, bool startFile, int file) {
   warp_.startFile = startFile;
   warp_.file = file;
   warp_.fileT = -1;
+  startedFile_ = -1;
 #else
 bool SmasGame::requestTitle(GameId g, bool startFile) {
   if (carouselIndex(g) < 0) return false;
@@ -920,6 +921,7 @@ void SmasGame::driveLaunch() {
               else if ((since - 130) % 12 == 0) warpInput_ = kPadDown;
             } else if (since >= warp_.fileT && (since - warp_.fileT) % 150 == 0) {
               warpInput_ = kPadStart;
+              startedFile_ = snes_.wram[0x00D1] & 3;
             }
           }
 #endif

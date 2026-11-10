@@ -89,6 +89,8 @@ public:
 #ifdef SMAS_XENON
   // `file`: the save file to start (0-3, files A-D; -1 the panel's highlighted one), with startFile.
   bool requestTitle(GameId g, bool startFile, int file = -1);
+  // (the panel's file when Start was last pressed on it for `file`, 0-3; -1 none yet: for the log)
+  int startedFile() const { return startedFile_; }
 #else
   bool requestTitle(GameId g, bool startFile);
 #endif
@@ -197,6 +199,7 @@ private:
   // title's wait (some 480 frames, 8 s on the Xbox 360). Not the game select itself: the cartridge reads the files'
   // progress from the battery save on the way to it. pressSnap_: the title at the last press, until one is taken.
   std::vector<uint8_t> titleSnap_, pressSnap_;
+  int startedFile_ = -1;
 #endif
   bool loading_ = false;
   int loadFrames_ = 0, loadIdle_ = 0;
