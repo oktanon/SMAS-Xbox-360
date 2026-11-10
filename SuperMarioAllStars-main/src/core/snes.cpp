@@ -666,6 +666,35 @@ constexpr uint32_t kStateMagic = 0x53534d53;  // 'SMSS'
 // every field that indexes memory is clamped either way.
 constexpr uint32_t kStateVersion = 3;
 
+#ifdef SMAS_XENON
+// (the same CRC-32, eight bytes a step with eight tables ("slicing-by-8"): the byte-at-a-time loop was most of a state's
+// time, 1.3 of 1.6 ms in x86 and the rewind's 3 ms snapshot on the Xbox 360, run 034. The bytes are put together by
+// hand, so it gives the same on either byte order.)
+uint32_t stateCrc(const uint8_t* d, size_t n) {
+  struct Tables {
+    uint32_t t[8][256];
+    Tables() {
+      for (uint32_t i = 0; i < 256; i++) {
+        uint32_t v = i;
+        for (int k = 0; k < 8; k++) v = (v & 1) ? 0xedb88320u ^ (v >> 1) : v >> 1;
+        t[0][i] = v;
+      }
+      for (int k = 1; k < 8; k++)
+        for (uint32_t i = 0; i < 256; i++) t[k][i] = (t[k - 1][i] >> 8) ^ t[0][t[k - 1][i] & 0xff];
+    }
+  };
+  static const Tables tables;
+  const uint32_t(*t)[256] = tables.t;
+  uint32_t c = ~0u;
+  for (; n >= 8; n -= 8, d += 8) {
+    c ^= (uint32_t)d[0] | (uint32_t)d[1] << 8 | (uint32_t)d[2] << 16 | (uint32_t)d[3] << 24;
+    c = t[7][c & 0xff] ^ t[6][(c >> 8) & 0xff] ^ t[5][(c >> 16) & 0xff] ^ t[4][c >> 24] ^ t[3][d[4]] ^ t[2][d[5]] ^
+        t[1][d[6]] ^ t[0][d[7]];
+  }
+  for (; n; n--, d++) c = t[0][(c ^ *d) & 0xff] ^ (c >> 8);
+  return ~c;
+}
+#else
 uint32_t stateCrc(const uint8_t* d, size_t n) {
   static uint32_t table[256];
   static bool init = false;
@@ -681,6 +710,7 @@ uint32_t stateCrc(const uint8_t* d, size_t n) {
   for (size_t i = 0; i < n; i++) c = table[(c ^ d[i]) & 0xff] ^ (c >> 8);
   return ~c;
 }
+#endif
 
 struct Writer {
   std::vector<uint8_t>& out;
@@ -720,6 +750,9 @@ struct Reader {
 
 std::vector<uint8_t> Snes::saveState() const {
   std::vector<uint8_t> out;
+#ifdef SMAS_XENON
+  out.reserve(320 * 1024);  // (a state is ~280 KB: grown a piece at a time, it was copied over and over)
+#endif
   Writer w{out};
   w.v(kStateMagic);
   w.v(kStateVersion);

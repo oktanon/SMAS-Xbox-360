@@ -84,3 +84,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   de ~770) sin dibujar, con una pantalla de carga con el juego y el mundo. Pendiente de consola (run 033).
 - 0034 (2026-11-10) — Run 033 OK: hito 7 cerrado (escritura atómica, Guía y dashboard pasan al hito 10). Hito 8: el
   log de la consola dice el juego, el aspecto y cuánto tarda la emulación, el rewind y la interfaz.
+- 0035 (2026-11-10) — Run 034: 16:9 a 14 ms de emulación más 3 ms del snapshot del rewind, que se pasa de 16,7.
+  El CRC de los states 8 bytes a la vez (mismo resultado): `saveState` de 1,6 a 0,38 ms en x86. Run 035.

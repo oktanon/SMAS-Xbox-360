@@ -192,3 +192,28 @@ media de la emulación (con el dibujo en 2 hilos) y del vídeo, y cuántos frame
 - **Reparto de hilos hardware del port:** 0 emulación (y lo que llama a los ganchos de los juegos), 2 y 4 dibujo de
   la PPU, 5 audio de SDL; libres el 1 y el 3.
 
+## 6. El juego entero, por juego y aspecto (run 034, hito 8)
+
+La línea del log de la tarea 0034. Filtro Nearest y rewind en todo. Cada pasada lleva, además de la emulación, el
+snapshot del rewind (2,8-3,3 ms, uno cada dos frames, en el hilo de la emulación) y la interfaz y el vídeo (1,4 ms
+en 4:3, 0,4 ms en 16:9). La GPU, ~3 ms por frame (run 033): no frena.
+
+| Juego | Aspecto | Emulación por frame | Frames dibujados de 600 | Peor pasada |
+|---|---|---|---|---|
+| SMB1 | 4:3 | 10,7-11,8 ms | 528-600 | 18-34 ms |
+| SMB1 | 16:9 | 13,3-14,1 ms | 490-541 | 25-51 ms |
+| Lost Levels | 4:3 | 10,5-11,8 ms | 500-600 | 18-34 ms |
+| Lost Levels | 16:9 | 13,9-14,1 ms | 461-513 | 27 ms |
+| SMB2 | 4:3 | 11,3-11,5 ms | 587-600 | 18-25 ms |
+| SMB2 | 16:9 | 13,8-14,2 ms | 347-460 | 28-36 ms |
+| SMB3 | 4:3 | 10,8-12,3 ms | 599-600 | 18-19 ms |
+| SMB3 | 16:9 | 13,7-14,2 ms | 263-475 | 28-32 ms |
+| SMB1 co-op | 4:3 | 13,1-13,4 ms | 361-447 | 31-35 ms |
+| SMB1 co-op | 16:9 | 14,2-14,3 ms | 292-334 | 45-47 ms |
+
+- En 4:3 entra justo; en 16:9, emulación y snapshot pasan de 16,7 ms y la pasada siguiente hace dos frames y dibuja
+  uno.
+- **El snapshot era sobre todo el CRC-32 byte a byte** (x86: 1,3 de 1,6 ms). La tarea 0035 lo calcula 8 bytes a la
+  vez, con el mismo resultado: 0,38 ms en x86.
+- Lo siguiente, si 16:9 no llega: los 2,5 ms de más de 16:9 (§4) y el co-op.
+
