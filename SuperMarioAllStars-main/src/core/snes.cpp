@@ -26,6 +26,9 @@ bool Snes::loadRom(const std::vector<uint8_t>& data) {
   rom.resize(sz, 0xff);
   romMask_ = sz - 1;
   patchRom.assign(0x80000, 0xff);
+#ifdef SMAS_CPU_FAST
+  buildReadPages();
+#endif
   return true;
 }
 
@@ -118,7 +121,11 @@ void Snes::buildLineEvents() {
   while (evIdx_ < evCount_ && evPos_[evIdx_] <= hPos_ && evPos_[evIdx_] != lineLen_) evIdx_++;
 }
 
+#ifdef SMAS_CPU_FAST
+void Snes::tickSlow(int mc) {
+#else
 void Snes::tick(int mc) {
+#endif
   while (mc > 0) {
     int next = evPos_[evIdx_];
     int step = next - hPos_;
@@ -208,6 +215,9 @@ void Snes::runFrame() {
   // between lines 225 and 240 and neither start line is met: stop then at the
   // second frame start, so the caller still gets one frame at a time.
   uint32_t start = frames_;
+#ifdef SMAS_CPU_FAST
+  checkReadPages();
+#endif
   while (!frameDone_ && frames_ - start < 2) {
     cpu.step();
   }
@@ -215,6 +225,9 @@ void Snes::runFrame() {
 }
 
 void Snes::stepInstruction() {
+#ifdef SMAS_CPU_FAST
+  checkReadPages();
+#endif
   if (pendingVblank_) {
     pendingVblank_ = false;
     vblankStart();
@@ -247,7 +260,44 @@ int Snes::accessTime(uint32_t adr) const {
   return 8;
 }
 
+#ifdef SMAS_CPU_FAST
+// The pages read straight from an array, as busRead decodes them: low WRAM in the system banks, ROM (and the
+// patch area) and SRAM; I/O stays out. Each page's access time is accessTime's for the whole page (it only varies
+// inside the I/O pages).
+void Snes::buildReadPages() {
+  pagesRom_ = rom.data();
+  pagesPatch_ = patchRom.data();
+  const bool romOk = rom.size() >= 0x2000 && romMask_ + 1 == rom.size();
+  const bool keep = fastRom_;
+  for (uint32_t p = 0; p < 2048; p++) {
+    const uint32_t adr = p << 13;
+    const uint8_t bank = adr >> 16, b7 = bank & 0x7f;
+    const uint16_t a = adr & 0xffff;
+    const uint8_t* ptr = nullptr;
+    if (bank == 0x7e || bank == 0x7f) {
+      ptr = wram + (((bank & 1) << 16) | a);
+    } else if ((bank & 0x40) == 0 && a < 0x8000) {
+      if (a < 0x2000) ptr = wram + a;
+    } else if (a >= 0x8000 && b7 >= 0x60 && b7 < 0x70) {
+      if (patchRom.size() >= 0x80000) ptr = patchRom.data() + (((b7 - 0x60) << 15) | (a & 0x7fff));
+    } else if (a < 0x8000 && b7 >= 0x70 && b7 < 0x7e) {
+      ptr = sram + (a & 0x1fff);
+    } else if (romOk) {
+      ptr = rom.data() + ((((size_t)b7 << 15) | (a & 0x7fff)) & romMask_);
+    }
+    readPage_[p].ptr = ptr;
+    fastRom_ = false;
+    readPage_[p].time[0] = (uint8_t)accessTime(adr);
+    fastRom_ = true;
+    readPage_[p].time[1] = (uint8_t)accessTime(adr);
+  }
+  fastRom_ = keep;
+}
+
+uint8_t Snes::cpuReadSlow(uint32_t adr) {
+#else
 uint8_t Snes::cpuRead(uint32_t adr) {
+#endif
   tick(cpuFast_ ? accessTime(adr) >> 1 : accessTime(adr));  // (6, 8, 12: halved exactly; see setCpuFast)
   uint8_t v = busRead(adr);
   openBus_ = v;

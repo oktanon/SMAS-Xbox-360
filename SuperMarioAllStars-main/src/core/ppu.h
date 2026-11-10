@@ -61,6 +61,10 @@ public:
   // state, which nothing changes while a line is drawn (task 0038): with hookTasks on (the default), the margins
   // and the layers a hook asks for whole are tasks as well, drawn on any thread; off, on the emulation's thread.
   bool hookTasks = true;
+  // With profile on (the console's log, task 0039): the drawn lines' time on the emulation's thread, and how much
+  // of it was spent waiting for the render threads to finish their share (nanoseconds; the caller resets them).
+  bool profile = false;
+  uint64_t profLineNs = 0, profWaitNs = 0;
   ~Ppu();
   Ppu(const Ppu&) = delete;
   Ppu& operator=(const Ppu&) = delete;

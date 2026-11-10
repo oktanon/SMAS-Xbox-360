@@ -1,0 +1,17 @@
+log: game:\supermarioallstars.log
+log: named after \Device\Mass0\games\super mario all-stars\supermarioallstars.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 31392 us
+mkdir: NtCreateFile(game:\saves) failed: 0xC0000035
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 16988 us
+video: pantalla Xbox 360 video output, 1280x720 a 59940 mHz
+mkdir: NtCreateFile(game:\msu) failed: 0xC0000035
+open: NtCreateFile(game:\covers\allstars.png) failed: 0xC0000034
+open: NtCreateFile(game:\covers\allstars.jpg) failed: 0xC0000034
+open: NtCreateFile(game:\covers\allstars.jpeg) failed: 0xC0000034
+open: NtCreateFile(game:\covers\allstars.PNG) failed: 0xC0000034
+open: NtCreateFile(game:\covers\allstars.JPG) failed: 0xC0000034
+open: NtCreateFile(game:\covers\allstars.JPEG) failed: 0xC0000034
+exit: status 0

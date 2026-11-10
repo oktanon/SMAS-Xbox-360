@@ -25,7 +25,26 @@ public:
   void runFrame();
 
   // CPU bus interface
+#ifdef SMAS_CPU_FAST
+  // xenon port (task 0039): a read of plain memory (WRAM, ROM, SRAM) through a table of 8 KB pages, without the
+  // address decoding; the rest (I/O, a read watch set) the original way, cpuReadSlow. The same bytes and timing.
+  Snes(const Snes&) = delete;  // (the table points into this object)
+  Snes& operator=(const Snes&) = delete;
+  uint8_t cpuRead(uint32_t adr) {
+    const ReadPage& pg = readPage_[(adr >> 13) & 0x7ff];
+    if (pg.ptr && !rwatchFn_) {
+      const int t = pg.time[fastRom_];
+      tick(cpuFast_ ? t >> 1 : t);
+      const uint8_t v = pg.ptr[adr & 0x1fff];
+      openBus_ = v;
+      return v;
+    }
+    return cpuReadSlow(adr);
+  }
+  uint8_t cpuReadSlow(uint32_t adr);
+#else
   uint8_t cpuRead(uint32_t adr);
+#endif
   void cpuWrite(uint32_t adr, uint8_t val);
   void cpuIdle() { tick(cpuFast_ ? 3 : 6); }
   // The CPU at twice its speed (each of its cycles half as long; the PPU, DMA
@@ -191,7 +210,32 @@ private:
 
   size_t romMask_ = 0;
 
+#ifdef SMAS_CPU_FAST
+  struct ReadPage {
+    const uint8_t* ptr;  // (null: decoded the original way)
+    uint8_t time[2];     // (the access time, with fastRom_ off and on)
+  };
+  ReadPage readPage_[2048] = {};
+  const uint8_t* pagesRom_ = nullptr;  // (what the table was built over: built again if the vectors move)
+  const uint8_t* pagesPatch_ = nullptr;
+  void buildReadPages();
+  void checkReadPages() {
+    if (rom.data() != pagesRom_ || patchRom.data() != pagesPatch_) buildReadPages();
+  }
+  // (the original's loop when a line event falls inside these cycles; else just the counters, as it would)
+  void tick(int mc) {
+    if (hPos_ + mc < evPos_[evIdx_]) {
+      hPos_ += mc;
+      cycles_ += mc;
+      if (autoJoyTimer_ > 0) autoJoyTimer_ -= mc;
+      return;
+    }
+    tickSlow(mc);
+  }
+  void tickSlow(int mc);
+#else
   void tick(int mc);
+#endif
   void buildLineEvents();
   void processEvent(int pos, int& extra);
   void newLine();

@@ -19,7 +19,7 @@ rom="$root/Super Mario All-Stars (USA).sfc"
 
 bin="$root/build-qemu/ppu"
 mkdir -p "$bin/ref" "$bin/fast"
-flags=(-pthread -std=c++17 -O2 -DSMAS_PORT_FIXES -ffp-contract=off -fno-strict-aliasing -I"$game/src")
+flags=(-pthread -std=c++17 -O2 -DSMAS_PORT_FIXES -DSMAS_CPU_FAST -ffp-contract=off -fno-strict-aliasing -I"$game/src")
 srcs=($(cd "$game" && echo src/core/*.cpp src/game/*.cpp tools/smastool.cpp))
 (cd "$game" && g++ "${flags[@]}" "${srcs[@]}" -o "$bin/ref/smastool") &
 (cd "$game" && g++ "${flags[@]}" -DSMAS_PPU_FAST "${extra[@]}" "${srcs[@]}" -o "$bin/fast/smastool") &

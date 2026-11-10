@@ -11,5 +11,16 @@
   3. Mantener el rewind un momento, y cargar un state de antes.
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`.
 - **Mirar en el log:** "emulación ... ms por frame" en 16:9 (antes 14-15 ms) y "snapshot del rewind" (antes 1,2-1,4).
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado, el co-op o lo que queda en serie en el hilo de la emulación (tarea 0038).
+- **Resultado:** Parcial. Frames dibujados de cada 600 en 16:9 (run 034 → 037):
+  - SMB2: 347-460 → **547-588**; el usuario lo nota.
+  - SMB3: 263-475 → 511-540, con el trabajo medio en 18,3-19,4 ms: sigue pasándose.
+  - Co-op de SMB1: 292-334 → 301-358: casi igual.
+  - Snapshot del rewind: 1,2-1,4 → **0,92-0,99 ms**.
+  - La "emulación por frame" del log no baja (14,8-15,3 ms), pero es la media de los frames dibujados y los
+    saltados, y los saltados cuestan mucho menos: al dibujar más frames, la media sube. No dice cuánto cuesta un
+    frame dibujado.
+  - El usuario no reporta fallos de imagen. La línea `launch:` (run 036) dice que el archivo B se eligió y se jugó: bien esta vez.
+- **Logs:** `smas_port.log`, `supermarioallstars.log`.
+- **Siguiente:** tarea 0039. En x86 el co-op cuesta casi el doble **sin dibujar** (la CPU emulada corre las rutinas
+  del jugador dos veces): su problema es la CPU, no la PPU. El log separará frames dibujados y saltados, y la PPU
+  de la CPU.

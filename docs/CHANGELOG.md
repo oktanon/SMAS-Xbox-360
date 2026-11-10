@@ -91,3 +91,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0037 (2026-11-10) — El fallo de los archivos de SMB1 queda pospuesto y anotado en el hito 10; run 036 sin correr.
 - 0038 (2026-11-10) — Hito 8: los márgenes del widescreen y los fondos que piden los ganchos, en los hilos de dibujo
   (los ganchos solo leen; 9020 frames iguales); el snapshot del rewind sin dos copias. Run 037.
+- 0039 (2026-11-10) — Run 037: SMB2 casi a 60 en 16:9; SMB3 y el co-op no. El co-op es la CPU: lecturas por
+  páginas y `tick` rápido (`SMAS_CPU_FAST`, mismos resultados; co-op sin dibujar −35 % en x86). El log separa el
+  frame dibujado, la PPU, la espera a los hilos y la CPU. Run 038.

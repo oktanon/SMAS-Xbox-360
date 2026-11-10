@@ -229,3 +229,21 @@ en 4:3, 0,4 ms en 16:9). La GPU, ~3 ms por frame (run 033): no frena.
   (smastool `hooktasks 0|1`) vuelve a lo de antes.
 - El snapshot del rewind sin dos copias de más (la PPU directa al state, la APU con su tamaño reservado).
 - Iguales frame a frame (`HILOS=2 compare_ppu.sh`, 9020 frames). La consola dirá cuánto se gana (run 037).
+
+## 8. Lo que no bajó en la run 037, y la CPU del co-op (tarea 0039)
+
+- **Run 037:** SMB2 en 16:9 dibuja 547-588 de 600 (antes 347-460); SMB3, 511-540; el co-op de SMB1, 301-358 (casi
+  igual). El snapshot del rewind baja a ~0,95 ms. La "emulación por frame" del log no baja porque mezcla frames
+  dibujados y saltados (los saltados cuestan mucho menos): desde la tarea 0039 el log da aparte el frame dibujado,
+  la PPU en el hilo de la emulación, lo que espera a los hilos de dibujo, la CPU con la APU y los juegos, y el frame
+  saltado.
+- **El co-op es la CPU:** en x86, sin dibujar, el co-op de SMB1 cuesta casi el doble que SMB1 solo (la CPU va al
+  doble de velocidad para correr las rutinas del jugador dos veces, `setCpuFast`): 278 M llamadas a `Snes::tick`
+  frente a 158 M en 2400 frames. En 4:3 ya tardaba 13 ms (run 034).
+- **`SMAS_CPU_FAST`** (`core/snes.h`, `core/snes.cpp`): las lecturas de memoria normal (WRAM, ROM, área de parches,
+  SRAM) por una tabla de 2048 páginas de 8 KB con el puntero y el tiempo de acceso (con FastROM y sin él), sin
+  decodificar la dirección; la E/S y las lecturas vigiladas, como el original. `tick` hace solo las cuentas cuando
+  ningún evento de la línea cae dentro (el bucle original, si cae). La tabla se rehace si se mueven los vectores de
+  la ROM. Mismos bytes y mismos tiempos.
+- **x86:** el co-op sin dibujar, de 1,10 a 0,71 ms por frame; dibujando, de 1,92 a 1,56. Iguales a HEAD:
+  `guion.txt` (22 líneas y 9 archivos) y `guion_ppu.txt` (9049 líneas).

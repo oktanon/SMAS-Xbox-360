@@ -1,0 +1,123 @@
+starting (Xbox 360), version 1.1.1
+video ok 1280x720
+audio: 48000 Hz, 1024-frame chunks, latency 64 ms
+rom loaded: game:/Super Mario All-Stars (USA).sfc
+pacing: 59.94 Hz display, 1 refreshes per frame (0 = uneven)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+launch: Super Mario Bros., file B chosen, the panel's cursor on B at Start, now in Super Mario Bros.; co-op off
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+pasadas juego: 400 en 10 s (130 frames emulados), trabajo 9.27 ms de media, el peor 283.67 ms, 74 de más de 16,7 ms, 87 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 22 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 15.40 ms por frame (14 muestras, la peor 66.85 ms), espera al refresco 15.27 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.02 ms por frame (106, 106 dibujados), snapshot del rewind 0.93 ms (53), interfaz y vídeo 2.84 ms por pasada
+pasadas juego: 588 en 10 s (559 frames emulados), trabajo 16.24 ms de media, el peor 26.06 ms, 267 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 279 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.59 ms por frame (19 muestras, la peor 4.06 ms), espera al refresco 0.59 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.97 ms por frame (558, 547 dibujados), snapshot del rewind 0.96 ms (279), interfaz y vídeo 0.37 ms por pasada
+pasadas juego: 583 en 10 s (579 frames emulados), trabajo 16.91 ms de media, el peor 25.40 ms, 307 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 579 snapshots; audio vacío 0 veces (mínimo 836 frames)
+  GPU 3.50 ms por frame (20 muestras, la peor 4.07 ms), espera al refresco 0.05 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.94 ms por frame (600, 583 dibujados), snapshot del rewind 0.95 ms (300), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 557 en 10 s (541 frames emulados), trabajo 17.75 ms de media, el peor 25.41 ms, 506 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 108 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.65 ms por frame (18 muestras, la peor 4.01 ms), espera al refresco 0.04 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.83 ms por frame (86, 83 dibujados), snapshot del rewind 0.92 ms (43), interfaz y vídeo 0.31 ms por pasada
+pasadas menú: 529 en 10 s (499 frames emulados), trabajo 17.11 ms de media, el peor 475.10 ms, 422 de más de 16,7 ms, 27 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 368 snapshots; audio vacío 0 veces (mínimo 945 frames)
+  GPU 4.20 ms por frame (18 muestras, la peor 9.98 ms), espera al refresco 1.60 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.00 ms por frame (518, 475 dibujados), snapshot del rewind 0.98 ms (259), interfaz y vídeo 0.52 ms por pasada
+pasadas juego: 561 en 10 s (25 frames emulados), trabajo 2.67 ms de media, el peor 408.79 ms, 28 de más de 16,7 ms, 30 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 380 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 8.30 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 14.86 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.10 ms por frame (26, 21 dibujados), snapshot del rewind 0.95 ms (13), interfaz y vídeo 1.01 ms por pasada
+pasadas menú: 568 en 10 s (169 frames emulados), trabajo 6.17 ms de media, el peor 105.56 ms, 154 de más de 16,7 ms, 12 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 468 snapshots; audio vacío 0 veces (mínimo 2274 frames)
+  GPU 7.31 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 11.15 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.93 ms por frame (175, 157 dibujados), snapshot del rewind 0.97 ms (87), interfaz y vídeo 1.09 ms por pasada
+pasadas juego: 583 en 10 s (524 frames emulados), trabajo 15.46 ms de media, el peor 88.23 ms, 242 de más de 16,7 ms, 5 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 738 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 4.15 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 1.48 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.89 ms por frame (541, 528 dibujados), snapshot del rewind 0.96 ms (271), interfaz y vídeo 0.40 ms por pasada
+pasadas juego: 575 en 10 s (576 frames emulados), trabajo 17.15 ms de media, el peor 24.86 ms, 358 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 990 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.59 ms por frame (19 muestras, la peor 4.03 ms), espera al refresco 0.07 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.93 ms por frame (568, 545 dibujados), snapshot del rewind 0.97 ms (284), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 536 en 10 s (401 frames emulados), trabajo 13.86 ms de media, el peor 393.20 ms, 342 de más de 16,7 ms, 26 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1199 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 4.94 ms por frame (18 muestras, la peor 9.98 ms), espera al refresco 4.58 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.94 ms por frame (417, 378 dibujados), snapshot del rewind 0.95 ms (208), interfaz y vídeo 0.45 ms por pasada
+pasadas juego: 557 en 10 s (577 frames emulados), trabajo 17.77 ms de media, el peor 92.50 ms, 432 de más de 16,7 ms, 4 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 286 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.47 ms por frame (19 muestras, la peor 4.10 ms), espera al refresco 0.01 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.95 ms por frame (598, 557 dibujados), snapshot del rewind 0.99 ms (299), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 589 en 10 s (579 frames emulados), trabajo 16.80 ms de media, el peor 25.27 ms, 286 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 584 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.43 ms por frame (19 muestras, la peor 4.03 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.95 ms por frame (599, 588 dibujados), snapshot del rewind 1.04 ms (300), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 565 en 10 s (744 frames emulados), trabajo 9.84 ms de media, el peor 403.83 ms, 138 de más de 16,7 ms, 27 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 1373 frames)
+  GPU 6.90 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 7.61 ms de media
+  Super Mario Bros. 2, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.83 ms por frame (16, 16 dibujados), snapshot del rewind 1.04 ms (8), interfaz y vídeo 0.45 ms por pasada
+pasadas juego: 539 en 10 s (928 frames emulados), trabajo 17.92 ms de media, el peor 31.37 ms, 447 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 185 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 4.34 ms por frame (18 muestras, la peor 5.98 ms), espera al refresco 0.43 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.82 ms por frame (372, 326 dibujados), snapshot del rewind 0.95 ms (186), interfaz y vídeo 0.36 ms por pasada
+pasadas juego: 540 en 10 s (577 frames emulados), trabajo 18.28 ms de media, el peor 26.48 ms, 489 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 485 snapshots; audio vacío 0 veces (mínimo 693 frames)
+  GPU 3.56 ms por frame (18 muestras, la peor 4.08 ms), espera al refresco 0.06 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.00 ms por frame (600, 540 dibujados), snapshot del rewind 0.96 ms (300), interfaz y vídeo 0.39 ms por pasada
+pasadas juego: 534 en 10 s (581 frames emulados), trabajo 18.46 ms de media, el peor 26.61 ms, 488 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 785 snapshots; audio vacío 0 veces (mínimo 801 frames)
+  GPU 3.61 ms por frame (18 muestras, la peor 4.05 ms), espera al refresco 0.08 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.98 ms por frame (600, 534 dibujados), snapshot del rewind 0.96 ms (300), interfaz y vídeo 0.39 ms por pasada
+pasadas juego: 511 en 10 s (577 frames emulados), trabajo 19.29 ms de media, el peor 26.37 ms, 511 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1085 snapshots; audio vacío 0 veces (mínimo 858 frames)
+  GPU 3.56 ms por frame (17 muestras, la peor 4.04 ms), espera al refresco 0.10 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.01 ms por frame (600, 511 dibujados), snapshot del rewind 0.95 ms (300), interfaz y vídeo 0.39 ms por pasada
+pasadas juego: 525 en 10 s (531 frames emulados), trabajo 18.88 ms de media, el peor 26.36 ms, 524 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 783 snapshots; audio vacío 0 veces (mínimo 877 frames)
+  GPU 3.44 ms por frame (17 muestras, la peor 4.09 ms), espera al refresco 0.01 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.07 ms por frame (198, 171 dibujados), snapshot del rewind 0.95 ms (99), interfaz y vídeo 0.33 ms por pasada
+pasadas juego: 532 en 10 s (541 frames emulados), trabajo 18.61 ms de media, el peor 26.44 ms, 512 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 574 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.59 ms por frame (18 muestras, la peor 3.98 ms), espera al refresco 0.01 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.06 ms por frame (261, 233 dibujados), snapshot del rewind 0.96 ms (130), interfaz y vídeo 0.34 ms por pasada
+pasadas juego: 539 en 10 s (574 frames emulados), trabajo 18.35 ms de media, el peor 27.95 ms, 502 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 830 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.61 ms por frame (18 muestras, la peor 4.06 ms), espera al refresco 0.02 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.01 ms por frame (571, 513 dibujados), snapshot del rewind 0.97 ms (286), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 531 en 10 s (557 frames emulados), trabajo 18.62 ms de media, el peor 26.46 ms, 510 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 845 snapshots; audio vacío 0 veces (mínimo 912 frames)
+  GPU 3.59 ms por frame (18 muestras, la peor 4.13 ms), espera al refresco 0.05 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.01 ms por frame (410, 364 dibujados), snapshot del rewind 0.96 ms (205), interfaz y vídeo 0.36 ms por pasada
+pasadas juego: 511 en 10 s (537 frames emulados), trabajo 19.39 ms de media, el peor 522.53 ms, 476 de más de 16,7 ms, 30 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 150 snapshots; audio vacío 4 veces (mínimo 0 frames)
+  GPU 3.41 ms por frame (17 muestras, la peor 4.04 ms), espera al refresco 0.01 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.05 ms por frame (469, 422 dibujados), snapshot del rewind 0.94 ms (234), interfaz y vídeo 0.38 ms por pasada
+pasadas juego: 541 en 10 s (574 frames emulados), trabajo 18.26 ms de media, el peor 26.43 ms, 494 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 403 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.49 ms por frame (18 muestras, la peor 4.15 ms), espera al refresco 0.05 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 15.00 ms por frame (569, 514 dibujados), snapshot del rewind 0.96 ms (285), interfaz y vídeo 0.39 ms por pasada
+pasadas menú: 521 en 10 s (540 frames emulados), trabajo 18.40 ms de media, el peor 331.81 ms, 463 de más de 16,7 ms, 18 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 685 snapshots; audio vacío 0 veces (mínimo 929 frames)
+  GPU 3.59 ms por frame (17 muestras, la peor 4.04 ms), espera al refresco 0.62 ms de media
+  Super Mario Bros. 3, 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 14.98 ms por frame (562, 502 dibujados), snapshot del rewind 0.97 ms (281), interfaz y vídeo 0.41 ms por pasada
+pasadas juego: 533 en 10 s (411 frames emulados), trabajo 6.65 ms de media, el peor 75.51 ms, 106 de más de 16,7 ms, 27 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 5 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 9.41 ms por frame (18 muestras, la peor 19.96 ms), espera al refresco 11.76 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op no, filtro Nearest, rewind sí: emulación 7.05 ms por frame (11, 11 dibujados), snapshot del rewind 0.93 ms (5), interfaz y vídeo 1.45 ms por pasada
+pasadas juego: 532 en 10 s (581 frames emulados), trabajo 17.84 ms de media, el peor 31.48 ms, 262 de más de 16,7 ms, 1 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 305 snapshots; audio vacío 0 veces (mínimo 610 frames)
+  GPU 3.59 ms por frame (18 muestras, la peor 4.08 ms), espera al refresco 0.83 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 14.24 ms por frame (601, 531 dibujados), snapshot del rewind 0.94 ms (301), interfaz y vídeo 0.44 ms por pasada
+pasadas juego: 332 en 10 s (562 frames emulados), trabajo 29.96 ms de media, el peor 46.43 ms, 332 de más de 16,7 ms, 63 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 605 snapshots; audio vacío 0 veces (mínimo 156 frames)
+  GPU 3.55 ms por frame (11 muestras, la peor 4.05 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.10 ms por frame (600, 332 dibujados), snapshot del rewind 1.35 ms (300), interfaz y vídeo 0.35 ms por pasada
+pasadas juego: 350 en 10 s (559 frames emulados), trabajo 28.44 ms de media, el peor 33.39 ms, 350 de más de 16,7 ms, 10 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 862 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.60 ms por frame (12 muestras, la peor 3.99 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.27 ms por frame (572, 328 dibujados), snapshot del rewind 0.96 ms (286), interfaz y vídeo 0.35 ms por pasada
+pasadas juego: 341 en 10 s (569 frames emulados), trabajo 29.13 ms de media, el peor 33.36 ms, 341 de más de 16,7 ms, 9 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1158 snapshots; audio vacío 0 veces (mínimo 1187 frames)
+  GPU 3.54 ms por frame (11 muestras, la peor 4.12 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.28 ms por frame (597, 339 dibujados), snapshot del rewind 0.93 ms (298), interfaz y vídeo 0.36 ms por pasada
+pasadas juego: 357 en 10 s (551 frames emulados), trabajo 27.86 ms de media, el peor 33.18 ms, 357 de más de 16,7 ms, 8 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1348 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.46 ms por frame (12 muestras, la peor 4.08 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.29 ms por frame (527, 301 dibujados), snapshot del rewind 0.93 ms (264), interfaz y vídeo 0.34 ms por pasada
+pasadas juego: 355 en 10 s (569 frames emulados), trabajo 27.99 ms de media, el peor 32.57 ms, 355 de más de 16,7 ms, 7 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1648 snapshots; audio vacío 0 veces (mínimo 1046 frames)
+  GPU 3.47 ms por frame (12 muestras, la peor 4.00 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.27 ms por frame (600, 355 dibujados), snapshot del rewind 0.93 ms (300), interfaz y vídeo 0.35 ms por pasada
+pasadas juego: 352 en 10 s (561 frames emulados), trabajo 28.29 ms de media, el peor 33.20 ms, 352 de más de 16,7 ms, 7 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.56 ms por frame (11 muestras, la peor 4.02 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.29 ms por frame (567, 326 dibujados), snapshot del rewind 0.92 ms (283), interfaz y vídeo 0.35 ms por pasada
+pasadas juego: 355 en 10 s (563 frames emulados), trabajo 28.00 ms de media, el peor 32.58 ms, 355 de más de 16,7 ms, 8 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 1128 frames)
+  GPU 3.60 ms por frame (12 muestras, la peor 4.05 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.28 ms por frame (600, 355 dibujados), snapshot del rewind 0.91 ms (300), interfaz y vídeo 0.36 ms por pasada
+pasadas juego: 358 en 10 s (569 frames emulados), trabajo 27.79 ms de media, el peor 33.03 ms, 358 de más de 16,7 ms, 9 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 1021 frames)
+  GPU 3.67 ms por frame (12 muestras, la peor 3.97 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.27 ms por frame (601, 358 dibujados), snapshot del rewind 0.91 ms (301), interfaz y vídeo 0.35 ms por pasada
+pasadas juego: 331 en 10 s (549 frames emulados), trabajo 30.08 ms de media, el peor 46.23 ms, 331 de más de 16,7 ms, 91 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 3 veces (mínimo 0 frames)
+  GPU 3.54 ms por frame (11 muestras, la peor 4.06 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 14.91 ms por frame (538, 285 dibujados), snapshot del rewind 1.85 ms (269), interfaz y vídeo 0.32 ms por pasada
+pasadas juego: 344 en 10 s (550 frames emulados), trabajo 28.89 ms de media, el peor 47.67 ms, 344 de más de 16,7 ms, 37 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1753 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.66 ms por frame (12 muestras, la peor 4.08 ms), espera al refresco 0.00 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.14 ms por frame (534, 293 dibujados), snapshot del rewind 1.21 ms (267), interfaz y vídeo 0.35 ms por pasada
+pasadas menú: 486 en 10 s (192 frames emulados), trabajo 8.61 ms de media, el peor 468.73 ms, 123 de más de 16,7 ms, 30 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 7.40 ms por frame (16 muestras, la peor 9.98 ms), espera al refresco 11.70 ms de media
+  Super Mario Bros., 142 px de más (16:9), co-op sí, filtro Nearest, rewind sí: emulación 15.27 ms por frame (190, 108 dibujados), snapshot del rewind 0.96 ms (95), interfaz y vídeo 0.41 ms por pasada

@@ -2239,16 +2239,24 @@ void App::frame(double dt, int gameFrames) {
 #endif
 #ifdef SMAS_XENON
       const auto emuAt = std::chrono::steady_clock::now();
+      snes->ppu.profile = true;
+      snes->ppu.profLineNs = snes->ppu.profWaitNs = 0;
 #endif
       game->beforeFrame();
       snes->runFrame();
       game->afterFrame();
 #ifdef SMAS_XENON
       if (!loading) {  // (the console's log, see prof)
-        prof.emuUs += (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
-                          std::chrono::steady_clock::now() - emuAt).count();
+        const uint64_t us = (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - emuAt).count();
+        prof.emuUs += us;
         prof.frames++;
-        if (!snes->ppu.skipRender) prof.drawn++;
+        if (!snes->ppu.skipRender) {
+          prof.drawn++;
+          prof.drawnUs += us;
+          prof.lineNs += snes->ppu.profLineNs;
+          prof.waitNs += snes->ppu.profWaitNs;
+        }
         prof.ext = std::max(prof.ext, snes->ppu.extL + snes->ppu.extR);
         prof.game = game->current();
       }

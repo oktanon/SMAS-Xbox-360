@@ -323,6 +323,14 @@ void App::run() {
                f >= 0 && f < 6 ? kFilters[f] : "otro", cfg.rewind ? "sí" : "no", prof.emuUs / 1000.0 / prof.frames,
                (unsigned)prof.frames, (unsigned)prof.drawn, prof.states ? prof.stateUs / 1000.0 / prof.states : 0.0,
                (unsigned)prof.states, passes ? renderUs / 1000.0 / passes : 0.0);
+        // (task 0039: a drawn frame's cost on its own, and where it goes)
+        const uint32_t skipped = prof.frames - prof.drawn;
+        if (prof.drawn)
+          statsf("    frame dibujado %.2f ms: PPU en este hilo %.2f ms (de ellos esperando a los hilos de dibujo %.2f ms), "
+                 "CPU, APU y juegos %.2f ms; frame saltado %.2f ms",
+                 prof.drawnUs / 1000.0 / prof.drawn, prof.lineNs / 1e6 / prof.drawn, prof.waitNs / 1e6 / prof.drawn,
+                 (prof.drawnUs / 1000.0 - prof.lineNs / 1e6) / prof.drawn,
+                 skipped ? (prof.emuUs - prof.drawnUs) / 1000.0 / skipped : 0.0);
       }
       prof = Prof();
       renderUs = 0;

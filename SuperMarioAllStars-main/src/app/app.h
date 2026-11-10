@@ -236,8 +236,10 @@ struct App {
   // Where a game pass's time goes, for the console's log every 10 s (app_xenon.cpp; hito 8): the emulated frames
   // (the CPU, the PPU and the games' hooks; `drawn` of them drawn), the rewind's snapshots (taken on this thread),
   // the widest the picture got and the game last played.
+  // (task 0039: the drawn frames on their own, and inside them the PPU's lines on this thread and its waits for the
+  // render threads, Ppu::profile; the rest of a drawn frame is the CPU, the APU and the games)
   struct Prof {
-    uint64_t emuUs = 0, stateUs = 0;
+    uint64_t emuUs = 0, stateUs = 0, drawnUs = 0, lineNs = 0, waitNs = 0;
     uint32_t frames = 0, drawn = 0, states = 0;
     int ext = 0;
     GameId game = GameId::Menu;

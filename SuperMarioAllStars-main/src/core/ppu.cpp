@@ -12,6 +12,7 @@
 #include <vector>
 #ifdef SMAS_PPU_FAST
 #include <atomic>
+#include <chrono>
 #include <thread>
 #endif
 
@@ -869,7 +870,13 @@ void Ppu::renderLine(int line) {
 #ifdef SMAS_PPU_FAST
   // xenon port: the same work on the render threads too (docs/PERFORMANCE.md §3.3)
   if (pool_) {
-    renderLineThreaded(fb, row, x0, x1, eL, eR, used);
+    if (profile) {
+      const auto at = std::chrono::steady_clock::now();
+      renderLineThreaded(fb, row, x0, x1, eL, eR, used);
+      profLineNs += (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - at).count();
+    } else {
+      renderLineThreaded(fb, row, x0, x1, eL, eR, used);
+    }
   } else {
 #endif
   for (int l = 0; l < 4; l++) {
@@ -1663,11 +1670,17 @@ struct Ppu::RenderPool {
     round++;
     work.store((round & 0xffffff) << 8, std::memory_order_release);
   }
-  // ... its share of the round's tasks, then waits for the others'.
-  void finish() {
+  // ... its share of the round's tasks, then waits for the others' (the wait timed into *waitNs, if given).
+  void finish(uint64_t* waitNs = nullptr) {
     work_on(round);
     const Round& r = rounds[round & 1];
     const int count = r.count.load(std::memory_order_relaxed);
+    if (waitNs && r.done.load(std::memory_order_acquire) < count) {
+      const auto at = std::chrono::steady_clock::now();
+      while (r.done.load(std::memory_order_acquire) < count) relax();
+      *waitNs += (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - at).count();
+      return;
+    }
     while (r.done.load(std::memory_order_acquire) < count) relax();
   }
 };
@@ -1751,7 +1764,7 @@ void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int 
       renderBgStretch(l, row, std::max(x0, 256), x1, true);
     }
   }
-  pool.finish();
+  pool.finish(profile ? &profWaitNs : nullptr);
   for (int l = 0; l < 4; l++)
     if (drawn[l]) applyRemap(l, x0, x1);
   if (used & 0x10) {
@@ -1777,7 +1790,7 @@ void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int 
     r.count.store(count, std::memory_order_relaxed);
     pool.start();
   }
-  pool.finish();
+  pool.finish(profile ? &profWaitNs : nullptr);
   composeTail(fb, eL, eR);
 }
 #endif  // SMAS_PPU_FAST
