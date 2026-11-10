@@ -11,5 +11,18 @@
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`.
 - **Mirar en el log:** la línea nueva "frame dibujado ... ms: PPU en este hilo ... (esperando ...), CPU, APU y
   juegos ...; frame saltado ...".
-- **Resultado:** pendiente.
-- **Siguiente:** según dónde se vaya el frame dibujado de SMB3 y del co-op.
+- **Resultado:** OK. El usuario nota mejora en SMB3 y en el co-op de SMB1; SMB2 igual de bien. La línea nueva, por
+  frame dibujado:
+
+  | Escena | Frame dibujado | PPU en el hilo de la emulación (espera) | CPU, APU y juegos | Dibujados de 600 |
+  |---|---|---|---|---|
+  | SMB3 16:9 | 15,0 ms | 9,3-9,7 (1,3-1,7) | 5,5-5,7 | casi todo 518-600 |
+  | SMB2 16:9 | 14,6 ms | 9,5 (1,6-1,7) | 4,9-5,1 | 576-600 |
+  | Co-op SMB1 16:9 | 15,4-16,3 ms | 8,3-9,1 (0,8-1,5) | 7,1-7,2 | 442-571 (antes 301-358) |
+  | Co-op SMB1 4:3 | 12,2-13,1 ms | 5,3-5,9 (0,7-0,9) | 6,9-7,3 | 554-600 |
+  | SMB1 16:9 | 12,6 ms | 7,8 (1,1) | 4,8 | 474 de 497 |
+
+  - Frame saltado: ~5 ms (co-op, ~7). El co-op gasta ~2 ms más de CPU que un jugador.
+  - La PPU es lo que más pesa en 16:9: el hilo de la emulación trabaja ~8 ms en ella y espera solo ~1,5.
+  - El trabajo medio en SMB3 16:9 sigue en 16,4-16,8 ms: al límite.
+- **Siguiente:** tarea 0040: la PPU por fases en el log, y la composición repartida a partes iguales.

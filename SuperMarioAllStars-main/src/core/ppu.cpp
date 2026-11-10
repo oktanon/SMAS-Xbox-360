@@ -812,10 +812,22 @@ void Ppu::applyRemap(int l, int x0, int x1) {
   for (int x = x0; x < x1; x++) src[x] = dst[x];
 }
 
+#ifdef SMAS_PPU_FAST
+namespace {
+uint64_t profNow() {
+  return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
+      .count();
+}
+}  // namespace
+#endif
+
 void Ppu::renderLine(int line) {
   int row = line - 1;
   if (row < 0 || row >= kFrameH) return;
   uint32_t* fb = frame + row * kLineW;
+#ifdef SMAS_PPU_FAST
+  const uint64_t profAt = profile && pool_ && !skipRender ? profNow() : 0;
+#endif
 
   // Per-line hook configuration (the hook may also change extL/extR at row 0)
   for (auto& r : layerRemap) r.count = r.edge = r.mirror = 0;
@@ -870,13 +882,8 @@ void Ppu::renderLine(int line) {
 #ifdef SMAS_PPU_FAST
   // xenon port: the same work on the render threads too (docs/PERFORMANCE.md §3.3)
   if (pool_) {
-    if (profile) {
-      const auto at = std::chrono::steady_clock::now();
-      renderLineThreaded(fb, row, x0, x1, eL, eR, used);
-      profLineNs += (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - at).count();
-    } else {
-      renderLineThreaded(fb, row, x0, x1, eL, eR, used);
-    }
+    if (profAt) profNs[kProfHooks] += profNow() - profAt;
+    renderLineThreaded(fb, row, x0, x1, eL, eR, used);
   } else {
 #endif
   for (int l = 0; l < 4; l++) {
@@ -1501,6 +1508,9 @@ void Ppu::composePixels(uint32_t* fb, int x0, int x1) {
   bool layerMathTab[6];
   for (int i = 0; i < 6; i++) layerMathTab[i] = cgadsub_ & (1 << i);
   const bool objMath = cgadsub_ & 0x10;
+  // (task 0040: the sub screen only feeds the colour math; on a line where no layer asks for math, or math is
+  // never on, its pixel is never used, so it isn't looked for)
+  if (mathMode == 3 || !(cgadsub_ & 0x3f)) nSub = 0;
 
   for (int x = x0; x < x1; x++) {
     unsigned best = kNone;
@@ -1709,6 +1719,13 @@ void Ppu::setRenderThreads(int n) {
 
 void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int eR, uint8_t used) {
   RenderPool& pool = *pool_;
+  uint64_t profAt = profile ? profNow() : 0;
+  auto phase = [&](int k) {  // (the time since the last phase's end to phase k, with profile)
+    if (!profile) return;
+    const uint64_t now = profNow();
+    profNs[k] += now - profAt;
+    profAt = now;
+  };
   // Layers: the 4:3 parts, Mode 7 and the sprites to the render threads. With hookTasks (task 0038) the margins and
   // the layers a hook asks for whole too, cut where the original fetches anyway (a stretch's start: the margins and
   // the 4:3 part are stretches of their own); the hooks only read state nothing changes during the line, so who
@@ -1764,7 +1781,10 @@ void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int 
       renderBgStretch(l, row, std::max(x0, 256), x1, true);
     }
   }
-  pool.finish(profile ? &profWaitNs : nullptr);
+  uint64_t waited = profNs[kProfWait1];
+  pool.finish(profile ? &profNs[kProfWait1] : nullptr);
+  phase(kProfLayers);
+  profNs[kProfLayers] -= profNs[kProfWait1] - waited;
   for (int l = 0; l < 4; l++)
     if (drawn[l]) applyRemap(l, x0, x1);
   if (used & 0x10) {
@@ -1778,20 +1798,27 @@ void Ppu::renderLineThreaded(uint32_t* fb, int row, int x0, int x1, int eL, int 
     for (int x = x0; x < x1; x++) o[x].pri = 0;
   }
   computeWindows(x0, x1);
-  // the composition in parts, one for each thread (32-pixel steps)
+  phase(kProfSerial);
+  // the composition in parts, one for each thread
   {
     RenderPool::Round& r = pool.next();
     int count = 0;
     r.row = row;
     r.fb = fb;
     const int parts = (int)pool.threads.size() + 1;
-    const int step = ((x1 - x0 + parts - 1) / parts + 31) & ~31;
+    // (task 0040: equal parts, to 8 px; rounded to 32 px, 398 px in 3 made 160 + 160 + 78, and the line waited for a
+    // 160)
+    const int step = ((x1 - x0 + parts - 1) / parts + 7) & ~7;
     for (int a = x0; a < x1; a += step) r.tasks[count++] = {RenderPool::kCompose, 0, (int16_t)a, (int16_t)std::min(a + step, x1)};
     r.count.store(count, std::memory_order_relaxed);
     pool.start();
   }
-  pool.finish(profile ? &profWaitNs : nullptr);
+  waited = profNs[kProfWait2];
+  pool.finish(profile ? &profNs[kProfWait2] : nullptr);
+  phase(kProfCompose);
+  profNs[kProfCompose] -= profNs[kProfWait2] - waited;
   composeTail(fb, eL, eR);
+  phase(kProfTail);
 }
 #endif  // SMAS_PPU_FAST
 

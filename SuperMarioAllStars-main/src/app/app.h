@@ -239,7 +239,7 @@ struct App {
   // (task 0039: the drawn frames on their own, and inside them the PPU's lines on this thread and its waits for the
   // render threads, Ppu::profile; the rest of a drawn frame is the CPU, the APU and the games)
   struct Prof {
-    uint64_t emuUs = 0, stateUs = 0, drawnUs = 0, lineNs = 0, waitNs = 0;
+    uint64_t emuUs = 0, stateUs = 0, drawnUs = 0, ppuNs[Ppu::kProfPhases] = {};
     uint32_t frames = 0, drawn = 0, states = 0;
     int ext = 0;
     GameId game = GameId::Menu;

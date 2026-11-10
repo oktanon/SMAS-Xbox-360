@@ -325,12 +325,19 @@ void App::run() {
                (unsigned)prof.states, passes ? renderUs / 1000.0 / passes : 0.0);
         // (task 0039: a drawn frame's cost on its own, and where it goes)
         const uint32_t skipped = prof.frames - prof.drawn;
-        if (prof.drawn)
+        if (prof.drawn) {
+          double ppu[Ppu::kProfPhases], line = 0;  // (ms per drawn frame)
+          for (int k = 0; k < Ppu::kProfPhases; k++) line += ppu[k] = prof.ppuNs[k] / 1e6 / prof.drawn;
           statsf("    frame dibujado %.2f ms: PPU en este hilo %.2f ms (de ellos esperando a los hilos de dibujo %.2f ms), "
                  "CPU, APU y juegos %.2f ms; frame saltado %.2f ms",
-                 prof.drawnUs / 1000.0 / prof.drawn, prof.lineNs / 1e6 / prof.drawn, prof.waitNs / 1e6 / prof.drawn,
-                 (prof.drawnUs / 1000.0 - prof.lineNs / 1e6) / prof.drawn,
-                 skipped ? (prof.emuUs - prof.drawnUs) / 1000.0 / skipped : 0.0);
+                 prof.drawnUs / 1000.0 / prof.drawn, line, ppu[Ppu::kProfWait1] + ppu[Ppu::kProfWait2],
+                 prof.drawnUs / 1000.0 / prof.drawn - line, skipped ? (prof.emuUs - prof.drawnUs) / 1000.0 / skipped : 0.0);
+          // (task 0040: the PPU's phases on this thread, Ppu::profNs)
+          statsf("    PPU: preparar la línea y ganchos %.2f, capas %.2f (espera %.2f), en serie %.2f, composición %.2f "
+                 "(espera %.2f), final %.2f ms",
+                 ppu[Ppu::kProfHooks], ppu[Ppu::kProfLayers], ppu[Ppu::kProfWait1], ppu[Ppu::kProfSerial],
+                 ppu[Ppu::kProfCompose], ppu[Ppu::kProfWait2], ppu[Ppu::kProfTail]);
+        }
       }
       prof = Prof();
       renderUs = 0;

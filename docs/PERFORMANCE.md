@@ -247,3 +247,18 @@ en 4:3, 0,4 ms en 16:9). La GPU, ~3 ms por frame (run 033): no frena.
   la ROM. Mismos bytes y mismos tiempos.
 - **x86:** el co-op sin dibujar, de 1,10 a 0,71 ms por frame; dibujando, de 1,92 a 1,56. Iguales a HEAD:
   `guion.txt` (22 líneas y 9 archivos) y `guion_ppu.txt` (9049 líneas).
+
+## 9. El frame dibujado en la consola (run 038) y la PPU por fases (tarea 0040)
+
+| Escena | Frame dibujado | PPU en el hilo de la emulación (espera) | CPU, APU y juegos |
+|---|---|---|---|
+| SMB3 16:9 | 15,0 ms | 9,3-9,7 (1,3-1,7) | 5,5-5,7 |
+| SMB2 16:9 | 14,6 ms | 9,5 (1,6-1,7) | 4,9-5,1 |
+| Co-op SMB1 16:9 | 15,4-16,3 ms | 8,3-9,1 (0,8-1,5) | 7,1-7,2 |
+| Co-op SMB1 4:3 | 12,2-13,1 ms | 5,3-5,9 (0,7-0,9) | 6,9-7,3 |
+
+- Con las lecturas por páginas (§8), el co-op en 16:9 dibuja 442-571 de 600 (antes 301-358).
+- En 16:9 la PPU es lo que más pesa, y el hilo de la emulación casi no espera: trabaja su parte. En x86,
+  `composePixels` es casi la mitad de la PPU.
+- La tarea 0040 reparte la composición a partes iguales (antes, 160 + 160 + 78 px en 16:9) y se salta la pantalla
+  secundaria donde no hay color math. El log da la PPU por fases para elegir lo siguiente (run 039).

@@ -94,3 +94,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0039 (2026-11-10) — Run 037: SMB2 casi a 60 en 16:9; SMB3 y el co-op no. El co-op es la CPU: lecturas por
   páginas y `tick` rápido (`SMAS_CPU_FAST`, mismos resultados; co-op sin dibujar −35 % en x86). El log separa el
   frame dibujado, la PPU, la espera a los hilos y la CPU. Run 038.
+- 0040 (2026-11-10) — Run 038: mejora en SMB3 y en el co-op (16:9: de 301-358 a 442-571 frames de 600). La
+  composición repartida a partes iguales, sin pantalla secundaria donde no hay color math; el log da la PPU por
+  fases. Run 039.
