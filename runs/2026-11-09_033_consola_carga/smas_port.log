@@ -1,0 +1,153 @@
+starting (Xbox 360), version 1.1.1
+video ok 1280x720
+audio: 48000 Hz, 1024-frame chunks, latency 64 ms
+rom loaded: game:/Super Mario All-Stars (USA).sfc
+pacing: 59.94 Hz display, 1 refreshes per frame (0 = uneven)
+left for the All-Stars menu: back to the launcher
+left for the All-Stars menu: back to the launcher
+left for the All-Stars menu: back to the launcher
+left for the All-Stars menu: back to the launcher
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+menu opened by Menu button (select key=0 pad=0, menu button=0, pad 0)
+pasadas launcher: 498 en 10 s (0 frames emulados), trabajo 10.02 ms de media, el peor 427.71 ms, 3 de más de 16,7 ms, 38 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 15.91 ms por frame (17 muestras, la peor 77.04 ms), espera al refresco 9.60 ms de media
+pasadas juego: 457 en 10 s (405 frames emulados), trabajo 14.97 ms de media, el peor 116.00 ms, 239 de más de 16,7 ms, 73 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 11.07 ms por frame (15 muestras, la peor 19.96 ms), espera al refresco 6.50 ms de media
+pasadas juego: 560 en 10 s (795 frames emulados), trabajo 16.92 ms de media, el peor 26.87 ms, 246 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 238 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.39 ms por frame (19 muestras, la peor 5.98 ms), espera al refresco 0.77 ms de media
+pasadas juego: 540 en 10 s (578 frames emulados), trabajo 17.62 ms de media, el peor 26.56 ms, 337 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 538 snapshots; audio vacío 0 veces (mínimo 544 frames)
+  GPU 3.02 ms por frame (18 muestras, la peor 3.83 ms), espera al refresco 0.76 ms de media
+pasadas juego: 499 en 10 s (578 frames emulados), trabajo 19.75 ms de media, el peor 28.33 ms, 423 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 838 snapshots; audio vacío 0 veces (mínimo 727 frames)
+  GPU 3.07 ms por frame (17 muestras, la peor 3.80 ms), espera al refresco 0.12 ms de media
+pasadas juego: 490 en 10 s (562 frames emulados), trabajo 19.76 ms de media, el peor 53.58 ms, 374 de más de 16,7 ms, 13 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1064 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.07 ms por frame (16 muestras, la peor 3.82 ms), espera al refresco 0.52 ms de media
+pasadas juego: 483 en 10 s (572 frames emulados), trabajo 20.73 ms de media, el peor 464.26 ms, 359 de más de 16,7 ms, 45 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1362 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.13 ms por frame (16 muestras, la peor 3.72 ms), espera al refresco 0.57 ms de media
+pasadas juego: 507 en 10 s (553 frames emulados), trabajo 19.52 ms de media, el peor 95.62 ms, 391 de más de 16,7 ms, 5 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 70 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.30 ms por frame (17 muestras, la peor 3.88 ms), espera al refresco 0.04 ms de media
+pasadas juego: 537 en 10 s (577 frames emulados), trabajo 18.33 ms de media, el peor 26.89 ms, 352 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 364 snapshots; audio vacío 0 veces (mínimo 1029 frames)
+  GPU 2.85 ms por frame (18 muestras, la peor 3.79 ms), espera al refresco 0.13 ms de media
+pasadas juego: 376 en 10 s (741 frames emulados), trabajo 26.35 ms de media, el peor 100.21 ms, 281 de más de 16,7 ms, 150 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 724 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.05 ms por frame (12 muestras, la peor 3.84 ms), espera al refresco 0.10 ms de media
+pasadas juego: 553 en 10 s (581 frames emulados), trabajo 16.78 ms de media, el peor 50.43 ms, 283 de más de 16,7 ms, 7 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1025 snapshots; audio vacío 0 veces (mínimo 881 frames)
+  GPU 2.86 ms por frame (19 muestras, la peor 3.63 ms), espera al refresco 1.16 ms de media
+pasadas juego: 504 en 10 s (575 frames emulados), trabajo 19.50 ms de media, el peor 51.66 ms, 383 de más de 16,7 ms, 6 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1324 snapshots; audio vacío 0 veces (mínimo 755 frames)
+  GPU 3.15 ms por frame (17 muestras, la peor 3.84 ms), espera al refresco 0.18 ms de media
+pasadas juego: 493 en 10 s (578 frames emulados), trabajo 20.06 ms de media, el peor 27.73 ms, 413 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1624 snapshots; audio vacío 0 veces (mínimo 1104 frames)
+  GPU 2.88 ms por frame (16 muestras, la peor 3.77 ms), espera al refresco 0.05 ms de media
+pasadas juego: 495 en 10 s (577 frames emulados), trabajo 20.06 ms de media, el peor 27.70 ms, 397 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 1049 frames)
+  GPU 3.11 ms por frame (17 muestras, la peor 3.79 ms), espera al refresco 0.00 ms de media
+pasadas juego: 487 en 10 s (543 frames emulados), trabajo 20.38 ms de media, el peor 31.78 ms, 382 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1770 snapshots; audio vacío 4 veces (mínimo 0 frames)
+  GPU 3.09 ms por frame (16 muestras, la peor 3.75 ms), espera al refresco 0.00 ms de media
+pasadas juego: 534 en 10 s (573 frames emulados), trabajo 18.51 ms de media, el peor 27.63 ms, 330 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 2.94 ms por frame (18 muestras, la peor 3.69 ms), espera al refresco 0.05 ms de media
+pasadas juego: 524 en 10 s (575 frames emulados), trabajo 18.19 ms de media, el peor 52.70 ms, 349 de más de 16,7 ms, 7 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 54 frames)
+  GPU 2.75 ms por frame (17 muestras, la peor 3.82 ms), espera al refresco 0.74 ms de media
+pasadas juego: 497 en 10 s (575 frames emulados), trabajo 19.84 ms de media, el peor 27.36 ms, 429 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 968 frames)
+  GPU 3.12 ms por frame (17 muestras, la peor 3.81 ms), espera al refresco 0.12 ms de media
+pasadas juego: 483 en 10 s (560 frames emulados), trabajo 20.50 ms de media, el peor 31.28 ms, 451 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 3 veces (mínimo 0 frames)
+  GPU 3.12 ms por frame (16 muestras, la peor 3.59 ms), espera al refresco 0.03 ms de media
+pasadas launcher: 444 en 10 s (324 frames emulados), trabajo 18.96 ms de media, el peor 526.77 ms, 301 de más de 16,7 ms, 49 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 7.69 ms por frame (15 muestras, la peor 19.96 ms), espera al refresco 3.26 ms de media
+pasadas juego: 517 en 10 s (501 frames emulados), trabajo 10.14 ms de media, el peor 68.99 ms, 39 de más de 16,7 ms, 36 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 52 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 8.98 ms por frame (17 muestras, la peor 19.96 ms), espera al refresco 8.86 ms de media
+pasadas juego: 551 en 10 s (578 frames emulados), trabajo 17.34 ms de media, el peor 26.39 ms, 334 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 352 snapshots; audio vacío 0 veces (mínimo 22 frames)
+  GPU 2.99 ms por frame (18 muestras, la peor 3.80 ms), espera al refresco 0.65 ms de media
+pasadas juego: 512 en 10 s (572 frames emulados), trabajo 19.24 ms de media, el peor 26.73 ms, 409 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 621 snapshots; audio vacío 0 veces (mínimo 659 frames)
+  GPU 3.13 ms por frame (17 muestras, la peor 3.83 ms), espera al refresco 0.14 ms de media
+pasadas juego: 497 en 10 s (559 frames emulados), trabajo 19.91 ms de media, el peor 31.32 ms, 434 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 804 snapshots; audio vacío 3 veces (mínimo 0 frames)
+  GPU 3.07 ms por frame (17 muestras, la peor 3.83 ms), espera al refresco 0.03 ms de media
+pasadas juego: 507 en 10 s (567 frames emulados), trabajo 19.56 ms de media, el peor 27.20 ms, 412 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1044 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 2.93 ms por frame (17 muestras, la peor 3.79 ms), espera al refresco 0.00 ms de media
+pasadas juego: 530 en 10 s (578 frames emulados), trabajo 18.69 ms de media, el peor 26.85 ms, 348 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1344 snapshots; audio vacío 0 veces (mínimo 991 frames)
+  GPU 3.20 ms por frame (17 muestras, la peor 3.77 ms), espera al refresco 0.00 ms de media
+pasadas juego: 550 en 10 s (579 frames emulados), trabajo 17.96 ms de media, el peor 26.93 ms, 333 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1644 snapshots; audio vacío 0 veces (mínimo 1041 frames)
+  GPU 3.02 ms por frame (19 muestras, la peor 3.67 ms), espera al refresco 0.06 ms de media
+pasadas juego: 549 en 10 s (580 frames emulados), trabajo 17.77 ms de media, el peor 26.11 ms, 334 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 944 frames)
+  GPU 3.11 ms por frame (18 muestras, la peor 3.73 ms), espera al refresco 0.29 ms de media
+pasadas juego: 531 en 10 s (576 frames emulados), trabajo 17.61 ms de media, el peor 51.44 ms, 311 de más de 16,7 ms, 12 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 2.85 ms por frame (18 muestras, la peor 3.80 ms), espera al refresco 1.08 ms de media
+pasadas juego: 519 en 10 s (545 frames emulados), trabajo 17.71 ms de media, el peor 30.02 ms, 271 de más de 16,7 ms, 24 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.40 ms por frame (17 muestras, la peor 3.98 ms), espera al refresco 0.58 ms de media
+pasadas juego: 556 en 10 s (556 frames emulados), trabajo 15.97 ms de media, el peor 26.14 ms, 154 de más de 16,7 ms, 24 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.60 ms por frame (18 muestras, la peor 3.98 ms), espera al refresco 1.11 ms de media
+pasadas juego: 507 en 10 s (560 frames emulados), trabajo 19.47 ms de media, el peor 26.86 ms, 385 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 2.89 ms por frame (17 muestras, la peor 3.77 ms), espera al refresco 0.09 ms de media
+pasadas juego: 530 en 10 s (579 frames emulados), trabajo 18.70 ms de media, el peor 26.49 ms, 338 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 1151 frames)
+  GPU 3.24 ms por frame (18 muestras, la peor 3.82 ms), espera al refresco 0.00 ms de media
+pasadas juego: 503 en 10 s (552 frames emulados), trabajo 19.74 ms de media, el peor 469.06 ms, 330 de más de 16,7 ms, 27 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.03 ms por frame (17 muestras, la peor 3.53 ms), espera al refresco 0.01 ms de media
+pasadas juego: 490 en 10 s (55 frames emulados), trabajo 5.00 ms de media, el peor 332.07 ms, 18 de más de 16,7 ms, 64 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 832 frames)
+  GPU 11.70 ms por frame (16 muestras, la peor 19.96 ms), espera al refresco 15.64 ms de media
+pasadas juego: 255 en 10 s (648 frames emulados), trabajo 38.38 ms de media, el peor 99.93 ms, 100 de más de 16,7 ms, 311 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 146 snapshots; audio vacío 60 veces (mínimo 0 frames)
+  GPU 4.72 ms por frame (9 muestras, la peor 5.96 ms), espera al refresco 0.81 ms de media
+pasadas juego: 393 en 10 s (564 frames emulados), trabajo 25.03 ms de media, el peor 74.03 ms, 280 de más de 16,7 ms, 175 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 446 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 2.96 ms por frame (13 muestras, la peor 3.71 ms), espera al refresco 0.29 ms de media
+pasadas juego: 293 en 10 s (529 frames emulados), trabajo 34.03 ms de media, el peor 46.37 ms, 293 de más de 16,7 ms, 228 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 631 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.26 ms por frame (10 muestras, la peor 3.77 ms), espera al refresco 0.00 ms de media
+pasadas juego: 281 en 10 s (563 frames emulados), trabajo 35.43 ms de media, el peor 119.65 ms, 281 de más de 16,7 ms, 273 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 937 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.33 ms por frame (9 muestras, la peor 3.78 ms), espera al refresco 0.00 ms de media
+pasadas juego: 343 en 10 s (551 frames emulados), trabajo 28.83 ms de media, el peor 45.08 ms, 333 de más de 16,7 ms, 134 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1180 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.13 ms por frame (11 muestras, la peor 3.80 ms), espera al refresco 0.19 ms de media
+pasadas juego: 443 en 10 s (573 frames emulados), trabajo 22.41 ms de media, el peor 29.05 ms, 443 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1480 snapshots; audio vacío 0 veces (mínimo 1025 frames)
+  GPU 2.80 ms por frame (15 muestras, la peor 3.55 ms), espera al refresco 0.01 ms de media
+pasadas juego: 446 en 10 s (568 frames emulados), trabajo 22.20 ms de media, el peor 28.94 ms, 446 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1780 snapshots; audio vacío 0 veces (mínimo 948 frames)
+  GPU 3.25 ms por frame (15 muestras, la peor 3.84 ms), espera al refresco 0.02 ms de media
+pasadas juego: 441 en 10 s (576 frames emulados), trabajo 22.49 ms de media, el peor 28.75 ms, 441 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 900 frames)
+  GPU 2.86 ms por frame (15 muestras, la peor 3.83 ms), espera al refresco 0.02 ms de media
+pasadas juego: 443 en 10 s (576 frames emulados), trabajo 22.44 ms de media, el peor 28.72 ms, 443 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 0 veces (mínimo 898 frames)
+  GPU 3.17 ms por frame (14 muestras, la peor 3.68 ms), espera al refresco 0.00 ms de media
+pasadas juego: 420 en 10 s (541 frames emulados), trabajo 23.65 ms de media, el peor 566.94 ms, 419 de más de 16,7 ms, 32 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1800 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 3.03 ms por frame (14 muestras, la peor 3.81 ms), espera al refresco 0.00 ms de media
+pasadas launcher: 419 en 10 s (281 frames emulados), trabajo 12.70 ms de media, el peor 29.67 ms, 193 de más de 16,7 ms, 51 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 743 frames)
+  GPU 9.18 ms por frame (14 muestras, la peor 19.96 ms), espera al refresco 10.82 ms de media
+pasadas juego: 449 en 10 s (738 frames emulados), trabajo 19.45 ms de media, el peor 358.94 ms, 212 de más de 16,7 ms, 38 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 178 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 5.48 ms por frame (15 muestras, la peor 19.96 ms), espera al refresco 2.59 ms de media
+pasadas juego: 471 en 10 s (575 frames emulados), trabajo 20.19 ms de media, el peor 35.12 ms, 323 de más de 16,7 ms, 15 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 478 snapshots; audio vacío 0 veces (mínimo 1485 frames)
+  GPU 2.72 ms por frame (16 muestras, la peor 3.64 ms), espera al refresco 0.90 ms de media
+pasadas juego: 555 en 10 s (548 frames emulados), trabajo 16.52 ms de media, el peor 28.29 ms, 305 de más de 16,7 ms, 24 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 707 snapshots; audio vacío 2 veces (mínimo 0 frames)
+  GPU 3.67 ms por frame (19 muestras, la peor 3.98 ms), espera al refresco 0.58 ms de media
+pasadas juego: 601 en 10 s (580 frames emulados), trabajo 15.83 ms de media, el peor 23.30 ms, 246 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1007 snapshots; audio vacío 0 veces (mínimo 1252 frames)
+  GPU 3.57 ms por frame (20 muestras, la peor 4.09 ms), espera al refresco 0.65 ms de media
+pasadas juego: 598 en 10 s (578 frames emulados), trabajo 16.06 ms de media, el peor 20.46 ms, 240 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1284 snapshots; audio vacío 0 veces (mínimo 1188 frames)
+  GPU 3.52 ms por frame (20 muestras, la peor 4.10 ms), espera al refresco 0.49 ms de media
+pasadas launcher: 450 en 10 s (513 frames emulados), trabajo 20.15 ms de media, el peor 208.90 ms, 354 de más de 16,7 ms, 39 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 3 veces (mínimo 0 frames)
+  GPU 3.69 ms por frame (15 muestras, la peor 11.97 ms), espera al refresco 1.05 ms de media
+pasadas launcher: 392 en 10 s (0 frames emulados), trabajo 3.73 ms de media, el peor 142.22 ms, 1 de más de 16,7 ms, 84 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 14.27 ms por frame (13 muestras, la peor 19.96 ms), espera al refresco 21.28 ms de media
+pasadas launcher: 277 en 10 s (0 frames emulados), trabajo 10.90 ms de media, el peor 1010.95 ms, 2 de más de 16,7 ms, 172 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 16.63 ms por frame (9 muestras, la peor 17.96 ms), espera al refresco 24.69 ms de media
+pasadas launcher: 340 en 10 s (0 frames emulados), trabajo 3.68 ms de media, el peor 4.07 ms, 0 de más de 16,7 ms, 73 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 0 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 16.32 ms por frame (11 muestras, la peor 17.96 ms), espera al refresco 25.17 ms de media
+pasadas juego: 509 en 10 s (606 frames emulados), trabajo 12.71 ms de media, el peor 353.44 ms, 98 de más de 16,7 ms, 42 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 106 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 7.41 ms por frame (17 muestras, la peor 19.96 ms), espera al refresco 6.66 ms de media
+pasadas menú: 586 en 10 s (199 frames emulados), trabajo 5.97 ms de media, el peor 26.12 ms, 95 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 210 snapshots; audio vacío 0 veces (mínimo 609 frames)
+  GPU 6.66 ms por frame (20 muestras, la peor 9.98 ms), espera al refresco 10.82 ms de media
+pasadas menú: 591 en 10 s (152 frames emulados), trabajo 5.18 ms de media, el peor 69.44 ms, 84 de más de 16,7 ms, 4 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 289 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 6.29 ms por frame (19 muestras, la peor 7.99 ms), espera al refresco 11.51 ms de media
+pasadas menú: 531 en 10 s (413 frames emulados), trabajo 13.27 ms de media, el peor 39.24 ms, 274 de más de 16,7 ms, 1 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 503 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 5.81 ms por frame (18 muestras, la peor 9.98 ms), espera al refresco 5.32 ms de media
+pasadas menú: 582 en 10 s (90 frames emulados), trabajo 3.41 ms de media, el peor 39.91 ms, 71 de más de 16,7 ms, 1 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 550 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 8.79 ms por frame (19 muestras, la peor 13.98 ms), espera al refresco 13.45 ms de media
+pasadas menú: 528 en 10 s (347 frames emulados), trabajo 11.69 ms de media, el peor 40.27 ms, 272 de más de 16,7 ms, 5 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 732 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 9.12 ms por frame (18 muestras, la peor 13.98 ms), espera al refresco 6.90 ms de media
+pasadas menú: 588 en 10 s (0 frames emulados), trabajo 1.19 ms de media, el peor 105.03 ms, 3 de más de 16,7 ms, 10 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 732 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 11.28 ms por frame (20 muestras, la peor 13.98 ms), espera al refresco 15.41 ms de media
+pasadas menú: 581 en 10 s (0 frames emulados), trabajo 1.59 ms de media, el peor 105.31 ms, 9 de más de 16,7 ms, 13 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 732 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 9.88 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 15.28 ms de media
+pasadas menú: 594 en 10 s (0 frames emulados), trabajo 1.46 ms de media, el peor 342.62 ms, 1 de más de 16,7 ms, 19 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 732 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 9.98 ms por frame (20 muestras, la peor 9.98 ms), espera al refresco 15.40 ms de media
+pasadas menú: 547 en 10 s (264 frames emulados), trabajo 8.81 ms de media, el peor 43.68 ms, 207 de más de 16,7 ms, 2 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 869 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 7.08 ms por frame (18 muestras, la peor 9.98 ms), espera al refresco 9.21 ms de media
+pasadas menú: 600 en 10 s (0 frames emulados), trabajo 0.79 ms de media, el peor 1.81 ms, 0 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 869 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 9.98 ms por frame (20 muestras, la peor 9.98 ms), espera al refresco 15.52 ms de media
+pasadas menú: 581 en 10 s (0 frames emulados), trabajo 1.51 ms de media, el peor 327.49 ms, 1 de más de 16,7 ms, 18 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 869 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 9.98 ms por frame (19 muestras, la peor 9.98 ms), espera al refresco 15.36 ms de media
+pasadas menú: 599 en 10 s (0 frames emulados), trabajo 1.52 ms de media, el peor 27.77 ms, 1 de más de 16,7 ms, 0 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 869 snapshots; audio vacío 0 veces (mínimo 0 frames)
+  GPU 9.48 ms por frame (20 muestras, la peor 9.98 ms), espera al refresco 14.83 ms de media
+pasadas launcher: 576 en 10 s (1 frames emulados), trabajo 2.13 ms de media, el peor 319.02 ms, 2 de más de 16,7 ms, 23 refrescos perdidos, espera a la GPU 0.00 ms de media; rewind 1 snapshots; audio vacío 1 veces (mínimo 0 frames)
+  GPU 8.78 ms por frame (20 muestras, la peor 11.97 ms), espera al refresco 14.90 ms de media

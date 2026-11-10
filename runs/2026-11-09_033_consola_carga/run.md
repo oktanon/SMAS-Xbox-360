@@ -14,5 +14,9 @@
      guardado?
   5. Level Select desde el menú: ¿la carga muestra el nivel?
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`; fotos de la pantalla de partidas y de la carga.
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado.
+- **Resultado:** OK. El usuario: archivos, estilos y Save & Quit al launcher funcionan (el log lo dice 4 veces:
+  "left for the All-Stars menu"); probó los filtros en SMB1. Rendimiento justo en SMB2 y SMB3 y en 16:9 (en 4:3
+  bien): trabajo de 17-22 ms por pasada en buena parte del juego, 28-38 ms en un tramo (250-390 pasadas en 10 s); la
+  GPU, 3 ms por frame. Salida de vídeo a 1080p esta vez. El log no dice qué juego ni qué aspecto: lo agrega la 0034.
+- **Logs:** `smas_port.log`, `SuperMarioAllStars.log` (los `0xC0000034`/`0xC000003A` son covers que no existen).
+- **Siguiente:** cerrar el hito 7; hito 8 (tarea 0034, run 034).

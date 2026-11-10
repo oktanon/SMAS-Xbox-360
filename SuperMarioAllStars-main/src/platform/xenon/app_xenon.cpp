@@ -188,7 +188,7 @@ void App::run() {
   int wideAspect = kAspectAuto;  // (the widescreen the right stick goes back to)
   int quitHeld = 0;
   // (the log's 10 s: passes, their work without the waits, the worst, the refreshes missed)
-  uint64_t workUs = 0, worstUs = 0, gpuUs = 0, statsAt = nowUs(), lastShown = 0;
+  uint64_t workUs = 0, worstUs = 0, gpuUs = 0, statsAt = nowUs(), lastShown = 0, renderUs = 0;
   uint32_t passes = 0, missed = 0, over = 0, emulated = 0;
   uint64_t frameGpuUs = 0, vsyncUs = 0, frameGpuWorst = 0;  // (Video::Stats' GPU samples; waits for the refresh)
   uint32_t gpuSamples = 0;
@@ -279,8 +279,10 @@ void App::run() {
     // (the launcher: one frame a pass at most. Catching up three made a slow pass slower: 53 ms a pass with the four
     // cards, run 024; behind, the previews run slower instead)
     frame(dt, inLauncher ? std::min(frames, 1) : frames);
+    const uint64_t tRender = nowUs();
     render();
     const uint64_t t1 = nowUs();
+    renderUs += t1 - tRender;
     video.present();
     const uint64_t shown = nowUs();
     const Video::Stats vs = video.takeStats();
@@ -311,6 +313,19 @@ void App::run() {
       statsf("  GPU %.2f ms por frame (%u muestras, la peor %.2f ms), espera al refresco %.2f ms de media",
              gpuSamples ? frameGpuUs / 1000.0 / gpuSamples : 0.0, (unsigned)gpuSamples, frameGpuWorst / 1000.0,
              passes ? vsyncUs / 1000.0 / passes : 0.0);
+      // (hito 8: what the game passes did, see App::prof)
+      if (prof.frames) {
+        static const char* const kFilters[] = {"Nearest", "Sharp", "Bilinear", "CRT Scanlines", "CRT Aperture", "LCD"};
+        const int f = cfg.filter;
+        statsf("  %s, %d px de más (%s), co-op %s, filtro %s, rewind %s: emulación %.2f ms por frame (%u, %u "
+               "dibujados), snapshot del rewind %.2f ms (%u), interfaz y vídeo %.2f ms por pasada",
+               SmasGame::gameName(prof.game), prof.ext, prof.ext ? "16:9" : "4:3", cfg.coop ? "sí" : "no",
+               f >= 0 && f < 6 ? kFilters[f] : "otro", cfg.rewind ? "sí" : "no", prof.emuUs / 1000.0 / prof.frames,
+               (unsigned)prof.frames, (unsigned)prof.drawn, prof.states ? prof.stateUs / 1000.0 / prof.states : 0.0,
+               (unsigned)prof.states, passes ? renderUs / 1000.0 / passes : 0.0);
+      }
+      prof = Prof();
+      renderUs = 0;
       frameGpuUs = vsyncUs = frameGpuWorst = 0;
       gpuSamples = 0;
       statsAt = shown;

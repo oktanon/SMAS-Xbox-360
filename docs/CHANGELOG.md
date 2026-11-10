@@ -82,3 +82,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0033 (2026-11-09) — Run 032 OK (archivos y states; menú de pausa ya a 56 fps). Save & Quit del juego vuelve al
   launcher. Pantalla de partidas con el estilo de los menús. Arranques desde la foto del título (~415 frames en vez
   de ~770) sin dibujar, con una pantalla de carga con el juego y el mundo. Pendiente de consola (run 033).
+- 0034 (2026-11-10) — Run 033 OK: hito 7 cerrado (escritura atómica, Guía y dashboard pasan al hito 10). Hito 8: el
+  log de la consola dice el juego, el aspecto y cuánto tarda la emulación, el rewind y la interfaz.

@@ -232,6 +232,15 @@ struct App {
   // (frame). gameSeen: that game has been running since the launch; menuPasses: how long the menu has been back.
   bool gameSeen = false;
   int menuPasses = 0;
+  // Where a game pass's time goes, for the console's log every 10 s (app_xenon.cpp; hito 8): the emulated frames
+  // (the CPU, the PPU and the games' hooks; `drawn` of them drawn), the rewind's snapshots (taken on this thread),
+  // the widest the picture got and the game last played.
+  struct Prof {
+    uint64_t emuUs = 0, stateUs = 0;
+    uint32_t frames = 0, drawn = 0, states = 0;
+    int ext = 0;
+    GameId game = GameId::Menu;
+  } prof;
 #else
   void launchGame(GameId g);
 #endif

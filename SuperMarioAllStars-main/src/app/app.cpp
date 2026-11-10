@@ -2236,9 +2236,22 @@ void App::frame(double dt, int gameFrames) {
 #else
       snes->ppu.skipRender = !loading && i < runs - 1;
 #endif
+#ifdef SMAS_XENON
+      const auto emuAt = std::chrono::steady_clock::now();
+#endif
       game->beforeFrame();
       snes->runFrame();
       game->afterFrame();
+#ifdef SMAS_XENON
+      if (!loading) {  // (the console's log, see prof)
+        prof.emuUs += (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+                          std::chrono::steady_clock::now() - emuAt).count();
+        prof.frames++;
+        if (!snes->ppu.skipRender) prof.drawn++;
+        prof.ext = std::max(prof.ext, snes->ppu.extL + snes->ppu.extR);
+        prof.game = game->current();
+      }
+#endif
       if (game->coopPick >= 0) {  // (a title screen's co-op choice: the setting follows)
         cfg.coop = game->coopPick != 0;
         game->coopPick = -1;
@@ -2250,8 +2263,18 @@ void App::frame(double dt, int gameFrames) {
       if (!mute) audio.push(audioBuf.data(), audioBuf.size() / 2, Snes::kSampleRate);
       fpsFrames++;
       if (pendingSave >= 0 && !game->coopMidTurn()) saveState(pendingSave);
+#ifdef SMAS_XENON
+      if (cfg.rewind && !achLocked() && !loading && !game->coopMidTurn() && (++rewindCount & 1) == 0) {
+        const auto stateAt = std::chrono::steady_clock::now();
+        rewind.push(snes->saveState());
+        prof.stateUs += (uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+                            std::chrono::steady_clock::now() - stateAt).count();
+        prof.states++;
+      }
+#else
       if (cfg.rewind && !achLocked() && !loading && !game->coopMidTurn() && (++rewindCount & 1) == 0)
         rewind.push(snes->saveState());
+#endif
     }
     snes->ppu.skipRender = false;
 #ifdef SMAS_XENON
