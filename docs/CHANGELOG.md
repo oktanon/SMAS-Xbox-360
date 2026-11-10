@@ -88,3 +88,4 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   El CRC de los states 8 bytes a la vez (mismo resultado): `saveState` de 1,6 a 0,38 ms en x86. Run 035.
 - 0036 (2026-11-10) — Run 035: snapshot del rewind a 1,3 ms; SMB1 y Lost Levels casi a 60 en 16:9. Fallo: un archivo
   de SMB1 elegido entra en otro (no se reproduce en x86). El log dice qué archivo recibió el cartucho. Run 036.
+- 0037 (2026-11-10) — El fallo de los archivos de SMB1 queda pospuesto y anotado en el hito 10; run 036 sin correr.

@@ -10,5 +10,5 @@
   2. Anotar si el co-op estaba activado (Options) y si se eligió algo en la pantalla de título de SMB1.
   3. Una foto de la pantalla de partidas antes de elegir.
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log` (las líneas `launch:`), las fotos, la carpeta `saves`.
-- **Resultado:** pendiente.
-- **Siguiente:** según el resultado.
+- **Resultado:** pospuesta por el usuario (2026-11-10); no se corrió.
+- **Siguiente:** retomar cuando se vuelva al fallo (anotado en `ROADMAP.md`, hito 10).
