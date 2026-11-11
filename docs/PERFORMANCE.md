@@ -279,3 +279,11 @@ lenta (allí los saltos casi no cuestan); la consola lo decide en la run 040 y, 
   cadenas dependientes.
 - **Sospecha nueva (tarea 0042):** el hilo del rewind (hilo hardware 1) comparte núcleo con el de la emulación
   (el 0). El log dice ahora cuánto trabaja, y la run 041 compara un nivel con el rewind activado y desactivado.
+
+## 11. La APU en su propio hilo (tarea 0043, run 042)
+
+- **Run 041:** el hilo del rewind (110 ms de trabajo por segundo en el hilo hardware 1) solo le quita ~0,3 ms por
+  frame a la emulación, que va en el mismo núcleo: un hilo ahí sale barato.
+- **`SMAS_APU_THREAD`:** la APU corre en el hilo hardware 1, hasta el tiempo que la CPU publica en cada línea;
+  en los puertos y al final del frame, la CPU espera a que llegue. Mismos resultados con hilo y sin él (los dos
+  guiones, el audio incluido). La consola dirá cuánto baja "CPU, APU y juegos".

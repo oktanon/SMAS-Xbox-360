@@ -225,6 +225,9 @@ void Smb3Engine::coopTick() {
     // (its clock kept: going on from now, not catching up 3 s at once; its
     // ports as it had seen them, or the one still holding the tune plays it
     // again)
+#ifdef SMAS_APU_THREAD
+    snes_.apuSyncNow();  // (task 0043: the APU up to now and standing still, on its thread too)
+#endif
     const uint64_t now = snes_.apu.cycles();
     if (!apuSnap_.empty() && snes_.apu.loadState(apuSnap_.data(), apuSnap_.size())) {
       snes_.apu.setCycles(now);
@@ -443,7 +446,14 @@ bool Smb3Engine::coopExec() {
       coopSwapRoles();
     if (ram(0x00BF) != 0) return false;
     if (ram(0x1206) != 0x09) lastTrack_ = ram(0x1206);
+#ifdef SMAS_APU_THREAD
+    if (ram(0x1206) != 0x09 && ram(0x1202) == 0 && musicBack_ == 0) {
+      snes_.apuSyncNow();  // (task 0043: the APU up to now and standing still, on its thread too)
+      lastApu_ = snes_.apu.saveState();
+    }
+#else
     if (ram(0x1206) != 0x09 && ram(0x1202) == 0 && musicBack_ == 0) lastApu_ = snes_.apu.saveState();
+#endif
     if (p2Valid_ && p2Area_ != areaStamp_ && p2Dead_ >= 0) {  // (dying as Mario went on: out)
       p2Dead_ = -1;
       p2Wait_ = true;

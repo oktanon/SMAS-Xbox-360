@@ -267,6 +267,16 @@ static void execLine(const std::string& line) {
 #else
     printf("render threads: needs SMAS_PPU_FAST\n");
 #endif
+  } else if (cmd == "apuhilo") {
+    // apuhilo 0|1: the APU on a thread of its own (task 0043; needs SMAS_APU_THREAD)
+    int n = 1;
+    ss >> n;
+#ifdef SMAS_APU_THREAD
+    s.setApuThread(n != 0);
+    printf("apu thread: %d\n", s.apuThread() ? 1 : 0);
+#else
+    printf("apu thread: needs SMAS_APU_THREAD\n");
+#endif
   } else if (cmd == "hooktasks") {
     // hooktasks 0|1: the games' tile hooks on any render thread (1, the default) or only on this one (task 0038)
     int n = 1;

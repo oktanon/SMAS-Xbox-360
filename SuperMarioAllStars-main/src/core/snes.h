@@ -23,6 +23,20 @@ public:
   void reset(bool hard);
   // Emulate until the start of the next vertical blank.
   void runFrame();
+#ifdef SMAS_APU_THREAD
+  // xenon port (task 0043): the APU on a thread of its own. It runs up to a target the CPU moves on at each line,
+  // so it trails by a line at most; at a port access and at the frame's end the CPU sets the target to its own
+  // time and waits for it, as runTo did on this thread, so the APU runs the same instructions with the same
+  // ports. Anything that touches the APU from outside (states, reset, the audio, the co-op's hooks) waits for it
+  // to stand still first. Off by default.
+  ~Snes();
+  void setApuThread(bool on);
+  bool apuThread() const { return apuW_ != nullptr; }
+  // The APU brought up to the CPU's time, standing still: the co-op's hooks call it before they read or replace
+  // the APU's state mid-frame (with the thread, where it stands between syncs isn't fixed).
+  void apuSyncNow() { syncApu(); }
+  static void (*apuThreadStart)();  // (called first on the thread: the platform places it)
+#endif
 
   // CPU bus interface
 #ifdef SMAS_CPU_FAST
@@ -255,5 +269,11 @@ private:
   void hdmaInit();
   int hdmaRun();
   void syncApu();
+#ifdef SMAS_APU_THREAD
+  struct ApuWorker;
+  ApuWorker* apuW_ = nullptr;
+  void apuQuiesce() const;  // (the thread standing still at its target, if there is one)
+  void apuLetRun();         // (the thread may run up to the CPU's time now, while the CPU goes on)
+#endif
   bool execCheck(uint32_t pc);
 };

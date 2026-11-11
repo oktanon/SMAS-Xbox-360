@@ -21,8 +21,9 @@ sources=(
 )
 # -ffp-contract=off: GCC en PowerPC funde a*b+c en fmadd y x86 no; sin esto la comparación se ensucia.
 # SMAS_PPU_FAST: la PPU rápida del port (docs/PERFORMANCE.md §3.1), la misma que lleva el .xex; SMAS_PORT_FIXES: las
-# correcciones de fallos de upstream (docs/UPSTREAM.md); SMAS_CPU_FAST: las lecturas de la CPU por páginas (tarea 0039)
-flags=(-std=c++17 -O2 -ffp-contract=off -fno-strict-aliasing -DSMAS_PPU_FAST -DSMAS_CPU_FAST -DSMAS_PORT_FIXES -I"$game/src")
+# correcciones de fallos de upstream (docs/UPSTREAM.md); SMAS_CPU_FAST: las lecturas de la CPU por páginas (tarea 0039);
+# SMAS_APU_THREAD: la APU en su hilo, si el guion lo pide con apuhilo 1 (tarea 0043)
+flags=(-std=c++17 -O2 -ffp-contract=off -fno-strict-aliasing -DSMAS_PPU_FAST -DSMAS_CPU_FAST -DSMAS_APU_THREAD -DSMAS_PORT_FIXES -I"$game/src")
 
 stamp="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo sin-git)"
 if ! git -C "$root" diff --quiet HEAD -- "$game/src" "$game/tools" 2>/dev/null; then stamp="$stamp+cambios"; fi

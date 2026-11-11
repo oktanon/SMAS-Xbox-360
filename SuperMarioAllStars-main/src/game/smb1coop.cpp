@@ -1670,6 +1670,9 @@ bool Smb1Engine::coopExec(uint32_t pc) {
       return false;
     }
     if (coop_ && musicBack_ == 0 && w[0x1602] == 0 && w[0x1606] != 0x09) {
+#ifdef SMAS_APU_THREAD
+      snes_.apuSyncNow();  // (task 0043: the APU up to now and standing still, on its thread too)
+#endif
       lastApu_ = snes_.apu.saveState();
       lastTrack_ = w[0x1606];
     }
@@ -1696,6 +1699,9 @@ bool Smb1Engine::coopExec(uint32_t pc) {
     // the game never waits on the chip, only clears a stale echo).
     // Else the area's music again, from the game's routine.
     if (back && !apuSnap_.empty() && w[0x1606] == 0x09 && musicTrack_ != 0x09) {
+#ifdef SMAS_APU_THREAD
+      snes_.apuSyncNow();  // (task 0043: the APU up to now and standing still, on its thread too)
+#endif
       const uint64_t now = snes_.apu.cycles();
       if (snes_.apu.loadState(apuSnap_.data(), apuSnap_.size())) {
         snes_.apu.setCycles(now);

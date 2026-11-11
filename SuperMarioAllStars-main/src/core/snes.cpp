@@ -3,6 +3,10 @@
 #include "statefix.h"
 #include <algorithm>
 #include <cstring>
+#ifdef SMAS_APU_THREAD
+#include <atomic>
+#include <thread>
+#endif
 
 namespace {
 const uint8_t kDmaOffs[8][4] = {{0, 0, 0, 0}, {0, 1, 0, 1}, {0, 0, 0, 0}, {0, 0, 1, 1},
@@ -51,6 +55,9 @@ bool Snes::execCheck(uint32_t pc) {
 }
 
 void Snes::reset(bool hard) {
+#ifdef SMAS_APU_THREAD
+  apuQuiesce();
+#endif
   if (msu) msu->reset();
   if (hard) {
     std::memset(wram, 0x55, sizeof(wram));
@@ -167,6 +174,10 @@ void Snes::checkIrq() {
 }
 
 void Snes::newLine() {
+#ifdef SMAS_APU_THREAD
+  // (the APU's thread may run up to here, the line's start, while this one goes on)
+  apuLetRun();
+#endif
   hPos_ = 0;
   vPos_++;
   int vblankLine = ppu.overscan() ? 240 : kVblankLine;
@@ -200,8 +211,133 @@ void Snes::vblankStart() {
   }
 }
 
+#ifdef SMAS_APU_THREAD
+// The APU's thread (task 0043). Only the emulation's thread sets the target; the APU's thread runs the APU to each
+// new target and then says so in `done`. A target lower than the last (a state loaded) is taken as it is: runTo
+// does nothing then. The 64-bit target goes as two 32-bit halves under a sequence count (a seqlock: odd while it
+// is written), all 32-bit atomics: 32-bit PowerPC has no 64-bit ones, and the toolchains would call out for them. While nothing is asked of it, it waits at a low SMT priority (the console's hardware thread
+// it shares a core with gets the issue slots), letting other threads in now and then.
+void (*Snes::apuThreadStart)() = nullptr;
+
+struct Snes::ApuWorker {
+  Apu* apu = nullptr;
+  alignas(128) std::atomic<uint32_t> seq{0};  // (even: the target below is whole; the emulation's thread writes it)
+  std::atomic<uint32_t> targetHi{0}, targetLo{0};
+  alignas(128) std::atomic<uint32_t> done{0};  // (the last sequence number the APU was run for)
+  alignas(128) std::atomic<bool> quit{false};
+
+  // The emulation's thread: a new target.
+  void setTarget(uint64_t t) {
+    const uint32_t n = seq.load(std::memory_order_relaxed);
+    seq.store(n + 1, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_release);
+    targetHi.store(uint32_t(t >> 32), std::memory_order_relaxed);
+    targetLo.store(uint32_t(t), std::memory_order_relaxed);
+    seq.store(n + 2, std::memory_order_release);
+  }
+  // The APU's thread: the target and its sequence number, read whole.
+  uint32_t getTarget(uint64_t* t) const {
+    for (;;) {
+      const uint32_t a = seq.load(std::memory_order_acquire);
+      if (a & 1) continue;
+      const uint64_t v = uint64_t(targetHi.load(std::memory_order_relaxed)) << 32 | targetLo.load(std::memory_order_relaxed);
+      std::atomic_thread_fence(std::memory_order_acquire);
+      if (seq.load(std::memory_order_relaxed) == a) {
+        *t = v;
+        return a;
+      }
+    }
+  }
+  std::thread thread;
+
+  // (PowerPC SMT priority: `or 1,1,1` low, `or 2,2,2` back to normal; a thread that only waits gives the other
+  // hardware thread of its core the issue slots)
+  static void prioLow() {
+#if defined(__powerpc__) || defined(__PPC__)
+    __asm__ volatile("or 1,1,1" ::: "memory");
+#endif
+  }
+  static void prioNormal() {
+#if defined(__powerpc__) || defined(__PPC__)
+    __asm__ volatile("or 2,2,2" ::: "memory");
+#endif
+  }
+  static void relax() {
+#if defined(__i386__) || defined(__x86_64__)
+    __builtin_ia32_pause();
+#endif
+  }
+  void run() {
+    if (apuThreadStart) apuThreadStart();
+    unsigned idle = 0;
+    bool low = false;
+    while (!quit.load(std::memory_order_acquire)) {
+      if (done.load(std::memory_order_relaxed) != seq.load(std::memory_order_acquire)) {
+        uint64_t t;
+        const uint32_t n = getTarget(&t);
+        if (low) prioNormal();
+        low = false;
+        apu->runTo(t);
+        done.store(n, std::memory_order_release);
+        idle = 0;
+        continue;
+      }
+      if (!low) prioLow();
+      low = true;
+      relax();
+      if (++idle > (1u << 16)) {
+        std::this_thread::yield();
+        idle = 0;
+      }
+    }
+    if (low) prioNormal();
+  }
+  // The emulation's thread: till the APU has been run to the last target it set.
+  void wait() const {
+    const uint32_t n = seq.load(std::memory_order_relaxed);
+    if (done.load(std::memory_order_acquire) == n) return;
+    prioLow();
+    while (done.load(std::memory_order_acquire) != n) relax();
+    prioNormal();
+  }
+};
+
+Snes::~Snes() { setApuThread(false); }
+
+void Snes::setApuThread(bool on) {
+  if (on == (apuW_ != nullptr)) return;
+  if (apuW_) {
+    apuW_->wait();
+    apuW_->quit.store(true, std::memory_order_release);
+    apuW_->thread.join();
+    delete apuW_;
+    apuW_ = nullptr;
+    return;
+  }
+  apuW_ = new ApuWorker();
+  apuW_->apu = &apu;
+  ApuWorker* w = apuW_;
+  w->thread = std::thread([w] { w->run(); });
+}
+
+void Snes::apuQuiesce() const {
+  if (apuW_) apuW_->wait();
+}
+
+void Snes::apuLetRun() {
+  if (apuW_) apuW_->setTarget((cycles_ * 15664ull) / 328125ull);
+}
+#endif
+
 void Snes::syncApu() {
   uint64_t target = (cycles_ * 15664ull) / 328125ull;
+#ifdef SMAS_APU_THREAD
+  if (apuW_) {
+    apuW_->setTarget(target);
+    apuW_->wait();
+    return;
+  }
+#endif
   apu.runTo(target);
 }
 
@@ -236,6 +372,9 @@ void Snes::stepInstruction() {
 }
 
 void Snes::takeAudio(std::vector<int16_t>& out) {
+#ifdef SMAS_APU_THREAD
+  apuQuiesce();
+#endif
   const size_t at = out.size();
   out.insert(out.end(), apu.samples.begin(), apu.samples.end());
   apu.samples.clear();
@@ -799,6 +938,9 @@ struct Reader {
 }  // namespace
 
 std::vector<uint8_t> Snes::saveState() const {
+#ifdef SMAS_APU_THREAD
+  apuQuiesce();
+#endif
   std::vector<uint8_t> out;
 #ifdef SMAS_XENON
   out.reserve(320 * 1024);  // (a state is ~280 KB: grown a piece at a time, it was copied over and over)
@@ -873,6 +1015,9 @@ bool Snes::loadState(const std::vector<uint8_t>& data) {
 }
 
 bool Snes::loadStateRaw(const std::vector<uint8_t>& data) {
+#ifdef SMAS_APU_THREAD
+  apuQuiesce();
+#endif
   Reader r{data.data(), data.data() + data.size()};
   uint32_t magic = 0, ver = 0;
   r.v(magic);

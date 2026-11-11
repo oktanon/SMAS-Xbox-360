@@ -130,8 +130,8 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SuperMarioAllStars-main && python3 ../vulka
 ```
 
 El núcleo se compila en Xbox con `-O3 -ffp-contract=off -fno-strict-aliasing` (la comparación en qemu, con `-O2`; los
-resultados son los mismos, runs 010 y 012) y con `SMAS_XENON`, `SMAS_BIG_ENDIAN`, `SMAS_PPU_FAST`, `SMAS_CPU_FAST` y
-`SMAS_PORT_FIXES` definidos. El paquete de cada run de consola se arma
+resultados son los mismos, runs 010 y 012) y con `SMAS_XENON`, `SMAS_BIG_ENDIAN`, `SMAS_PPU_FAST`, `SMAS_CPU_FAST`,
+`SMAS_APU_THREAD` y `SMAS_PORT_FIXES` definidos. El paquete de cada run de consola se arma
 en `build-xenon/consola/<hito>/`; para Xenia, una copia en `build-xenon/xenia/<hito>/` (Xenia escribe junto al
 `.xex`).
 
@@ -258,9 +258,10 @@ Puntos de riesgo que hay que tratar explícitamente:
   - Cambios en código común solo dentro de `#if`, con el original en el `#else`. `SMAS_BIG_ENDIAN` para correcciones
     de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`);
     `SMAS_PPU_FAST` para la PPU rápida y en hilos (`docs/PERFORMANCE.md` §3.1 y §3.3); `SMAS_CPU_FAST` para las
-    lecturas de la CPU por páginas (`docs/PERFORMANCE.md` §8); `SMAS_PORT_FIXES` para
+    lecturas de la CPU por páginas (`docs/PERFORMANCE.md` §8); `SMAS_APU_THREAD` para la APU en su hilo (§11);
+    `SMAS_PORT_FIXES` para
     corregir fallos de upstream (cada uno anotado en `docs/UPSTREAM.md`, para reportarlo). `SMAS_PPU_FAST`,
-    `SMAS_CPU_FAST` y `SMAS_PORT_FIXES` valen en qemu y en el `.xex`.
+    `SMAS_CPU_FAST`, `SMAS_APU_THREAD` y `SMAS_PORT_FIXES` valen en qemu y en el `.xex`.
   - Los sanitizers de GCC en WSL (`-fsanitize=thread` con `threads N`, `-fsanitize=address,undefined`) se pasan
     después de tocar los hilos o código delicado; lo que encuentren en upstream va a `docs/UPSTREAM.md`.
   - Un `bswap` solo compila en big-endian (`__BYTE_ORDER__`): uno que corre en cualquier host rompe los datos de la

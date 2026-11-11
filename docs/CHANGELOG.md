@@ -104,3 +104,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   del rewind, que comparte núcleo con la emulación. Run 041 (rewind activado y desactivado).
 - 0043 (2026-11-10) — README.md en la raíz: qué es el port, cómo se construyó, estado, build, instalación en la
   consola, controles, índice de documentos.
+- 0043 (2026-11-11) — Run 041: el hilo del rewind apenas le quita tiempo a la emulación. La APU en su propio hilo
+  (`SMAS_APU_THREAD`, hilo hardware 1), con los mismos resultados con hilo y sin él. Run 042.
