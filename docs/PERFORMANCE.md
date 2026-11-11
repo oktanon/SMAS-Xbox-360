@@ -262,3 +262,15 @@ en 4:3, 0,4 ms en 16:9). La GPU, ~3 ms por frame (run 033): no frena.
   `composePixels` es casi la mitad de la PPU.
 - La tarea 0040 reparte la composición a partes iguales (antes, 160 + 160 + 78 px en 16:9) y se salta la pantalla
   secundaria donde no hay color math. El log da la PPU por fases para elegir lo siguiente (run 039).
+
+## 10. La PPU por fases en la consola (run 039) y la composición sin saltos (tarea 0041)
+
+En 16:9, por frame dibujado, en el hilo de la emulación:
+- las capas: 3,4-4,3 ms de trabajo propio más ~1 ms de espera;
+- la composición: 2,1-3,3 ms más ~0,6 de espera;
+- lo demás (los ganchos de línea, lo que va en serie, el final): menos de 1 ms.
+
+La composición sale a unos 300 ciclos por píxel. La tarea 0041 la escribe sin saltos que dependan del píxel: el
+mínimo de rangos con aritmética, las ventanas como máscaras, el color math con máscaras, el bucle de capas
+desenrollado. En el ensamblador del `.xex`, de 187 a 110 saltos en la función, ninguno indirecto. En x86 va más
+lenta (allí los saltos casi no cuestan); la consola lo decide en la run 040 y, si no baja, se revierte.

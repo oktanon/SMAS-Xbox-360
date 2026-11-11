@@ -97,3 +97,6 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0040 (2026-11-10) — Run 038: mejora en SMB3 y en el co-op (16:9: de 301-358 a 442-571 frames de 600). La
   composición repartida a partes iguales, sin pantalla secundaria donde no hay color math; el log da la PPU por
   fases. Run 039.
+- 0041 (2026-11-10) — Run 039: la PPU por fases; la composición sale a ~300 ciclos por píxel en la consola. La
+  composición sin saltos por píxel (rangos con aritmética, ventanas y color math con máscaras), exacta frame a
+  frame; más lenta en x86, la consola decide (run 040).
