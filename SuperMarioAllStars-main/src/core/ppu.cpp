@@ -1479,6 +1479,20 @@ void Ppu::composePixels(uint32_t* fb, int x0, int x1) {
     if (tm_ & (1 << l)) mainRank[l][list[k].pri & 7] = (uint8_t)k;
     if (useSub && (ts_ & (1 << l))) subRank[l][list[k].pri & 7] = (uint8_t)k;
   }
+  // the layers that can show at all, with their pixels and, where the window hides them, their window masks
+  struct Lay {
+    const Px* px;
+    const uint8_t* win;  // null where the window doesn't hide it on that screen
+    const uint8_t* rank;
+  };
+  Lay mainLay[5], subLay[5];
+  int nMain = 0, nSub = 0;
+  for (int l = 0; l < 5; l++) {
+    if (tm_ & (1 << l)) mainLay[nMain++] = {layer_[l] + kMaxExt, (tmw_ & (1 << l)) ? winMask_[l] + kMaxExt : nullptr, mainRank[l]};
+    if (useSub && (ts_ & (1 << l)))
+      subLay[nSub++] = {layer_[l] + kMaxExt, (tsw_ & (1 << l)) ? winMask_[l] + kMaxExt : nullptr, subRank[l]};
+  }
+
   const uint16_t fixed = fixedR_ | (fixedG_ << 5) | (fixedB_ << 10);
   const int clipMode = cgwsel_ >> 6;
   const int mathMode = (cgwsel_ >> 4) & 3;
@@ -1488,116 +1502,81 @@ void Ppu::composePixels(uint32_t* fb, int x0, int x1) {
   const uint8_t* colWin = winMask_[5] + kMaxExt;
   const uint16_t backdrop = cgram[0];
   // clip and math by the colour window (index: the pixel is inside it)
-  const int clipTab[2] = {clipMode == 3 || clipMode == 1, clipMode == 3 || clipMode == 2};
-  const int mathTab[2] = {mathMode == 0 || mathMode == 2, mathMode == 0 || mathMode == 1};
+  const bool clipTab[2] = {clipMode == 3 || clipMode == 1, clipMode == 3 || clipMode == 2};
+  const bool mathTab[2] = {mathMode == 0 || mathMode == 2, mathMode == 0 || mathMode == 1};
+  // colour math by the main pixel's layer (BG1-4, the backdrop; OBJ also asks for palettes 4-7)
+  bool layerMathTab[6];
+  for (int i = 0; i < 6; i++) layerMathTab[i] = cgadsub_ & (1 << i);
+  const bool objMath = cgadsub_ & 0x10;
   // (task 0040: the sub screen only feeds the colour math; on a line where no layer asks for math, or math is
   // never on, its pixel is never used, so it isn't looked for)
-  const bool mathAny = mathMode != 3 && (cgadsub_ & 0x3f);
-  const bool subOn = useSub && mathAny;
+  if (mathMode == 3 || !(cgadsub_ & 0x3f)) nSub = 0;
 
-  // xenon port (task 0041): each pixel without a branch that depends on it (a mispredicted branch costs the
-  // console's in-order core ~20 cycles, and the composition took ~300 cycles a pixel there, run 039). The layers
-  // on each screen are looked at, the same number for every pixel of the line; one its window doesn't hide reads a
-  // mask of zeros. Choices are made with masks, saturation with arithmetic; the margins' dimming by stretch.
-  static const uint8_t kNoWin[kLineW] = {};
-  const Px* lp[6];  // (the main pixel's layer; 5, the backdrop, reads BG1's and masks it out)
-  for (int l = 0; l < 5; l++) lp[l] = layer_[l] + kMaxExt;
-  lp[5] = layer_[0] + kMaxExt;
-  struct Lay {
-    const Px* px;
-    const uint8_t* win;
-    const uint8_t* rank;
-  };
-  Lay mainLay[5], subLay[5];
-  int nMain = 0, nSub = 0;
-  for (int l = 0; l < 5; l++) {
-    if (tm_ & (1 << l))
-      mainLay[nMain++] = {lp[l], (tmw_ & (1 << l)) ? winMask_[l] + kMaxExt : kNoWin + kMaxExt, mainRank[l]};
-    if (subOn && (ts_ & (1 << l)))
-      subLay[nSub++] = {lp[l], (tsw_ & (1 << l)) ? winMask_[l] + kMaxExt : kNoWin + kMaxExt, subRank[l]};
-  }
-  uint8_t rankOf[256];  // (rank -> layer; kNone -> 5)
-  std::memset(rankOf, 5, sizeof rankOf);
-  for (int k = 0; k < n; k++) rankOf[k] = rankLayer[k];
-  // colour math by the main pixel's layer and palette (BG1-4 and the backdrop by layer; OBJ for palettes 4-7)
-  uint8_t layerMath[6][8];
-  for (int l = 0; l < 6; l++)
-    for (int pal = 0; pal < 8; pal++)
-      layerMath[l][pal] = l == 4 ? ((cgadsub_ & 0x10) && pal >= 4) : ((cgadsub_ >> l) & 1);
-
-  // (unrolled: the loop's exit, pixel after pixel, was a branch to miss)
-  auto bestOf = [&](const Lay* lay, int count, int x) __attribute__((always_inline)) {
-    int best = kNone;
-    auto take = [&](int i) __attribute__((always_inline)) {
-      const Lay& ly = lay[i];
-      const int r = ly.rank[ly.px[x].pri & 7] | ((0 - (int)ly.win[x]) & 0xff);
-      const int d = r - best;
-      best += d & (d >> 31);
-    };
-    // (a test per layer, each the same all line, rather than a switch: a jump table is an indirect branch)
-    if (count > 0) take(0);
-    if (count > 1) take(1);
-    if (count > 2) take(2);
-    if (count > 3) take(3);
-    if (count > 4) take(4);
-    return best;
-  };
-  for (int seg = 0; seg < 3; seg++) {  // (the left margin, the 4:3 part, the right margin: each its dimming)
-    const int sa = seg == 0 ? x0 : seg == 1 ? std::max(x0, 0) : std::max(x0, 256);
-    const int se = seg == 0 ? std::min(x1, 0) : seg == 1 ? std::min(x1, 256) : x1;
-    const int dim = seg == 0 ? dimLeft : seg == 1 ? 0 : dimRight;
-    for (int x = sa; x < se; x++) {
-      const int best = bestOf(mainLay, nMain, x);
-      const int mainL = rankOf[best];
-      const Px& mp = lp[mainL][x];
-      const uint32_t bd = 0u - (uint32_t)((best + 1) >> 8);  // (all ones: no layer, the backdrop)
-      const uint32_t mainC = (mp.col & ~bd) | (backdrop & bd);
-      const int mainPal = mp.pal & ~bd & 7;
-      const int cw = colWin[x];
-      const int clipM = -clipTab[cw];
-      int r = mainC & 31 & ~clipM, g = (mainC >> 5) & 31 & ~clipM, b = (mainC >> 10) & 31 & ~clipM;
-      if (mathAny) {
-        int subL = 5;
-        uint32_t subC = fixed;
-        if (subOn) {
-          const int sbest = bestOf(subLay, nSub, x);
-          subL = rankOf[sbest];
-          const uint32_t sbd = 0u - (uint32_t)((sbest + 1) >> 8);
-          subC = (lp[subL][x].col & ~sbd) | (fixed & sbd);
-        }
-        const int doM = -(mathTab[cw] & layerMath[mainL][mainPal]);
-        const int half = halfFlag & (clipTab[cw] ^ 1) & ((useSub & (subL == 5)) ^ 1);
-        const int sr = subC & 31, sg = (subC >> 5) & 31, sb = (subC >> 10) & 31;
-        int mr, mg, mb;
-        if (subtract) {
-          mr = r - sr;
-          mg = g - sg;
-          mb = b - sb;
-          mr = (mr & ~(mr >> 31)) >> half;
-          mg = (mg & ~(mg >> 31)) >> half;
-          mb = (mb & ~(mb >> 31)) >> half;
-        } else {
-          // (halved, the sum is 31 at most: the original leaves it unclamped, the same thing)
-          mr = (r + sr) >> half;
-          mg = (g + sg) >> half;
-          mb = (b + sb) >> half;
-          int t = 31 - mr;
-          mr += t & (t >> 31);
-          t = 31 - mg;
-          mg += t & (t >> 31);
-          t = 31 - mb;
-          mb += t & (t >> 31);
-        }
-        r ^= (r ^ mr) & doM;
-        g ^= (g ^ mg) & doM;
-        b ^= (b ^ mb) & doM;
+  for (int x = x0; x < x1; x++) {
+    unsigned best = kNone;
+    for (int i = 0; i < nMain; i++) {
+      const Lay& ly = mainLay[i];
+      unsigned r = ly.rank[ly.px[x].pri & 7];
+      if (ly.win && ly.win[x]) r = kNone;
+      best = r < best ? r : best;
+    }
+    int mainL = 5;
+    uint16_t mainC = backdrop;
+    uint8_t mainPal = 0;
+    if (best != kNone) {
+      mainL = rankLayer[best];
+      const Px& p = layer_[mainL][x + kMaxExt];
+      mainC = p.col;
+      mainPal = p.pal;
+    }
+    int subL = 5;
+    uint16_t subC = fixed;
+    if (nSub) {
+      unsigned sbest = kNone;
+      for (int i = 0; i < nSub; i++) {
+        const Lay& ly = subLay[i];
+        unsigned r = ly.rank[ly.px[x].pri & 7];
+        if (ly.win && ly.win[x]) r = kNone;
+        sbest = r < sbest ? r : sbest;
       }
-      if (dim > 0 && mainL != 4) {  // (the margins' scenery; sprites, the HUD, as they are)
-        const int k = 256 - dim;
-        fb[x + kMaxExt] = (uint32_t(lut[r] * k >> 8) << 16) | (uint32_t(lut[g] * k >> 8) << 8) | (lut[b] * k >> 8);
+      if (sbest != kNone) {
+        subL = rankLayer[sbest];
+        subC = layer_[subL][x + kMaxExt].col;
+      }
+    }
+    const int cw = colWin[x] ? 1 : 0;
+    const bool clip = clipTab[cw];
+    const bool mathOk = mathTab[cw];
+    const bool layerMath = mainL == 4 ? objMath && mainPal >= 4 : layerMathTab[mainL];
+
+    int r = mainC & 31, g = (mainC >> 5) & 31, b = (mainC >> 10) & 31;
+    if (clip) r = g = b = 0;
+    if (mathOk && layerMath) {
+      int sr = subC & 31, sg = (subC >> 5) & 31, sb = (subC >> 10) & 31;
+      bool half = halfFlag && !clip && !(useSub && subL == 5);
+      if (subtract) {
+        r = std::max(0, r - sr);
+        g = std::max(0, g - sg);
+        b = std::max(0, b - sb);
+        if (half) { r >>= 1; g >>= 1; b >>= 1; }
       } else {
-        fb[x + kMaxExt] = (uint32_t(lut[r]) << 16) | (uint32_t(lut[g]) << 8) | lut[b];
+        r += sr;
+        g += sg;
+        b += sb;
+        if (half) { r >>= 1; g >>= 1; b >>= 1; }
+        else {
+          r = std::min(31, r);
+          g = std::min(31, g);
+          b = std::min(31, b);
+        }
       }
+    }
+    int dim = x < 0 ? dimLeft : x >= 256 ? dimRight : 0;
+    if (dim > 0 && mainL != 4) {  // (the margins' scenery; sprites, the HUD, as they are)
+      int k = 256 - dim;
+      fb[x + kMaxExt] = (uint32_t(lut[r] * k >> 8) << 16) | (uint32_t(lut[g] * k >> 8) << 8) | (lut[b] * k >> 8);
+    } else {
+      fb[x + kMaxExt] = (uint32_t(lut[r]) << 16) | (uint32_t(lut[g]) << 8) | lut[b];
     }
   }
 }

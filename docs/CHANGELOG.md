@@ -100,3 +100,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
 - 0041 (2026-11-10) — Run 039: la PPU por fases; la composición sale a ~300 ciclos por píxel en la consola. La
   composición sin saltos por píxel (rangos con aritmética, ventanas y color math con máscaras), exacta frame a
   frame; más lenta en x86, la consola decide (run 040).
+- 0042 (2026-11-11) — Run 040: la composición sin saltos va más lenta en la consola; revertida. El log mide el hilo
+  del rewind, que comparte núcleo con la emulación. Run 041 (rewind activado y desactivado).

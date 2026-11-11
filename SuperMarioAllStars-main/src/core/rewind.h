@@ -8,6 +8,7 @@
 #include <vector>
 #ifdef SMAS_XENON
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -31,6 +32,12 @@ public:
   const std::vector<uint8_t>& newest();
   size_t snapshots() const { return count_.load(std::memory_order_acquire); }
   static void (*threadStart)();  // (the thread placed: app_xenon.cpp, hardware thread 1)
+  // (task 0042: the thread's time on the differences since the last call, for the console's log; it shares a core
+  // with the emulation's thread)
+  void takeWork(uint64_t* us, uint32_t* count) {
+    *us = workUs_.exchange(0, std::memory_order_relaxed);
+    *count = works_.exchange(0, std::memory_order_relaxed);
+  }
 #endif
   // Steps back one snapshot: drops the newest and puts the one before it in
   // `out`. False when there is nothing older.
@@ -62,5 +69,7 @@ private:
   std::vector<uint8_t> pending_;
   bool hasPending_ = false, busy_ = false, quit_ = false;
   std::atomic<size_t> count_{0};
+  std::atomic<uint64_t> workUs_{0};
+  std::atomic<uint32_t> works_{0};
 #endif
 };

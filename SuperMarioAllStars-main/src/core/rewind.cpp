@@ -105,7 +105,11 @@ void Rewind::push(std::vector<uint8_t>&& state) {
         hasPending_ = false;
         busy_ = true;
         g.unlock();
+        const auto at = std::chrono::steady_clock::now();
         pushNow(s);
+        workUs_.fetch_add((uint64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+                              std::chrono::steady_clock::now() - at).count(), std::memory_order_relaxed);
+        works_.fetch_add(1, std::memory_order_relaxed);
         g.lock();
         busy_ = false;
         cv_.notify_all();

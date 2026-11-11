@@ -9,5 +9,15 @@
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`.
 - **Mirar en el log:** "composición" en la línea "PPU:" (antes 2,1-3,3 ms en 16:9). Si no baja, se revierte la
   tarea 0041.
-- **Resultado:** pendiente.
-- **Siguiente:** según la composición.
+- **Resultado:** Falla (la hipótesis). La fase "composición" **sube** en vez de bajar, por frame dibujado en 16:9:
+
+  | Escena | Run 039 | Run 040 |
+  |---|---|---|
+  | SMB3 | 2,1-3,3 ms | 3,0-4,8 ms |
+  | SMB1 | 2,1-2,9 ms | 3,9-4,3 ms |
+  | SMB2 | 2,5-2,7 ms | 4,0-4,3 ms |
+  | Co-op SMB1 | 2,2-2,9 ms | 3,7-4,3 ms |
+
+  - Los saltos no eran lo que costaba: la versión sin saltos hace más instrucciones y va más lenta, como en x86.
+  - El usuario no reporta fallos de imagen.
+- **Siguiente:** tarea 0042: se revierte la 0041.

@@ -274,3 +274,8 @@ La composición sale a unos 300 ciclos por píxel. La tarea 0041 la escribe sin 
 mínimo de rangos con aritmética, las ventanas como máscaras, el color math con máscaras, el bucle de capas
 desenrollado. En el ensamblador del `.xex`, de 187 a 110 saltos en la función, ninguno indirecto. En x86 va más
 lenta (allí los saltos casi no cuestan); la consola lo decide en la run 040 y, si no baja, se revierte.
+- **Run 040:** la composición sin saltos va más lenta en la consola (SMB3 de 2,1-3,3 a 3,0-4,8 ms; SMB1 y SMB2, a
+  ~4,2): los saltos no eran el coste. La tarea 0042 la revierte. El próximo intento tiene que bajar instrucciones o
+  cadenas dependientes.
+- **Sospecha nueva (tarea 0042):** el hilo del rewind (hilo hardware 1) comparte núcleo con el de la emulación
+  (el 0). El log dice ahora cuánto trabaja, y la run 041 compara un nivel con el rewind activado y desactivado.

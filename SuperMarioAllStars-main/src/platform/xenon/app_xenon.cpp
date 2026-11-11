@@ -313,6 +313,12 @@ void App::run() {
       statsf("  GPU %.2f ms por frame (%u muestras, la peor %.2f ms), espera al refresco %.2f ms de media",
              gpuSamples ? frameGpuUs / 1000.0 / gpuSamples : 0.0, (unsigned)gpuSamples, frameGpuWorst / 1000.0,
              passes ? vsyncUs / 1000.0 / passes : 0.0);
+      {  // (task 0042: the rewind's thread, on hardware thread 1, the emulation's core)
+        uint64_t us = 0;
+        uint32_t n = 0;
+        rewind.takeWork(&us, &n);
+        if (n) statsf("  hilo del rewind: %u diferencias, %.2f ms cada una, %.2f ms por segundo", (unsigned)n, us / 1000.0 / n, us / 1000.0 / 10.0);
+      }
       // (hito 8: what the game passes did, see App::prof)
       if (prof.frames) {
         static const char* const kFilters[] = {"Nearest", "Sharp", "Bilinear", "CRT Scanlines", "CRT Aperture", "LCD"};
