@@ -12,5 +12,6 @@
 - **Probado:** ninguno (solo documentación); los enlaces relativos del README se comprobaron uno a uno y las
   búsquedas de rutas absolutas de `AGENTS.md` §0 no encuentran nada.
 - **Estado:** hecho.
+- **Después:** se añadió la sección "How this port differs from the original" (qué agrega, cambia y no tiene respecto a upstream).
 - **Siguiente:** actualizar el README al cerrar cada hito (estado y rendimiento); en el hito 10, sustituir el paso de
   "compilar" por el paquete de release y añadir el aviso de licencias.

@@ -17,16 +17,17 @@ related names are trademarks of Nintendo. Please do not ask for, or share, ROM f
 ## Contents
 
 1. [What this is](#what-this-is)
-2. [How it was built](#how-it-was-built)
-3. [Current status](#current-status)
-4. [Repository map](#repository-map)
-5. [Document index](#document-index)
-6. [Building](#building)
-7. [Installing on the console](#installing-on-the-console)
-8. [Controls on the Xbox 360](#controls-on-the-xbox-360)
-9. [Testing and verification](#testing-and-verification)
-10. [How work is done in this repository](#how-work-is-done-in-this-repository)
-11. [Licenses and credits](#licenses-and-credits)
+2. [How this port differs from the original](#how-this-port-differs-from-the-original)
+3. [How it was built](#how-it-was-built)
+4. [Current status](#current-status)
+5. [Repository map](#repository-map)
+6. [Document index](#document-index)
+7. [Building](#building)
+8. [Installing on the console](#installing-on-the-console)
+9. [Controls on the Xbox 360](#controls-on-the-xbox-360)
+10. [Testing and verification](#testing-and-verification)
+11. [How work is done in this repository](#how-work-is-done-in-this-repository)
+12. [Licenses and credits](#licenses-and-credits)
 
 ---
 
@@ -85,6 +86,76 @@ flowchart TD
     XSDK --> XEX[SuperMarioAllStars.xex]
     XEX --> CON[Xbox 360 RGH]
 ```
+
+## How this port differs from the original
+
+"Original" means the upstream PC/Linux/Android port (v1.1.1). The games, the emulation core, the 82 achievements, the
+widescreen and co-op hooks, cheats, level select and music player are **the same code**; the Xbox port only changes
+it where the console requires it, always inside `#if` blocks with the original left in the `#else`, so PC and Android
+stay as upstream. What differs:
+
+### Added (not in upstream)
+
+- **A native Xbox 360 title**: `SuperMarioAllStars.xex` with its own title ID (`534D4153`), the name "Super Mario
+  All-Stars" and an XDBF resource like a retail game's, so the dashboard can identify it.
+- **A complete platform layer** (`src/platform/xenon/`): video and the app's `Canvas` on vulkan4xenon (batched quads,
+  text rasterized with `stb_truetype`, fonts embedded in the `.xex`), audio and gamepad input on SDL3, and the main
+  loop with a fixed 59.94 Hz pace.
+- **Console-specific controls**: the left stick as a D-pad by sectors (so a diagonal no longer reads as Down), Back +
+  RB / LB for save and load state, a right-stick click to switch between 4:3 and widescreen, Back + LB + RB held 3 s
+  to quit, and the Guide button to pause. Options > Hotkeys lists only what a controller has.
+- **A save-slot screen** between the launcher card and the game: the cartridge's four battery files (A-D, with world,
+  1P/2P and second-loop star, deletable with X) and a Save States tab with photo and date. States are kept **per
+  game** (`saves\states\<game>`), and loading one never overwrites the battery progress.
+- **Save & Quit returns to the launcher**, and starting a game is faster: after the first boot the title screen is
+  restored from an in-memory snapshot (~415 frames instead of ~770, drawn without rendering) behind a loading screen
+  that shows the game cover and the file's world.
+- **Default game covers cut from the ROM**: the first time, a hidden console runs the cartridge to its game-select
+  screen, crops the four game boxes and saves them to `saves\covers\`. Your own `covers\` still take priority.
+- **Launcher tuned for the console**: it starts on the four-game view ("Xbox 360 Edition"); the selected card's
+  emulation draws on the render threads and the others run at a fraction of the refresh (or not at all, with covers).
+- **Game filters as precompiled shaders**: Nearest, Sharp Bilinear, Bilinear, CRT, CRT aperture, LCD Grid, scanlines
+  and curvature are 26 minimal shader variants, one pipeline each, and the colour options (profile, brightness,
+  contrast, saturation, gamma, temperature, colour-blindness) go through a 32×32×32 lookup table computed on the CPU.
+  A single all-in-one shader dropped the GPU to 30 fps on the Xenos.
+- **Performance work for an in-order 3.2 GHz PowerPC**: a fast PPU path (`SMAS_PPU_FAST`, identical frame by frame to
+  the original), per-line drawing on two hardware threads, widescreen hooks and margins drawn on those threads,
+  page-based CPU reads for co-op (`SMAS_CPU_FAST`), rewind differences computed on another thread, and an 8-bytes-at-a-
+  time state CRC. Audio runs on its own hardware thread. See [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
+- **Console-friendly logging and measurement**: the log is kept in memory and written on pause or exit (USB writes
+  are slow), and `smas_port.log` gets a line every 10 s with emulation, PPU phases, rewind, UI and GPU times.
+- **Credits** with an "Xbox 360 port" and "Built with" section; menus and the new screens follow the chosen menu style
+  (Storybook, Retro, Themed Dark, Classic).
+- **Bug fixes found while porting** (`SMAS_PORT_FIXES`, listed in [`docs/UPSTREAM.md`](docs/UPSTREAM.md)): an
+  out-of-bounds read and write in SMB2's edge search, plus a big-endian fix in MSU-1.
+- **Verification tooling**: x86 vs big-endian PowerPC comparison under qemu, frame-by-frame PPU comparison, and a
+  record of every test in `runs/`.
+
+### Changed or adapted
+
+- **Controller only**: no keyboard, so keyboard bindings and the Windows-style Hotkeys are replaced by gamepad ones;
+  rewind and fast forward stay on LT / RT as on PC.
+- **Files live next to the `.xex`** (`game:\`): ROM, `saves\`, `smas_port.ini`, `achievements.ini`, `covers\`,
+  `msu\`. The ROM is looked for beside the `.xex` or in `roms\`; there is no file picker, so ROM and covers are
+  copied over by hand, and Options creates the covers and MSU-1 folders instead of opening them.
+- **Save states are not interchangeable with PC** (different byte order); `loadState` rejects them. Battery saves
+  (`.srm`), settings and PNGs are portable.
+- **Side Borders "Blurred Game"** and the colour filters are drawn by the console's own renderer, not GLES.
+- **Quit to Desktop** returns to the dashboard.
+
+### Not available on Xbox
+
+- Windowed / full-screen modes, monitors, configurable VSync, Black Frame Insertion and High Frame Rate.
+- slang shaders (librashader is a Windows DLL).
+- The file picker, the web browser, the update check, and Take Screenshot (the links in Credits are shown but not
+  opened).
+- Keyboard input, and the *Super Mario All-Stars + Super Mario World* ROM (not accepted; see
+  [`docs/tasks/0028-aspecto-y-ritmo.md`](docs/tasks/0028-aspecto-y-ritmo.md)).
+
+### Still to come
+
+- **Native Xbox 360 achievements** that mirror the game's 82 (plan in
+  [`docs/ACHIEVEMENTS_X360.md`](docs/ACHIEVEMENTS_X360.md)); today only the game's own achievement system works.
 
 ## How it was built
 
