@@ -102,3 +102,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   frame; más lenta en x86, la consola decide (run 040).
 - 0042 (2026-11-11) — Run 040: la composición sin saltos va más lenta en la consola; revertida. El log mide el hilo
   del rewind, que comparte núcleo con la emulación. Run 041 (rewind activado y desactivado).
+- 0043 (2026-11-10) — README.md en la raíz: qué es el port, cómo se construyó, estado, build, instalación en la
+  consola, controles, índice de documentos.

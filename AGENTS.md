@@ -83,7 +83,7 @@ El juego **no contiene datos del cartucho**: corre desde la ROM del usuario. La 
 | vulkan4xenon | `vulkan4xenon-main/` | `include/vulkan4xenon.h`, `docs/SUPPORT.md`, `tools/build_shaders.py` |
 | SDL-xenon | `SDL-xenon-xenon/` | `docs/README-xsdk.md` |
 | Xenia (fork para xsdk) | `XSDK Xenia/xsdk_xenia.exe` | `xenia_canary.exe` es el mismo binario (mismo MD5) |
-| Documentación del port | `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/PERFORMANCE.md`, `docs/UPSTREAM.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
+| Documentación del port | `README.md` (entrada: qué es, estado, build, instalación, índice), `docs/` | `docs/ROADMAP.md`, `docs/ENDIANNESS.md`, `docs/PERFORMANCE.md`, `docs/UPSTREAM.md`, `docs/ACHIEVEMENTS_X360.md`, `docs/tasks/` |
 | Port de referencia (BT3, PS2 → Xbox 360) | `../Varios/Tenkaichi3Decomp-main/Tenkaichi3Decomp-main` | Solo lectura. `AGENTS.md`, `docs/port/xenon_*.md`, `bt3xbx-main/docs/x360/guia-de-port.md` §5 |
 | Runs (pruebas) | `runs/` | Ver §9 |
 | Builds | `build-xenon/` (y `build-*` en las dependencias) | Ignorados por git |
