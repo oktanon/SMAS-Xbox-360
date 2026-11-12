@@ -112,3 +112,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   `make_release.sh`; README.md más corto. La escritura atómica de los guardados ya estaba. Run 043.
 - 0046 (2026-11-12) — Licencia MIT (Ttano), "Ported by Ttano" en Credits, el `.xex` con el XDBF de xsdk como Stick
   Fight (fuera `elf2xex_spa.py`), `publish_release.sh` y las notas de la 1.0 para el release de GitHub.
+- 0047 (2026-11-12) — Run 043: instalación limpia en la consola, el nombre sale en Aurora. Hito 10 cerrado: versión
+  1.0.

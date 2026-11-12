@@ -18,5 +18,12 @@
   6. Leer el `README.txt` del paquete y decir si falta o sobra algo.
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log` de la carpeta nueva.
 - **Mirar en el log:** que arranca sin archivos previos; "CPU, APU y juegos" de vuelta a ~5,2 ms (~7,5 en co-op).
-- **Resultado:** pendiente.
-- **Siguiente:** si va bien, cerrar el hito 10 y la versión 1.0.
+- **Orden:** carpeta nueva; SMB1, The Lost Levels, SMB2 (4:3 y 16:9) y SMB3 en 16:9, con rewind y filtro Sharp.
+- **Resultado:** OK. **Aurora muestra "Super Mario All-Stars"** (usuario).
+  - Arranca sin archivos previos: crea `saves`, corta las portadas de la ROM (las primeras pasadas del launcher,
+    con refrescos perdidos mientras las corta) y encuentra la ROM.
+  - Sin el hilo de la APU, "CPU, APU y juegos" vuelve a ~4,8-5,2 ms y el snapshot del rewind a ~0,95 ms.
+  - En juego, muchos tramos de 10 s con 0 refrescos perdidos; los demás pierden 3-34, con picos aislados (el peor
+    de cada tramo, 20-570 ms: cargas, menús, cambios de juego).
+  - No se jugó el co-op en esta run (medido en la 041: ~16 ms en 16:9).
+- **Siguiente:** hito 10 cerrado: subir los commits y el release 1.0 (`publish_release.sh`).

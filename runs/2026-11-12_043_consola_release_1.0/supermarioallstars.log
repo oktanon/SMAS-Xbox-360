@@ -1,0 +1,84 @@
+log: game:\supermarioallstars.log
+log: named after \Device\Mass0\games\supermarioallstars-x360-1.0\supermarioallstars.xex
+log: no net_log.txt beside the .xex, so not over the network
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 23743 us
+mkdir: NtCreateFile(game:\saves) failed: 0xC0000035
+display: 1280x720 scaled to the 1920x1080 output
+display: the line counter reached 720 after 30353 us
+video: pantalla Xbox 360 video output, 1280x720 a 59940 mHz
+open: NtCreateFile(game:\rompath.txt) failed: 0xC0000034
+open: NtCreateFile(game:\saves\smas.srm) failed: 0xC0000034
+open: NtCreateFile(game:\saves\covers\smb1.png) failed: 0xC000003A
+open: NtCreateFile(game:\saves\covers\lostlevels.png) failed: 0xC000003A
+open: NtCreateFile(game:\saves\covers\smb2.png) failed: 0xC000003A
+open: NtCreateFile(game:\saves\covers\smb3.png) failed: 0xC000003A
+open: NtCreateFile(game:\saves\covers\allstars.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.JPEG) failed: 0xC000003A
+mkdir: NtCreateFile(game:\saves\covers) failed: 0xC0000035
+mkdir: NtCreateFile(game:\saves\covers) failed: 0xC0000035
+mkdir: NtCreateFile(game:\saves\covers) failed: 0xC0000035
+mkdir: NtCreateFile(game:\saves\covers) failed: 0xC0000035
+open: NtCreateFile(game:\covers\smb1.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb1.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\lostlevels.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb2.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\smb3.JPEG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.png) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.jpg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.jpeg) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.PNG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.JPG) failed: 0xC000003A
+open: NtCreateFile(game:\covers\allstars.JPEG) failed: 0xC000003A
+mkdir: NtCreateFile(game:\saves\states) failed: 0xC0000035
+mkdir: NtCreateFile(game:\saves\states) failed: 0xC0000035
+mkdir: NtCreateFile(game:\saves\states) failed: 0xC0000035
+exit: status 0
