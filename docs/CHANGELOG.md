@@ -108,3 +108,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   (`SMAS_APU_THREAD`, hilo hardware 1), con los mismos resultados con hilo y sin él. Run 042.
 - 0044 (2026-11-12) — Run 042: el hilo de la APU empeora (comparte núcleo con la emulación, que lo espera); apagado
   en la consola. Hitos 5, 6 y 8 cerrados, hito 9 pospuesto, hito 10 en curso.
+- 0045 (2026-11-12) — Paquete de release 1.0 (`xenon/release/`): README para jugadores, avisos de licencias,
+  `make_release.sh`; README.md más corto. La escritura atómica de los guardados ya estaba. Run 043.

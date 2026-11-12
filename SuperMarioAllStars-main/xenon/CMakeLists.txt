@@ -116,7 +116,7 @@ xsdk_add_xex(smas_jugar NAME "SMAS hito 4")
 # Con su ID de título y su nombre (AGENTS.md §7): un solo sitio para los dos, SMAS_TITLE_ID / SMAS_TITLE_NAME.
 set(SMAS_TITLE_ID 534D4153)  # "SMAS"
 set(SMAS_TITLE_NAME "Super Mario All-Stars")
-set(SMAS_VERSION 0.5.0.0)    # (hito 5)
+set(SMAS_VERSION 1.0.0.0)    # (hito 10: la primera versión publicada)
 set(SMAS_FONTS ${GAME_DIR}/third_party/fonts)
 add_executable(SuperMarioAllStars
   ${SRC}/app/app.cpp

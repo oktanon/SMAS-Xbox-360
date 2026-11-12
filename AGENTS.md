@@ -135,6 +135,11 @@ resultados son los mismos, runs 010 y 012) y con `SMAS_XENON`, `SMAS_BIG_ENDIAN`
 en `build-xenon/consola/<hito>/`; para Xenia, una copia en `build-xenon/xenia/<hito>/` (Xenia escribe junto al
 `.xex`).
 
+El paquete de release (hito 10) lo arma `SuperMarioAllStars-main/xenon/release/make_release.sh <versión>` en
+`build-xenon/release/`: el `.xex`, el `README.txt` para jugadores (en inglés, `xenon/release/README.txt`), los avisos
+de licencias (`THIRD_PARTY_NOTICES.txt`, hecho con los archivos de licencia de cada proyecto) y el `.zip`. La versión
+del título está en `SMAS_VERSION` (`xenon/CMakeLists.txt`).
+
 Cada link de xsdk ejecuta `tools/xenia_scan.py`, que lista instrucciones que Xenia no implementa: si aparece una
 función del juego, cualquier resultado de Xenia que pase por ella **no vale**.
 
