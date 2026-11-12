@@ -29,7 +29,6 @@ now and then. SMB3 co-op and the SMB3 battle game in widescreen are the least sm
 - Save states are not compatible with the PC version (different byte order). Battery saves, settings and PNGs are.
 - The *Super Mario All-Stars + Super Mario World* ROM is not supported.
 - No keyboard, file picker, slang shaders, window modes or network features.
-- Some dashboards show the file name instead of the title, although the `.xex` carries its XDBF.
 
 Full roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
@@ -109,6 +108,14 @@ The release package (the `.xex`, `README.txt` and `THIRD_PARTY_NOTICES.txt`, plu
 wsl.exe -d Ubuntu --exec bash -c 'bash SuperMarioAllStars-main/xenon/release/make_release.sh 1.0'
 ```
 
+A GitHub release carries only the `.xex`, with the English notes in `SuperMarioAllStars-main/xenon/release/notes/`.
+`publish_release.sh` makes it with `gh` from Git Bash, as a draft unless given `--publish` (GitHub Actions can't
+build the `.xex`: the toolchain and the SDKs aren't in the repository):
+
+```bash
+bash SuperMarioAllStars-main/xenon/release/publish_release.sh 1.0
+```
+
 Shaders, test titles and compiler flags: [`AGENTS.md`](AGENTS.md) §3.
 
 ## Testing
@@ -130,10 +137,12 @@ never commit the ROM, saves or builds; SDL-xenon is not modified. The work was d
 
 ## Licenses and credits
 
+- The Xbox 360 port is by **Ttano**, under the MIT licence ([`LICENSE`](LICENSE)).
 - The PC port is by **Darhkfox** (MIT, [`SuperMarioAllStars-main/LICENSE`](SuperMarioAllStars-main/LICENSE)).
 - **xsdk** and **vulkan4xenon** (MIT, with libxenon and Xenia code under the 3-clause BSD licence inside xsdk),
   **SDL 3** (zlib), the **DejaVu Sans** (Bitstream Vera licence) and **Luckiest Guy** (Apache 2.0) fonts, and
-  **stb_truetype** / **stb_image** (public domain) go into the `.xex`. The release package carries all their notices
-  in `THIRD_PARTY_NOTICES.txt`, built by `make_release.sh` from each project's own licence files.
+  **stb_truetype** / **stb_image** (public domain) go into the `.xex`. Their notices are in
+  [`THIRD_PARTY_NOTICES.txt`](THIRD_PARTY_NOTICES.txt), which `make_release.sh` builds from each project's own licence
+  files.
 - *Super Mario All-Stars* and its characters are the property of Nintendo. This repository contains no ROMs or data
   extracted from them.

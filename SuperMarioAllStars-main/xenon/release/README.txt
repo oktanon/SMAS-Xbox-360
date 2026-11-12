@@ -59,7 +59,6 @@ PERFORMANCE AND KNOWN LIMITATIONS
 - No keyboard, no file picker, no network features.
 - Native Xbox 360 achievements are not included (the game's own achievements
   work, with their in-game banner).
-- Some dashboards show the file name instead of the game's title.
 
 If something goes wrong, the logs beside the .xex (smas_port.log and
 SuperMarioAllStars.log) say what happened.
@@ -67,4 +66,5 @@ SuperMarioAllStars.log) say what happened.
 
 LICENSES
 --------
-See THIRD_PARTY_NOTICES.txt in this package.
+The port is by Ttano, under the MIT licence. The notices of everything inside
+the .xex are in THIRD_PARTY_NOTICES.txt in this package.

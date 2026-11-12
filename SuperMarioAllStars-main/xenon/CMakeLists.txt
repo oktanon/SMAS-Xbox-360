@@ -151,16 +151,8 @@ set_source_files_properties(${SRC}/platform/xenon/fonts_xenon.cpp PROPERTIES
   COMPILE_DEFINITIONS "SMAS_FONT_DIR=\"${SMAS_FONTS}\""
   OBJECT_DEPENDS "${SMAS_FONTS}/LuckiestGuy-Regular.ttf;${SMAS_FONTS}/DejaVuSans.ttf;${SMAS_FONTS}/DejaVuSans-Bold.ttf")
 set_target_properties(SuperMarioAllStars PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON C_STANDARD 17 C_EXTENSIONS ON)
-# Como xsdk_add_xex (xsdk-main/cmake/xsdk.cmake), con xenon/tools/elf2xex_spa.py: el elf2xex.py de xsdk tal cual, con
-# un XDBF como el SPA de un juego (XTHD, XACH, XSTC, XSTR): con solo el nombre, Aurora mostraba el del archivo (run 022).
-function(smas_add_xex target title_id title_name version)
-  set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${XSDK_ROOT}/build/libxsdk.a" "${XSDK_ROOT}/src/xsdk.ld")
-  add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND sh -c "'${CMAKE_OBJDUMP}' -d '$<TARGET_FILE:${target}>' | python3 '${XSDK_ROOT}/tools/xenia_scan.py'"
-    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/elf2xex_spa.py" "${XSDK_ROOT}/tools/elf2xex.py"
-      --title-id ${title_id} --title-name "${title_name}" --version ${version}
-      "$<TARGET_FILE:${target}>" "$<TARGET_FILE_DIR:${target}>/${target}.xex"
-    VERBATIM)
-endfunction()
-smas_add_xex(SuperMarioAllStars ${SMAS_TITLE_ID} "${SMAS_TITLE_NAME}" ${SMAS_VERSION})
+# Con xsdk_add_xex tal cual, como Stick Fight, cuyo nombre sí sale en Aurora: el XDBF de xsdk (XSTC y XSTR). El de
+# la tarea 0022 (XTHD y XACH de más, xenon/tools/elf2xex_spa.py, ya quitado) no cambió nada (run 023); lo más probable
+# es que Aurora guardó la entrada de la carpeta antes de que el .xex tuviera nombre (tarea 0046).
+xsdk_add_xex(SuperMarioAllStars TITLE_ID ${SMAS_TITLE_ID} NAME "${SMAS_TITLE_NAME}" VERSION ${SMAS_VERSION})
 

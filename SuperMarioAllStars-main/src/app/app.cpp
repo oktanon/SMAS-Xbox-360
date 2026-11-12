@@ -1615,7 +1615,7 @@ std::shared_ptr<MenuPage> App::pageCredits() {
       pg.items.push_back(it);
     };
     pg.items.push_back(MenuItem::separator("Xbox 360 port"));
-    credit("Ported by", "estan", "The port of the PC port to the Xbox 360.");
+    credit("Ported by", "Ttano", "The port of the PC port to the Xbox 360.");
     pg.items.push_back(MenuItem::separator("Built with"));
     credit("xsdk", "Xbox 360 homebrew SDK", "The toolchain and system library.");
     credit("vulkan4xenon", "Vulkan on Xenos", "The graphics.");

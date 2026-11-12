@@ -120,8 +120,8 @@ wsl.exe -d Ubuntu --exec bash -c 'cd SDL-xenon-xenon && cmake -S test/xsdk -B bu
 #    hoy: smas_hito2.xex + guion.txt (hitos 2 y 2b), smas_video.xex + guion_video.txt (hito 3, enlaza
 #    vulkan4xenon-main/build/libvulkan4xenon.a), smas_jugar.xex (hito 4: el cartucho sin la App, con SDL3 de
 #    SDL-xenon-xenon/build-xsdk) y SuperMarioAllStars.xex, el juego (hito 5: la App entera; ID de título 534D4153,
-#    nombre "Super Mario All-Stars"; empaquetado con xenon/tools/elf2xex_spa.py, el elf2xex.py de xsdk con un XDBF
-#    como el SPA de un juego). Solo el juego: cmake --build build-xenon --target SuperMarioAllStars
+#    nombre "Super Mario All-Stars"; con xsdk_add_xex, el XDBF de xsdk tal cual, como Stick Fight). Solo el juego:
+#    cmake --build build-xenon --target SuperMarioAllStars
 wsl.exe -d Ubuntu --exec bash -c 'cmake -S SuperMarioAllStars-main/xenon -B build-xenon -GNinja -DCMAKE_TOOLCHAIN_FILE=$PWD/xsdk-main/cmake/xsdk.cmake -DCMAKE_BUILD_TYPE=Release && cmake --build build-xenon'
 # 5. Shaders del port (solo si cambia src/platform/xenon/shaders/*): GLSL -> SPIR-V (glslang de WSL) -> Xenos (xost)
 #    -> screen_shaders.c/.h (hito 3) y canvas_shaders.c/.h (el juego), que se suben al repositorio
@@ -138,7 +138,10 @@ en `build-xenon/consola/<hito>/`; para Xenia, una copia en `build-xenon/xenia/<h
 El paquete de release (hito 10) lo arma `SuperMarioAllStars-main/xenon/release/make_release.sh <versión>` en
 `build-xenon/release/`: el `.xex`, el `README.txt` para jugadores (en inglés, `xenon/release/README.txt`), los avisos
 de licencias (`THIRD_PARTY_NOTICES.txt`, hecho con los archivos de licencia de cada proyecto) y el `.zip`. La versión
-del título está en `SMAS_VERSION` (`xenon/CMakeLists.txt`).
+del título está en `SMAS_VERSION` (`xenon/CMakeLists.txt`). El release de GitHub lleva solo el `.xex`:
+`xenon/release/publish_release.sh <versión> [--publish]` (Git Bash, `gh`) lo crea con las notas en inglés de
+`xenon/release/notes/<versión>.md`, como borrador si no se le pasa `--publish`. Pide el commit subido a
+`origin/main`; publicar es del usuario.
 
 Cada link de xsdk ejecuta `tools/xenia_scan.py`, que lista instrucciones que Xenia no implementa: si aparece una
 función del juego, cualquier resultado de Xenia que pase por ella **no vale**.

@@ -11,7 +11,7 @@ game="$root/SuperMarioAllStars-main"
 xex="$root/build-xenon/SuperMarioAllStars.xex"
 out="$root/build-xenon/release/SuperMarioAllStars-x360-$ver"
 [ -f "$xex" ] || { echo "falta build-xenon/SuperMarioAllStars.xex: compilarlo antes" >&2; exit 1; }
-for f in "$game/LICENSE" "$root/xsdk-main/LICENSE" "$root/xsdk-main/THIRD_PARTY_NOTICES.md" \
+for f in "$root/LICENSE" "$game/LICENSE" "$root/xsdk-main/LICENSE" "$root/xsdk-main/THIRD_PARTY_NOTICES.md" \
          "$root/vulkan4xenon-main/LICENSE" "$root/SDL-xenon-xenon/LICENSE.txt" \
          "$game/third_party/fonts/DejaVu-LICENSE.txt" "$game/third_party/fonts/LICENSE.txt"; do
   [ -f "$f" ] || { echo "falta ${f#$root/}" >&2; exit 1; }
@@ -27,6 +27,8 @@ section() { printf '\n\n%s\n%s\n\n' "$1" "$(printf '%*s' ${#1} '' | tr ' ' '=')"
   echo
   echo "SuperMarioAllStars.xex contains code and data from the projects below. Each"
   echo "notice is reproduced as its project ships it."
+  section "Super Mario All-Stars for Xbox 360 (Ttano), MIT License"
+  cat "$root/LICENSE"
   section "Super Mario All-Stars PC port (Darhkfox), MIT License"
   cat "$game/LICENSE"
   section "xsdk, MIT License"
@@ -50,6 +52,8 @@ section() { printf '\n\n%s\n%s\n\n' "$1" "$(printf '%*s' ${#1} '' | tr ' ' '=')"
   echo "libgcc and libstdc++ (GCC) are used under the GCC Runtime Library Exception."
   echo "The C library is newlib, under the permissive licenses listed in its COPYING.NEWLIB."
 } | sed 's/\r$//; s/$/\r/' > "$out/THIRD_PARTY_NOTICES.txt"
+# (también en la raíz del repositorio, con LF: el release de GitHub lleva solo el .xex y las notas enlazan este)
+sed 's/\r$//' "$out/THIRD_PARTY_NOTICES.txt" > "$root/THIRD_PARTY_NOTICES.txt"
 
 (cd "$out" && sha1sum SuperMarioAllStars.xex > SHA1SUMS.txt)
 (cd "$out/.." && python3 -c "import shutil,sys; shutil.make_archive(sys.argv[1], 'zip', '.', sys.argv[1])" "$(basename "$out")")

@@ -110,3 +110,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   en la consola. Hitos 5, 6 y 8 cerrados, hito 9 pospuesto, hito 10 en curso.
 - 0045 (2026-11-12) — Paquete de release 1.0 (`xenon/release/`): README para jugadores, avisos de licencias,
   `make_release.sh`; README.md más corto. La escritura atómica de los guardados ya estaba. Run 043.
+- 0046 (2026-11-12) — Licencia MIT (Ttano), "Ported by Ttano" en Credits, el `.xex` con el XDBF de xsdk como Stick
+  Fight (fuera `elf2xex_spa.py`), `publish_release.sh` y las notas de la 1.0 para el release de GitHub.
