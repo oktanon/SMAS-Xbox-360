@@ -258,7 +258,8 @@ Puntos de riesgo que hay que tratar explícitamente:
   - Cambios en código común solo dentro de `#if`, con el original en el `#else`. `SMAS_BIG_ENDIAN` para correcciones
     de bytes (valen en qemu y en Xbox); `SMAS_XENON` para comportamiento de consola (solo en el `.xex`);
     `SMAS_PPU_FAST` para la PPU rápida y en hilos (`docs/PERFORMANCE.md` §3.1 y §3.3); `SMAS_CPU_FAST` para las
-    lecturas de la CPU por páginas (`docs/PERFORMANCE.md` §8); `SMAS_APU_THREAD` para la APU en su hilo (§11);
+    lecturas de la CPU por páginas (`docs/PERFORMANCE.md` §8); `SMAS_APU_THREAD` para la APU en su hilo
+    (§11; apagado en la consola desde la tarea 0044, run 042);
     `SMAS_PORT_FIXES` para
     corregir fallos de upstream (cada uno anotado en `docs/UPSTREAM.md`, para reportarlo). `SMAS_PPU_FAST`,
     `SMAS_CPU_FAST`, `SMAS_APU_THREAD` y `SMAS_PORT_FIXES` valen en qemu y en el `.xex`.

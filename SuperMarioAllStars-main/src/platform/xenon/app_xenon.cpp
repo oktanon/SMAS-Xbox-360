@@ -266,7 +266,9 @@ void App::run() {
     // One pool of render threads at a time (idle ones spin): the game's console while playing, the chosen card's in
     // the launcher (run 024).
     if (snes) snes->ppu.setRenderThreads(inLauncher ? 0 : 2);
-    if (snes) snes->setApuThread(!inLauncher);  // (task 0043: the APU on hardware thread 1, the emulation's core)
+    // (task 0044: the APU stays in the emulation's thread. Its own thread on hardware thread 1, task 0043, made the
+    // CPU 0.6 ms slower per frame, 1 ms in co-op, and doubled the rewind's snapshot: same core, many syncs, run 042)
+    if (snes) snes->setApuThread(false);
     launcher.previewThreads(inLauncher);
     // The keys' lines with the controller's buttons (the menus' face buttons by position, as Menu Buttons sets; as
     // letters: the fonts have no circled ones, run 025)
@@ -363,8 +365,7 @@ int main() {
   std::setvbuf(stdout, nullptr, _IOLBF, 0);
   xsdk_splash_show(1500);
   Ppu::renderThreadStart = placeRenderThread;
-  // (task 0043: the APU's thread on hardware thread 1, beside the emulation's: run 041 showed a thread there takes
-  // little from it; the render threads' cores stay theirs)
+  // (task 0043: the APU's thread, if turned on, on hardware thread 1; off since task 0044)
   Snes::apuThreadStart = [] { xsdk_thread_move(1); };
   Rewind::threadStart = [] { xsdk_thread_move(1); };  // (the rewind's differences: hardware thread 1, free)
   std::unique_ptr<App> app = std::make_unique<App>();

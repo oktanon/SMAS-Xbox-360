@@ -106,3 +106,5 @@ Una línea por tarea; el detalle está en `docs/tasks/`.
   consola, controles, índice de documentos.
 - 0043 (2026-11-11) — Run 041: el hilo del rewind apenas le quita tiempo a la emulación. La APU en su propio hilo
   (`SMAS_APU_THREAD`, hilo hardware 1), con los mismos resultados con hilo y sin él. Run 042.
+- 0044 (2026-11-12) — Run 042: el hilo de la APU empeora (comparte núcleo con la emulación, que lo espera); apagado
+  en la consola. Hitos 5, 6 y 8 cerrados, hito 9 pospuesto, hito 10 en curso.

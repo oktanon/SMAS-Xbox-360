@@ -11,5 +11,12 @@
   3. Guardar y cargar un state, y mantener el rewind un momento.
 - **Devolver:** `smas_port.log` y `SuperMarioAllStars.log`.
 - **Mirar en el log:** "CPU, APU y juegos" y "frame saltado" (antes ~5,0 ms solos y ~7,4 en co-op).
-- **Resultado:** pendiente.
-- **Siguiente:** según la run.
+- **Orden:** SMB3, SMB2 y SMB1 en 16:9 con rewind; después, co-op de SMB1 en 16:9 con rewind (varios filtros).
+- **Resultado:** OK, medido. **El hilo de la APU empeora** (frente a la run 041):
+  - "CPU, APU y juegos" con un jugador: ~5,75 ms frente a ~5,2;
+  - en el co-op de SMB1: ~8,6 ms frente a ~7,5; frame dibujado ~17,6 ms frente a ~16,0;
+  - el snapshot del rewind: ~1,9 ms frente a ~1,0 (espera a que la APU esté quieta);
+  - tramos con el audio vacío alguna vez: 28 frente a 20.
+  - La emulación y la APU comparten núcleo, la CPU espera a la APU en cada acceso a los puertos y los ganchos del
+    co-op la sincronizan varias veces por frame: más esperas, poco paralelo de verdad.
+- **Siguiente:** tarea 0044: el hilo de la APU apagado en la consola; el hito 8 cerrado.

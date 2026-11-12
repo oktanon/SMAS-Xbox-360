@@ -287,3 +287,22 @@ lenta (allí los saltos casi no cuestan); la consola lo decide en la run 040 y, 
 - **`SMAS_APU_THREAD`:** la APU corre en el hilo hardware 1, hasta el tiempo que la CPU publica en cada línea;
   en los puertos y al final del frame, la CPU espera a que llegue. Mismos resultados con hilo y sin él (los dos
   guiones, el audio incluido). La consola dirá cuánto baja "CPU, APU y juegos".
+- **Run 042: empeora.** "CPU, APU y juegos" sube de ~5,2 a ~5,75 ms con un jugador y de ~7,5 a ~8,6 en el co-op
+  de SMB1; el snapshot del rewind, de ~1,0 a ~1,9 ms. Un hilo que solo trabaja en paralelo (el rewind) sale barato
+  en el núcleo de la emulación; uno al que la CPU espera muchas veces por frame (puertos `$2140-$2143`, ganchos del
+  co-op, states), no. **Tarea 0044:** apagado en la consola; el código queda bajo la macro.
+
+## 12. Cierre del hito 8 (tarea 0044)
+
+Frame dibujado en 16:9 con el rewind activado. SMB3 y el co-op, run 041 (sin hilo de la APU); SMB1 y SMB2, run 042
+(con el hilo, que les suma ~0,5 ms: con él apagado quedan un poco por debajo):
+
+| Juego | Frame dibujado | PPU | CPU, APU y juegos |
+|---|---|---|---|
+| SMB1 | ~14,6 ms | ~8,9 ms | ~5,7 ms |
+| SMB2 | ~15,1 ms | ~9,4 ms | ~5,7 ms |
+| SMB3 | ~14,6 ms | ~9,4 ms | ~5,2 ms |
+| Co-op de SMB1 | ~16,0 ms | ~8,6 ms | ~7,5 ms |
+
+En 4:3, todo con más margen. El co-op de SMB1 queda justo en los 16,7 ms (algún frame saltado, jugable). La batalla
+de SMB3 a dos y el co-op de SMB3 en 16:9 quedan como lo menos pulido.
